@@ -1,6 +1,7 @@
 import { URLExt } from '@jupyterlab/coreutils';
-
 import { ServerConnection } from '@jupyterlab/services';
+
+import { EXTENSION_ID } from '../const';
 
 /**
  * Call the API extension
@@ -17,7 +18,7 @@ export async function requestAPI<T>(
   const settings = ServerConnection.makeSettings();
   const requestUrl = URLExt.join(
     settings.baseUrl,
-    'rucio-jupyterlab', // API Namespace
+    EXTENSION_ID, // API Namespace
     endPoint
   );
 

@@ -1,0 +1,14 @@
+.jp-RucioExtensionPanel {
+    background-color: white;
+}
+
+.jp-icon-rucio {
+    background-image: url("img/rucio-logo.svg");
+}
+
+.jp-logo-rucio {
+    height: 28px;
+    background-image: url("img/rucio-logo-horz.svg");
+    background-size: auto 100%;
+    background-repeat: no-repeat;
+}
