@@ -17,7 +17,12 @@ const extension: JupyterFrontEndPlugin<void> = {
   id: EXTENSION_ID,
   autoStart: true,
   requires: [ICommandPalette, ILabShell, ISettingRegistry],
-  activate: (app: JupyterFrontEnd, palette: ICommandPalette, labShell: ILabShell, settingRegistry: ISettingRegistry) => {
+  activate: (
+    app: JupyterFrontEnd,
+    palette: ICommandPalette,
+    labShell: ILabShell,
+    settingRegistry: ISettingRegistry
+  ) => {
     console.log('JupyterLab extension rucio-jupyterlab is activated!');
 
     const panel = new ExtensionPanel({

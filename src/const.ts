@@ -1,1 +1,1 @@
-export const EXTENSION_ID = 'rucio-jupyterlab'
+export const EXTENSION_ID = 'rucio-jupyterlab';
