@@ -6,7 +6,7 @@ import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { Session } from '@jupyterlab/services';
 
 import KernelListener from '../helpers/KernelListener';
-import { Header } from '../components/Header';
+import { Panel } from '../components/Panel';
 
 export interface ExtensionPanelOptions {
     app: JupyterFrontEnd,
@@ -42,7 +42,7 @@ export class ExtensionPanel extends VDomRenderer {
     }
 
     render() {
-      return (<div><Header /></div>);
+      return (<Panel />);
     }
 
     private onKernelAdded(model: Session.IModel) {
