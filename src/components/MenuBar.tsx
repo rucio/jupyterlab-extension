@@ -15,7 +15,7 @@ const useStyles = createUseStyles({
     padding: '8px 12px 8px 12px',
     textTransform: 'uppercase',
     borderRadius: '4px 4px 0 0',
-    fontSize: '10pt',
+    fontSize: '9pt',
     cursor: 'pointer',
     '&:hover': {
       background: '#f9f9f9'
