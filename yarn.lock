@@ -1239,6 +1239,11 @@ ignore@^4.0.6:
   resolved "https://registry.yarnpkg.com/ignore/-/ignore-4.0.6.tgz#750e3db5862087b4737ebac8207ffd1ef27b25fc"
   integrity sha512-cyFDKrqc/YdcWFniJhzI42+AzS+gNwmUzOSFcRCQYwySuBBBy/KjuxWLZ/FHEH6Moq1NizMOBWyTcv8O4OZIMg==
 
+immer@^5.3.6:
+  version "5.3.6"
+  resolved "https://registry.yarnpkg.com/immer/-/immer-5.3.6.tgz#51eab8cbbeb13075fe2244250f221598818cac04"
+  integrity sha512-pqWQ6ozVfNOUDjrLfm4Pt7q4Q12cGw2HUZgry4Q5+Myxu9nmHRkWBpI0J4+MK0AxbdFtdMTwEGVl7Vd+vEiK+A==
+
 import-fresh@^3.0.0:
   version "3.2.1"
   resolved "https://registry.yarnpkg.com/import-fresh/-/import-fresh-3.2.1.tgz#633ff618506e793af5ac91bf48b72677e15cbe66"
@@ -1813,6 +1818,14 @@ prop-types@^15.5.8, prop-types@^15.6.0, prop-types@^15.6.1, prop-types@^15.6.2, 
     loose-envify "^1.4.0"
     object-assign "^4.1.1"
     react-is "^16.8.1"
+
+pullstate@^1.13.2:
+  version "1.13.2"
+  resolved "https://registry.yarnpkg.com/pullstate/-/pullstate-1.13.2.tgz#e80d11acf4009f6eae20ada612e303feb97234c2"
+  integrity sha512-EfwcUclIAYmldaA4TYm/M7JNJ6iUgLa1iGLgqRiXpp7DRU4fv3gZfbBVamSRSBf/B6hZxiCLE7n2V1OAFgZfSQ==
+  dependencies:
+    fast-deep-equal "^3.1.1"
+    immer "^5.3.6"
 
 punycode@^2.1.0:
   version "2.1.1"

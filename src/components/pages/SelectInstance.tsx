@@ -1,5 +1,6 @@
 import React from 'react';
 import { createUseStyles } from 'react-jss';
+import { Instance } from '../../types';
 
 const useStyles = createUseStyles({
   container: {},
@@ -10,9 +11,8 @@ const useStyles = createUseStyles({
     color: '#808080'
   },
   heading: {
-    marginTop: '8px',
-    marginBottom: '16px',
-    padding: '8px'
+    marginBottom: '8px',
+    padding: '16px'
   },
   listItem: {
     borderBottom: '1px solid #ddd',
@@ -31,14 +31,13 @@ const useStyles = createUseStyles({
 });
 
 interface SelectInstanceProps {
-  instances: Array<{
-    displayName: string;
-    value: string;
-  }>;
+  instances: Instance[];
+  onSelect: { (value: string): void };
 }
 
 export const SelectInstance: React.FC<SelectInstanceProps> = ({
-  instances
+  instances,
+  onSelect
 }) => {
   const classes = useStyles();
 
@@ -55,6 +54,7 @@ export const SelectInstance: React.FC<SelectInstanceProps> = ({
           <div
             key={instance.value}
             className={`${classes.listItem} jp-icon-arrow-right`}
+            onClick={() => onSelect(instance.value)}
           >
             {instance.displayName}
           </div>

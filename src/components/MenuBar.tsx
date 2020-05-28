@@ -50,11 +50,6 @@ export const MenuBar: React.FunctionComponent<MenuBarProps> = ({
 }) => {
   const classes = useStyles();
 
-  const handleClick = (value: any) => {
-    console.log(value);
-    onChange(value);
-  };
-
   return (
     <div>
       <ul className={classes.tab}>
@@ -63,7 +58,7 @@ export const MenuBar: React.FunctionComponent<MenuBarProps> = ({
           const tabClass = menu.right ? classes.tabItemRight : classes.tabItem;
           return (
             <li
-              onClick={() => handleClick(menu.value)}
+              onClick={() => onChange(menu.value)}
               key={menu.value}
               className={`${tabClass} ${activeClass}`}
             >

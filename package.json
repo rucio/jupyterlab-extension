@@ -44,6 +44,7 @@
     "@jupyterlab/services": "^5.0.0",
     "@types/node": "^14.0.5",
     "@types/react-select": "^3.0.13",
+    "pullstate": "^1.13.2",
     "react-jss": "^10.1.1"
   },
   "devDependencies": {

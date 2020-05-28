@@ -3,7 +3,7 @@ import { createUseStyles } from 'react-jss';
 
 const useStyles = createUseStyles({
   container: {
-    padding: '8px'
+    padding: '16px'
   }
 });
 

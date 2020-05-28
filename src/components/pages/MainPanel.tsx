@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { createUseStyles } from 'react-jss';
-
+import { useStoreState } from 'pullstate';
+import { ExtensionStore } from '../../ExtensionStore';
 import { MenuBar } from '../MenuBar';
 import { Explore } from '../tabs/Explore';
-import { MyDatasets } from '../tabs/MyDatasets';
+import { Bookmarks } from '../tabs/Bookmarks';
+import { Info } from '../tabs/Info';
 
 const useStyles = createUseStyles({
   menuBar: {
@@ -17,15 +19,19 @@ const useStyles = createUseStyles({
 });
 
 export const MainPanel: React.FC = () => {
-  const [activeMenu, setActiveMenu] = useState(1);
   const classes = useStyles();
-
+  const activeMenu = useStoreState(ExtensionStore, s => s.activeMenu);
+  const setActiveMenu = (value?: any) => {
+    ExtensionStore.update(s => {
+      s.activeMenu = value;
+    });
+  };
   const menus = [
     { title: 'Explore', value: 1, right: false },
-    { title: 'My Datasets', value: 2, right: false },
+    { title: 'Bookmarks', value: 2, right: false },
     {
       title: (
-        <div className={`${classes.instanceOption} jp-icon-swap`}>&nbsp;</div>
+        <div className={`${classes.instanceOption} jp-icon-info`}>&nbsp;</div>
       ),
       value: 3,
       right: true
@@ -35,15 +41,12 @@ export const MainPanel: React.FC = () => {
   return (
     <>
       <div className={classes.menuBar}>
-        <MenuBar
-          menus={menus}
-          value={activeMenu}
-          onChange={(value: any) => setActiveMenu(value)}
-        />
+        <MenuBar menus={menus} value={activeMenu} onChange={setActiveMenu} />
       </div>
       <div>
         {activeMenu === 1 && <Explore />}
-        {activeMenu === 2 && <MyDatasets />}
+        {activeMenu === 2 && <Bookmarks />}
+        {activeMenu === 3 && <Info />}
       </div>
     </>
   );
