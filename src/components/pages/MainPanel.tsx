@@ -8,17 +8,28 @@ import { Bookmarks } from '../tabs/Bookmarks';
 import { Info } from '../tabs/Info';
 
 const useStyles = createUseStyles({
+  container: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'auto'
+  },
   menuBar: {
     marginTop: '16px'
   },
+  content: {
+    flex: 1,
+    overflow: 'auto'
+  },
   instanceOption: {
-    width: '16px',
-    backgroundSize: '100%',
-    backgroundRepeat: 'no-repeat'
+    lineHeight: 0
+  },
+  infoIcon: {
+    fontSize: '15px'
   }
 });
 
-export const MainPanel: React.FC = () => {
+export const MainPanel: React.FC<React.HTMLAttributes<HTMLElement>> = props => {
   const classes = useStyles();
   const activeMenu = useStoreState(ExtensionStore, s => s.activeMenu);
   const setActiveMenu = (value?: any) => {
@@ -31,7 +42,9 @@ export const MainPanel: React.FC = () => {
     { title: 'Bookmarks', value: 2, right: false },
     {
       title: (
-        <div className={`${classes.instanceOption} jp-icon-info`}>&nbsp;</div>
+        <div className={classes.instanceOption}>
+          <i className={`${classes.infoIcon} material-icons`}>info</i>
+        </div>
       ),
       value: 3,
       right: true
@@ -39,15 +52,15 @@ export const MainPanel: React.FC = () => {
   ];
 
   return (
-    <>
+    <div className={classes.container} {...props}>
       <div className={classes.menuBar}>
         <MenuBar menus={menus} value={activeMenu} onChange={setActiveMenu} />
       </div>
-      <div>
+      <div className={classes.content}>
         {activeMenu === 1 && <Explore />}
         {activeMenu === 2 && <Bookmarks />}
         {activeMenu === 3 && <Info />}
       </div>
-    </>
+    </div>
   );
 };

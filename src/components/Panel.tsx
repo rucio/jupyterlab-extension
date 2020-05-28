@@ -1,11 +1,24 @@
 import React from 'react';
 import { useStoreState } from 'pullstate';
+import { createUseStyles } from 'react-jss';
 import { ExtensionStore } from '../ExtensionStore';
 import { Header } from '../components/Header';
 import { MainPanel } from './pages/MainPanel';
 import { SelectInstance } from './pages/SelectInstance';
 
+const useStyles = createUseStyles({
+  panel: {
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column'
+  },
+  section: {
+    flex: 1
+  }
+});
+
 export const Panel: React.FunctionComponent = () => {
+  const classes = useStyles();
   const activeInstance = useStoreState(ExtensionStore, s => s.activeInstance);
 
   const instances = [
@@ -23,11 +36,14 @@ export const Panel: React.FunctionComponent = () => {
   };
 
   return (
-    <div>
+    <div className={classes.panel}>
       <Header />
       {!!activeInstance && <MainPanel />}
       {!activeInstance && (
-        <SelectInstance instances={instances} onSelect={setActiveInstance} />
+        <SelectInstance
+          instances={instances}
+          onSelectInstance={setActiveInstance}
+        />
       )}
     </div>
   );

@@ -38,7 +38,9 @@ const useStyles = createUseStyles({
   }
 });
 
-export const Button: React.FC<ButtonProps> = ({
+type MyProps = ButtonProps & React.ButtonHTMLAttributes<HTMLButtonElement>;
+
+export const Button: React.FC<MyProps> = ({
   children,
   block,
   onClick,
@@ -52,7 +54,7 @@ export const Button: React.FC<ButtonProps> = ({
   }
 
   return (
-    <button className={btnClasses.join(' ')} onClick={onClick}>
+    <button className={btnClasses.join(' ')} onClick={onClick} {...props}>
       <div className={classes.childrenContainer}>{children}</div>
     </button>
   );

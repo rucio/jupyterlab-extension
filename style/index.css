@@ -1,3 +1,5 @@
+@import 'https://fonts.googleapis.com/icon?family=Material+Icons';
+
 .jp-RucioExtensionPanel {
     background-color: white;
 }
@@ -13,14 +15,6 @@
     background-repeat: no-repeat;
 }
 
-.jp-icon-swap {
-    background-image: url("img/icon-swap.svg");
-}
-
 .jp-icon-arrow-right {
     background-image: url("img/icon-arrow-right.svg");
-}
-
-.jp-icon-info {
-    background-image: url("img/icon-info.svg");
 }

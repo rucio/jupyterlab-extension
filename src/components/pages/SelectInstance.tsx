@@ -3,7 +3,12 @@ import { createUseStyles } from 'react-jss';
 import { Instance } from '../../types';
 
 const useStyles = createUseStyles({
-  container: {},
+  container: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'auto'
+  },
   title: {
     margin: '0 0 4px 0'
   },
@@ -14,8 +19,12 @@ const useStyles = createUseStyles({
     marginBottom: '8px',
     padding: '16px'
   },
+  listContainer: {
+    flex: 1,
+    overflow: 'auto'
+  },
   listItem: {
-    borderBottom: '1px solid #ddd',
+    borderBottom: '1px solid #E0E0E0',
     padding: '8px 16px 8px 16px',
     cursor: 'pointer',
     'background-size': 'auto 50%',
@@ -32,29 +41,32 @@ const useStyles = createUseStyles({
 
 interface SelectInstanceProps {
   instances: Instance[];
-  onSelect: { (value: string): void };
+  onSelectInstance: { (value: string): void };
 }
 
-export const SelectInstance: React.FC<SelectInstanceProps> = ({
+type MyProps = SelectInstanceProps & React.HTMLAttributes<HTMLElement>;
+
+export const SelectInstance: React.FC<MyProps> = ({
   instances,
-  onSelect
+  onSelectInstance,
+  ...props
 }) => {
   const classes = useStyles();
 
   return (
-    <div className={classes.container}>
+    <div className={classes.container} {...props}>
       <div className={classes.heading}>
         <h2 className={classes.title}>Select an Instance</h2>
         <p className={classes.subtitle}>
           Select one of the instances relevant to your experiment.
         </p>
       </div>
-      <div>
+      <div className={classes.listContainer}>
         {instances.map(instance => (
           <div
             key={instance.value}
             className={`${classes.listItem} jp-icon-arrow-right`}
-            onClick={() => onSelect(instance.value)}
+            onClick={() => onSelectInstance(instance.value)}
           >
             {instance.displayName}
           </div>
