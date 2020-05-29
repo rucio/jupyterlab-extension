@@ -1,8 +1,8 @@
 import React from 'react';
 import { createUseStyles } from 'react-jss';
 import { useStoreState } from 'pullstate';
-import { ExtensionStore, initialState } from '../../ExtensionStore';
-import { Button } from '../Button';
+import { ExtensionStore, initialState } from '../stores/ExtensionStore';
+import { Button } from '../components/Button';
 
 const useStyles = createUseStyles({
   container: {

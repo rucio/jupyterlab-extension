@@ -1,8 +1,8 @@
 import React from 'react';
 import { createUseStyles } from 'react-jss';
 import { useStoreState } from 'pullstate';
-import { ExtensionStore } from '../../ExtensionStore';
-import { MenuBar } from '../MenuBar';
+import { ExtensionStore } from '../stores/ExtensionStore';
+import { MenuBar } from '../components/MenuBar';
 import { Explore } from '../tabs/Explore';
 import { Bookmarks } from '../tabs/Bookmarks';
 import { Info } from '../tabs/Info';

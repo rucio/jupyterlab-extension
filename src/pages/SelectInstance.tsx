@@ -1,6 +1,6 @@
 import React from 'react';
 import { createUseStyles } from 'react-jss';
-import { Instance } from '../../types';
+import { Instance } from '../types';
 
 const useStyles = createUseStyles({
   container: {

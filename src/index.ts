@@ -8,7 +8,7 @@ import { ICommandPalette } from '@jupyterlab/apputils';
 
 import { EXTENSION_ID } from './const';
 import { requestAPI } from './utils/ApiRequest';
-import { ExtensionPanel } from './extensions/ExtensionPanel';
+import { ExtensionPanel } from './PanelExtension';
 
 /**
  * Initialization data for the rucio-jupyterlab extension.

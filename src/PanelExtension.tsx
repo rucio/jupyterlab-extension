@@ -5,8 +5,8 @@ import { JupyterFrontEnd } from '@jupyterlab/application';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { Session } from '@jupyterlab/services';
 
-import KernelListener from '../helpers/KernelListener';
-import { Panel } from '../components/Panel';
+import KernelListener from './helpers/KernelListener';
+import { Panel } from './Panel';
 
 export interface ExtensionPanelOptions {
   app: JupyterFrontEnd;

@@ -35,9 +35,10 @@ export const TextField: React.FC<MyProps> = ({
   block,
   before,
   after,
+  outlineColor,
   ...props
 }) => {
-  const classes = useStyles(props);
+  const classes = useStyles({ outlineColor });
 
   const inputClasses = [classes.input];
   if (block) {

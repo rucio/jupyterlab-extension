@@ -1,8 +1,8 @@
 import React from 'react';
 import { useStoreState } from 'pullstate';
 import { createUseStyles } from 'react-jss';
-import { ExtensionStore } from '../ExtensionStore';
-import { Header } from '../components/Header';
+import { ExtensionStore } from './stores/ExtensionStore';
+import { Header } from './components/Header';
 import { MainPanel } from './pages/MainPanel';
 import { SelectInstance } from './pages/SelectInstance';
 
