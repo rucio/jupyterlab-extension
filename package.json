@@ -43,8 +43,10 @@
     "@jupyterlab/coreutils": "^4.0.0",
     "@jupyterlab/services": "^5.0.0",
     "@types/node": "^14.0.5",
+    "@types/react-copy-to-clipboard": "^4.3.0",
     "@types/react-select": "^3.0.13",
     "pullstate": "^1.13.2",
+    "react-copy-to-clipboard": "^5.0.2",
     "react-jss": "^10.1.1"
   },
   "devDependencies": {

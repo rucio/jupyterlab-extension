@@ -1,7 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { createUseStyles } from 'react-jss';
-import { useStoreState } from 'pullstate';
-import { ExtensionStore } from '../stores/ExtensionStore';
 import { MenuBar } from '../components/MenuBar';
 import { Explore } from '../tabs/Explore';
 import { Bookmarks } from '../tabs/Bookmarks';
@@ -26,17 +24,15 @@ const useStyles = createUseStyles({
   },
   infoIcon: {
     fontSize: '15px'
+  },
+  hidden: {
+    display: 'none'
   }
 });
 
 export const MainPanel: React.FC<React.HTMLAttributes<HTMLElement>> = props => {
   const classes = useStyles();
-  const activeMenu = useStoreState(ExtensionStore, s => s.activeMenu);
-  const setActiveMenu = (value?: any) => {
-    ExtensionStore.update(s => {
-      s.activeMenu = value;
-    });
-  };
+  const [activeMenu, setActiveMenu] = useState(1);
   const menus = [
     { title: 'Explore', value: 1, right: false },
     { title: 'Bookmarks', value: 2, right: false },
@@ -57,9 +53,15 @@ export const MainPanel: React.FC<React.HTMLAttributes<HTMLElement>> = props => {
         <MenuBar menus={menus} value={activeMenu} onChange={setActiveMenu} />
       </div>
       <div className={classes.content}>
-        {activeMenu === 1 && <Explore />}
-        {activeMenu === 2 && <Bookmarks />}
-        {activeMenu === 3 && <Info />}
+        <div className={activeMenu !== 1 ? classes.hidden : ''}>
+          <Explore />
+        </div>
+        <div className={activeMenu !== 2 ? classes.hidden : ''}>
+          <Bookmarks />
+        </div>
+        <div className={activeMenu !== 3 ? classes.hidden : ''}>
+          <Info />
+        </div>
       </div>
     </div>
   );

@@ -1,10 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { createUseStyles } from 'react-jss';
-import { useStoreState } from 'pullstate';
-import { ExtensionStore } from '../stores/ExtensionStore';
 import { TextField } from '../components/TextField';
 import { HorizontalHeading } from '../components/HorizontalHeading';
-import { DIDListItem } from '../components/DIDListItem';
+import { FileDIDListItem } from '../components/FileDIDListItem';
 import { InlineDropdown } from '../components/InlineDropdown';
 import { searchByOptions } from '../const';
 
@@ -53,12 +51,7 @@ const useStyles = createUseStyles({
 export const Explore: React.FunctionComponent = () => {
   const classes = useStyles();
 
-  const searchBy = useStoreState(ExtensionStore, s => s.searchBy);
-  const setSearchBy = (value: string) => {
-    ExtensionStore.update(s => {
-      s.searchBy = value;
-    });
-  };
+  const [searchBy, setSearchBy] = useState('datasets');
 
   const searchButton = (
     <div className={classes.searchButton}>
@@ -82,16 +75,16 @@ export const Explore: React.FunctionComponent = () => {
           options={searchByOptions}
           value={searchBy}
           onItemSelected={setSearchBy}
-          optionWidth="170px"
+          optionWidth="180px"
         />
       </div>
       <HorizontalHeading title="Search Results" />
       <div className={classes.resultsContainer}>
-        <DIDListItem type="container" did="atlas.2d:lhc.sensor2.34eafd" />
-        <DIDListItem type="container" did="atlas.2d:lhc.sensor2.34eafd" />
-        <DIDListItem type="dataset" did="atlas.2d:lhc.sensor2.34eafd" />
-        <DIDListItem type="file" did="atlas.2d:lhc.sensor2.34eafd" />
-        <DIDListItem type="file" did="atlas.2d:lhc.sensor2.34eafd" />
+        <FileDIDListItem did="atlas.2d:lhc.sensor2.34eafd" />
+        <FileDIDListItem did="atlas.2d:lhc.sensor2.34eafd" />
+        <FileDIDListItem did="atlas.2d:lhc.sensor2.34eafd" />
+        <FileDIDListItem did="atlas.2d:lhc.sensor2.34eafd" />
+        <FileDIDListItem did="atlas.2d:lhc.sensor2.34eafd" />
       </div>
     </div>
   );

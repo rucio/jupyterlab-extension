@@ -25,7 +25,7 @@ const useStyles = createUseStyles({
     display: 'block'
   },
   dropdownListItem: {
-    padding: '8px 16px 8px 16px',
+    padding: '8px',
     width: 'auto',
     borderBottom: '1px solid #e0e0e0',
     cursor: 'pointer',
