@@ -3,6 +3,9 @@ import json
 from notebook.base.handlers import APIHandler
 from notebook.utils import url_path_join
 import tornado
+import os
+
+from .bookmarks import BookmarksHandler
 
 class RouteHandler(APIHandler):
     # The following decorator should be present on all verb methods (head, get, post, 
@@ -11,7 +14,7 @@ class RouteHandler(APIHandler):
     @tornado.web.authenticated
     def get(self):
         self.finish(json.dumps({
-            "data": "This is /rucio-jupyterlab/get_example endpoint!"
+            "data": "This is /rucio-jupyterlab/get_example endpoint!" + os.getcwd()
         }))
 
 
@@ -19,6 +22,9 @@ def setup_handlers(web_app):
     host_pattern = ".*$"
     
     base_url = web_app.settings["base_url"]
-    route_pattern = url_path_join(base_url, "rucio-jupyterlab", "get_example")
-    handlers = [(route_pattern, RouteHandler)]
+    base_path = url_path_join(base_url, 'rucio-jupyterlab')
+    handlers = [
+        (url_path_join(base_path, 'get_example'), RouteHandler),
+        (url_path_join(base_path, 'bookmarks'), BookmarksHandler)
+    ]
     web_app.add_handlers(host_pattern, handlers)

@@ -24,7 +24,7 @@ lab_path = os.path.join(HERE, name, "labextension")
 
 # Representative files that should exist after a successful build
 jstargets = [
-    os.path.join(HERE, "lib", "rucio-jupyterlab.js"),
+    os.path.join(HERE, "lib", "index.js"),
 ]
 
 package_data_spec = {
@@ -64,6 +64,7 @@ setup_args = dict(
     packages=setuptools.find_packages(),
     install_requires=[
         "jupyterlab~=2.0",
+        "peewee~=3.0"
     ],
     zip_safe=False,
     include_package_data=True,
