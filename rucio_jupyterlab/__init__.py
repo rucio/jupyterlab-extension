@@ -1,4 +1,4 @@
-from ._version import __version__ 
+# from ._version import __version__
 from .handlers import setup_handlers
 
 
@@ -17,4 +17,5 @@ def load_jupyter_server_extension(lab_app):
         JupyterLab application instance
     """
     setup_handlers(lab_app.web_app)
-    lab_app.log.info("Registered HelloWorld extension at URL path /rucio-jupyterlab")
+    lab_app.log.info(
+        "Registered HelloWorld extension at URL path /rucio-jupyterlab")

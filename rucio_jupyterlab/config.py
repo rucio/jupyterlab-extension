@@ -1,0 +1,86 @@
+import requests
+import time
+from jsonschema import validate
+from traitlets import List, Dict
+from traitlets.config import Configurable
+from . import schema
+
+
+class RucioConfig(Configurable):
+    instances = List(Dict(config=True), config=True)
+
+
+class Config:
+    def __init__(self, rucio_config):
+        self.instances = dict()
+        self.remote_instances = dict()
+
+        validate(rucio_config, schema=schema.root)
+        self.config = rucio_config
+
+        instances = self.config.instances
+        for instance in instances:
+            if "$url" in instance:
+                remote_config, cache_expires_at = self._preprocess_remote_config(
+                    instance)
+
+                instance_name = instance['name']
+                self.instances[instance_name] = instance
+                self.remote_instances[instance_name] = {
+                    'expires_at': cache_expires_at,
+                    'instance': remote_config
+                }
+            else:
+                instance_name = instance['name']
+                self.instances[instance_name] = instance
+
+    def get_instance_config(self, instance_name):
+        instance = self.instances[instance_name]
+        if "$url" in instance:
+            remote_instance = self.remote_instances[instance_name]
+            if remote_instance['expires_at'] <= int(time.time()):
+                remote_config, cache_expires_at = self._preprocess_remote_config(
+                    instance)
+                self.remote_instances[instance_name] = {
+                    'expires_at': cache_expires_at,
+                    'instance': remote_config
+                }
+
+                return remote_config
+            else:
+                return remote_instance['instance']
+        else:
+            return instance
+
+    def list_instances(self):
+        instances = []
+        for instance_name in self.instances:
+            instances.append({
+                'name': instance_name,
+                'display_name': self.instances[instance_name]['display_name']
+            })
+
+        return instances
+
+    def _preprocess_remote_config(self, remote_config):
+        instance = self._retrieve_remote_config(remote_config['$url'])
+
+        for config_item in remote_config:
+            instance[config_item] = remote_config[config_item]
+
+        validate(instance, schema=schema.instance)
+
+        if "cache_expires_at" in remote_config:
+            cache_expires_at = remote_config['cache_expires_at']
+        else:
+            # Default lifetime is 24 hours
+            cache_expires_at = int(time.time()) + (24 * 3600)
+
+        return (instance, cache_expires_at)
+
+    def _retrieve_remote_config(self, url):
+        response = requests.get(url)
+        data = response.json()
+        validate(data, schema=schema.remote_instance)
+
+        return data
