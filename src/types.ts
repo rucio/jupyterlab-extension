@@ -1,6 +1,6 @@
 export interface Instance {
   displayName: string;
-  value: string;
+  name: string;
 }
 
 export interface FileDIDDetails {

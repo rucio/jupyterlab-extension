@@ -1,6 +1,6 @@
 import { URLExt } from '@jupyterlab/coreutils';
 import { ServerConnection } from '@jupyterlab/services';
-
+import camelcaseKeysDeep from 'camelcase-keys-deep';
 import { EXTENSION_ID } from '../const';
 
 /**
@@ -12,7 +12,8 @@ import { EXTENSION_ID } from '../const';
  */
 export async function requestAPI<T>(
   endPoint = '',
-  init: RequestInit = {}
+  init: RequestInit = {},
+  convertSnakeCase = true
 ): Promise<T> {
   // Make request to Jupyter API
   const settings = ServerConnection.makeSettings();
@@ -35,5 +36,5 @@ export async function requestAPI<T>(
     throw new ServerConnection.ResponseError(response, data.message);
   }
 
-  return data;
+  return convertSnakeCase ? camelcaseKeysDeep(data) : data;
 }

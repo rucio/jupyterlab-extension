@@ -460,6 +460,11 @@
     "@lumino/signaling" "^1.4.0"
     "@lumino/virtualdom" "^1.7.0"
 
+"@types/camelcase-keys-deep@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@types/camelcase-keys-deep/-/camelcase-keys-deep-0.1.0.tgz#2ee97b18c4a98524114c5d1e593051cd19adfc7b"
+  integrity sha512-Bn4jUinRHBKSj31/a/FA7eqWi1qc47orOaiGp+YWTxk1AhT1jGrQGv/giR6bjB5dTxeZ+zw4PWjyDZjdI+Usrg==
+
 "@types/color-name@^1.1.1":
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/@types/color-name/-/color-name-1.1.1.tgz#1c1261bbeaa10a8055bbc5d8ab84b7b2afc846a0"
@@ -667,6 +672,19 @@ callsites@^3.0.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/callsites/-/callsites-3.1.0.tgz#b3630abd8943432f54b3f0519238e33cd7df2f73"
   integrity sha512-P8BjAsXvZS+VIDUI11hHCQEv74YT67YUi5JJFNWIqL235sBmjX4+qx9Muvls5ivyNENctx46xQLQ3aTuE7ssaQ==
+
+camelcase-keys-deep@^0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/camelcase-keys-deep/-/camelcase-keys-deep-0.1.0.tgz#2e0dd61739c99f068efd8de606a629ed808bbba3"
+  integrity sha1-Lg3WFznJnwaO/Y3mBqYp7YCLu6M=
+  dependencies:
+    camelcase "^2.1.1"
+    map-obj "^1.0.1"
+
+camelcase@^2.1.1:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/camelcase/-/camelcase-2.1.1.tgz#7c1d16d679a1bbe59ca02cacecfb011e201f5a1f"
+  integrity sha1-fB0W1nmhu+WcoCys7PsBHiAfWh8=
 
 chalk@^2.0.0, chalk@^2.4.1, chalk@^2.4.2:
   version "2.4.2"
@@ -1598,6 +1616,11 @@ loose-envify@^1.0.0, loose-envify@^1.1.0, loose-envify@^1.4.0:
   integrity sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==
   dependencies:
     js-tokens "^3.0.0 || ^4.0.0"
+
+map-obj@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/map-obj/-/map-obj-1.0.1.tgz#d933ceb9205d82bdcf4886f6742bdc2b4dea146d"
+  integrity sha1-2TPOuSBdgr3PSIb2dCvcK03qFG0=
 
 marked@^0.8.0:
   version "0.8.2"

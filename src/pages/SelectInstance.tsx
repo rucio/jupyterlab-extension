@@ -62,15 +62,16 @@ export const SelectInstance: React.FC<MyProps> = ({
         </p>
       </div>
       <div className={classes.listContainer}>
-        {instances.map(instance => (
-          <div
-            key={instance.value}
-            className={`${classes.listItem} jp-icon-arrow-right`}
-            onClick={() => onSelectInstance(instance.value)}
-          >
-            {instance.displayName}
-          </div>
-        ))}
+        {instances &&
+          instances.map(instance => (
+            <div
+              key={instance.name}
+              className={`${classes.listItem} jp-icon-arrow-right`}
+              onClick={() => onSelectInstance(instance.name)}
+            >
+              {instance.displayName}
+            </div>
+          ))}
       </div>
     </div>
   );

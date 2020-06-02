@@ -7,7 +7,6 @@ import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { ICommandPalette } from '@jupyterlab/apputils';
 
 import { EXTENSION_ID } from './const';
-import { requestAPI } from './utils/ApiRequest';
 import { ExtensionPanel } from './PanelExtension';
 
 /**
@@ -33,16 +32,6 @@ const extension: JupyterFrontEndPlugin<void> = {
 
     labShell.add(panel, 'left', { rank: 900 });
     labShell.activateById(panel.id);
-
-    requestAPI<any>('get_example')
-      .then(data => {
-        console.log(data);
-      })
-      .catch(reason => {
-        console.error(
-          `The rucio_jupyterlab server extension appears to be missing.\n${reason}`
-        );
-      });
   }
 };
 
