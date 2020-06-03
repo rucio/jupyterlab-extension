@@ -9,7 +9,6 @@ class RucioAPI:
 
     def __init__(self, instance_config):
         self.instance_config = instance_config
-        print(instance_config, instance_config.get('rucio_base_url'))
         self.base_url = instance_config.get('rucio_base_url')
 
     def get_files(self, scope, name):
@@ -33,6 +32,7 @@ class RucioAPI:
             return token
 
     def _get_cached_token(self, instance):
+        # TODO change caching method to using database. Singletons don't work.
         if instance in RucioAPI.rucio_auth_token_cache:
             token_cache, expiry = RucioAPI.rucio_auth_token_cache[instance]
             if int(expiry) > int(time.time()):
@@ -44,7 +44,7 @@ class RucioAPI:
         auth_config = self.instance_config.get('auth')
         auth_type = auth_config.get('type')
 
-        print('Attempting to authenticate using method ', auth_type, '...')
+        print('Attempting to authenticate using method', auth_type, '...')
 
         if auth_type == 'userpass':
             username = auth_config.get('username')

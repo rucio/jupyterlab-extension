@@ -26,10 +26,8 @@ class DIDBrowserHandler(RucioAPIHandler):
 
         cached_file_dids = db.get_cached_file_dids(parent_did)
         if cached_file_dids:
-            print("Retrieving DIDs from cache")
             return cached_file_dids
         else:
-            print("Retrieving DIDs from API...")
             file_dids = rucio.get_files(scope, name)
             output = [f"{d['scope']}:{d['name']}" for d in file_dids]
             db.set_cached_file_dids(parent_did, output)

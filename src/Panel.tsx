@@ -19,15 +19,15 @@ const useStyles = createUseStyles({
     flex: 1
   },
   loading: {
-    padding: '8px 16px 8px 16px',
-    '& span': {
-      verticalAlign: 'middle',
-      paddingLeft: '4px'
-    }
+    padding: '8px 16px 8px 16px'
   },
   icon: {
     fontSize: '10pt',
     verticalAlign: 'middle'
+  },
+  iconText: {
+    verticalAlign: 'middle',
+    paddingLeft: '4px'
   }
 });
 
@@ -87,7 +87,7 @@ export const Panel: React.FunctionComponent = () => {
           <Spinning className={`${classes.icon} material-icons`}>
             hourglass_top
           </Spinning>
-          <span>Loading...</span>
+          <span className={classes.iconText}>Loading...</span>
         </div>
       )}
       {!activeInstance && !!instances && (

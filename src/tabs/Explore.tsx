@@ -50,15 +50,15 @@ const useStyles = createUseStyles({
     }
   },
   loading: {
-    padding: '32px 16px 16px 16px',
-    '& span': {
-      verticalAlign: 'middle',
-      paddingLeft: '4px'
-    }
+    padding: '16px'
   },
   icon: {
     fontSize: '10pt',
     verticalAlign: 'middle'
+  },
+  iconText: {
+    verticalAlign: 'middle',
+    paddingLeft: '4px'
   }
 });
 
@@ -80,7 +80,7 @@ export const Explore: React.FunctionComponent = () => {
     setSearchResult(undefined);
     requestAPI<string[]>(`files?${qs.encode(query)}`)
       .then(result => setSearchResult(result))
-      .catch(e => console.log(e)) // TODO error handling
+      .catch(e => setSearchResult([]))
       .finally(() => setLoading(false));
   };
 
@@ -113,7 +113,7 @@ export const Explore: React.FunctionComponent = () => {
           <Spinning className={`${classes.icon} material-icons`}>
             hourglass_top
           </Spinning>
-          <span>Loading...</span>
+          <span className={classes.iconText}>Loading...</span>
         </div>
       )}
       {!!searchResult && (
@@ -124,6 +124,9 @@ export const Explore: React.FunctionComponent = () => {
               <FileDIDListItem did={did} key={did} />
             ))}
           </div>
+          {!!searchResult && searchResult.length === 0 && (
+            <div className={classes.loading}>No results found</div>
+          )}
         </>
       )}
     </div>
