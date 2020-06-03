@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { createUseStyles } from 'react-jss';
+import qs from 'querystring';
+import { useStoreState } from 'pullstate';
+import { ExtensionStore } from '../stores/ExtensionStore';
 import { TextField } from '../components/TextField';
 import { HorizontalHeading } from '../components/HorizontalHeading';
 import { FileDIDListItem } from '../components/FileDIDListItem';
-import { InlineDropdown } from '../components/InlineDropdown';
-import { searchByOptions } from '../const';
+import { requestAPI } from '../utils/ApiRequest';
+import { Spinning } from '../components/Spinning';
 
 const useStyles = createUseStyles({
   searchContainer: {
@@ -45,19 +48,53 @@ const useStyles = createUseStyles({
     '&:hover': {
       backgroundColor: '#eeeeee'
     }
+  },
+  loading: {
+    padding: '32px 16px 16px 16px',
+    '& span': {
+      verticalAlign: 'middle',
+      paddingLeft: '4px'
+    }
+  },
+  icon: {
+    fontSize: '10pt',
+    verticalAlign: 'middle'
   }
 });
 
 export const Explore: React.FunctionComponent = () => {
   const classes = useStyles();
 
-  const [searchBy, setSearchBy] = useState('datasets');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResult, setSearchResult] = useState<string[]>();
+  const [loading, setLoading] = useState(false);
+  const activeInstance = useStoreState(ExtensionStore, s => s.activeInstance);
+
+  const query = {
+    namespace: activeInstance.name,
+    did: searchQuery
+  };
+
+  const doSearch = () => {
+    setLoading(true);
+    setSearchResult(undefined);
+    requestAPI<string[]>(`files?${qs.encode(query)}`)
+      .then(result => setSearchResult(result))
+      .catch(e => console.log(e)) // TODO error handling
+      .finally(() => setLoading(false));
+  };
 
   const searchButton = (
-    <div className={classes.searchButton}>
+    <div className={classes.searchButton} onClick={doSearch}>
       <i className={`${classes.searchIcon} material-icons`}>search</i>
     </div>
   );
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      doSearch();
+    }
+  };
 
   return (
     <div>
@@ -66,26 +103,29 @@ export const Explore: React.FunctionComponent = () => {
           outlineColor="#E0E0E0"
           placeholder="Enter a Data Identifier (DID)"
           after={searchButton}
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          onKeyPress={handleKeyPress}
         />
       </div>
-      <div className={classes.filterContainer}>
-        Search by
-        <InlineDropdown
-          className={classes.dropdown}
-          options={searchByOptions}
-          value={searchBy}
-          onItemSelected={setSearchBy}
-          optionWidth="180px"
-        />
-      </div>
-      <HorizontalHeading title="Search Results" />
-      <div className={classes.resultsContainer}>
-        <FileDIDListItem did="atlas.2d:lhc.sensor2.34eafd" />
-        <FileDIDListItem did="atlas.2d:lhc.sensor2.34eafd" />
-        <FileDIDListItem did="atlas.2d:lhc.sensor2.34eafd" />
-        <FileDIDListItem did="atlas.2d:lhc.sensor2.34eafd" />
-        <FileDIDListItem did="atlas.2d:lhc.sensor2.34eafd" />
-      </div>
+      {loading && (
+        <div className={classes.loading}>
+          <Spinning className={`${classes.icon} material-icons`}>
+            hourglass_top
+          </Spinning>
+          <span>Loading...</span>
+        </div>
+      )}
+      {!!searchResult && (
+        <>
+          <HorizontalHeading title="Search Results" />
+          <div className={classes.resultsContainer}>
+            {searchResult.map(did => (
+              <FileDIDListItem did={did} key={did} />
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 };

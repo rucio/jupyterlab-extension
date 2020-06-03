@@ -7,20 +7,9 @@ import { MainPanel } from './pages/MainPanel';
 import { SelectInstance } from './pages/SelectInstance';
 import { requestAPI } from './utils/ApiRequest';
 import { Instance } from './types';
+import { Spinning } from './components/Spinning';
 
 const useStyles = createUseStyles({
-  '@keyframes rotation': {
-    from: {
-      transform: 'rotate(0deg)'
-    },
-    to: {
-      transform: 'rotate(359deg)'
-    }
-  },
-  rotate: {
-    animation: '$rotation 1s infinite linear',
-    animationName: '$rotation'
-  },
   panel: {
     height: '100%',
     display: 'flex',
@@ -95,9 +84,9 @@ export const Panel: React.FunctionComponent = () => {
       {!!activeInstance && <MainPanel />}
       {!instances && (
         <div className={classes.loading}>
-          <i className={`${classes.icon} ${classes.rotate} material-icons`}>
+          <Spinning className={`${classes.icon} material-icons`}>
             hourglass_top
-          </i>
+          </Spinning>
           <span>Loading...</span>
         </div>
       )}

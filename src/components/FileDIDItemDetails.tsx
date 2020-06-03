@@ -3,20 +3,9 @@ import { createUseStyles } from 'react-jss';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
 import { FileDIDDetails } from '../types';
+import { Spinning } from './Spinning';
 
 const useStyles = createUseStyles({
-  '@keyframes rotation': {
-    from: {
-      transform: 'rotate(0deg)'
-    },
-    to: {
-      transform: 'rotate(359deg)'
-    }
-  },
-  rotate: {
-    animation: '$rotation 1s infinite linear',
-    animationName: '$rotation'
-  },
   container: {
     padding: '8px 16px 8px 16px',
     backgroundColor: '#F8F8F8'
@@ -144,9 +133,9 @@ const FileReplicating: React.FC = () => {
 
   return (
     <div className={classes.statusReplicating}>
-      <i className={`${classes.icon} ${classes.rotate} material-icons`}>
+      <Spinning className={`${classes.icon} material-icons`}>
         hourglass_top
-      </i>
+      </Spinning>
       <span className={classes.statusText}>Replicating file...</span>
     </div>
   );
