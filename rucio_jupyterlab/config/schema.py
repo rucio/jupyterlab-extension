@@ -11,9 +11,7 @@ instance_properties = {
     "auth": {
         "type": "object",
         "required": [
-            "type",
-            "username",
-            "password"
+            "type"
         ],
         "additionalProperties": True,
         "properties": {
@@ -24,6 +22,9 @@ instance_properties = {
                 "type": "string"
             },
             "password": {
+                "type": "string"
+            },
+            "account": {
                 "type": "string"
             }
         }

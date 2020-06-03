@@ -12,7 +12,7 @@ class InstancesHandler(RucioAPIHandler):
     @tornado.web.authenticated
     def get(self):
         db = get_db()
-        active_instance = db.get_config('instance')
+        active_instance = db.get_active_instance()
         instances = self.rucio_config.list_instances()
         self.finish(json.dumps({
             'active_instance': active_instance,
@@ -25,6 +25,6 @@ class InstancesHandler(RucioAPIHandler):
         picked_instance = json_body['instance']
 
         db = get_db()
-        db.put_config('instance', picked_instance)
+        db.set_active_instance(picked_instance)
 
-        self.finish(json.dumps({ 'success': True }))
+        self.finish(json.dumps({'success': True}))

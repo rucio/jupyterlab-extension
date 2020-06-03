@@ -1,4 +1,6 @@
 import os
+import time
+import json
 from peewee import *
 
 
@@ -17,12 +19,12 @@ db = prepare_db(dir_path)
 
 
 def get_db():
-    db.create_tables([UserConfig, Bookmark, DatasetContainerCache, FileCache])
+    db.create_tables([UserConfig, Bookmark, DIDBrowserCache, FileCache])
     return DatabaseInstance()
 
 
 def get_namespaced_db(namespace):
-    db.create_tables([UserConfig, Bookmark, DatasetContainerCache, FileCache])
+    db.create_tables([UserConfig, Bookmark, DIDBrowserCache, FileCache])
     return NamespacedDatabaseInstance(namespace)
 
 
@@ -35,6 +37,12 @@ class DatabaseInstance:
             return UserConfig.get(UserConfig.key == key).value
         except DoesNotExist:
             return None
+
+    def get_active_instance(self):
+        return self.get_config('instance')
+
+    def set_active_instance(self, instance_name):
+        self.put_config('instance', instance_name)
 
 
 class NamespacedDatabaseInstance(DatabaseInstance):
@@ -52,12 +60,17 @@ class NamespacedDatabaseInstance(DatabaseInstance):
                                 self.namespace, Bookmark.did == did)
         bookmark.delete_instance()
 
-
-class BaseModel(Model):
-    namespace = TextField()
-
-    class Meta:
-        database = db
+    def get_cached_file_dids(self, parent_did):
+        try:
+            did_cache = DIDBrowserCache.get(DIDBrowserCache.namespace == self.namespace and DIDBrowserCache.did == parent_did)
+            return json.loads(did_cache.file_dids)
+        except DoesNotExist:
+            return None
+        
+    def set_cached_file_dids(self, parent_did, file_dids):
+        cache_expires = int(time.time()) + (3600)  # an hour TODO change?
+        file_dids_json = json.dumps(file_dids)
+        DIDBrowserCache.replace(namespace=self.namespace, did=parent_did, file_dids=file_dids_json, expiry=cache_expires).execute()
 
 
 class UserConfig(Model):
@@ -68,21 +81,36 @@ class UserConfig(Model):
         database = db
 
 
-class Bookmark(BaseModel):
-    did = TextField(unique=True)
+class Bookmark(Model):
+    namespace = TextField()
+    did = TextField()
     did_type = IntegerField()
 
+    class Meta:
+        database = db
+        primary_key = CompositeKey('namespace', 'did')
 
-class DatasetContainerCache(BaseModel):
+
+class DIDBrowserCache(Model):
+    namespace = TextField()
     did = TextField()
-    file_did = TextField()
+    file_dids = TextField()
     expiry = DateTimeField()
 
+    class Meta:
+        database = db
+        primary_key = CompositeKey('namespace', 'did')
 
-class FileCache(BaseModel):
+
+class FileCache(Model):
+    namespace = TextField()
     did = TextField()
     rse = TextField()
     replication_rule_id = TextField()
     replication_status = IntegerField()
     path = TextField()
     expiry = DateTimeField()
+
+    class Meta:
+        database = db
+        primary_key = CompositeKey('namespace', 'did')
