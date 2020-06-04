@@ -4,6 +4,6 @@ export interface Instance {
 }
 
 export interface FileDIDDetails {
-  status: 'available' | 'replicating' | 'unavailable';
+  status: 'OK' | 'REPLICATING' | 'NOT_AVAILABLE' | 'STUCK';
   path?: string;
 }

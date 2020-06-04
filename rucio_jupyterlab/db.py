@@ -63,7 +63,7 @@ class NamespacedDatabaseInstance(DatabaseInstance):
 
     def get_cached_file_dids(self, parent_did):
         did_cache = DIDBrowserCache.get_or_none(
-            DIDBrowserCache.namespace == self.namespace & DIDBrowserCache.did == parent_did)
+            (DIDBrowserCache.namespace == self.namespace) & (DIDBrowserCache.did == parent_did))
         if did_cache:
             return json.loads(did_cache.file_dids)
 

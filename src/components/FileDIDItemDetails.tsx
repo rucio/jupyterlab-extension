@@ -1,18 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createUseStyles } from 'react-jss';
 import CopyToClipboard from 'react-copy-to-clipboard';
-
+import qs from 'querystring';
+import { useStoreState } from 'pullstate';
+import { ExtensionStore } from '../stores/ExtensionStore';
 import { FileDIDDetails } from '../types';
+import { requestAPI } from '../utils/ApiRequest';
 import { Spinning } from './Spinning';
 
 const useStyles = createUseStyles({
   container: {
-    padding: '8px 16px 8px 16px',
+    padding: '0 16px 8px 16px',
     backgroundColor: '#F8F8F8'
   },
   icon: {
     fontSize: '10pt',
     verticalAlign: 'middle'
+  },
+  loading: {
+    color: '#808080',
+    alignItems: 'center'
   },
   statusText: {
     fontSize: '9pt',
@@ -64,30 +71,48 @@ export interface DIDItem {
 
 export const FileDIDItemDetails: React.FC<DIDItem> = ({ did }) => {
   const classes = useStyles();
-  const [fileDetails, setFileDetails] = useState<FileDIDDetails>({
-    status: 'unavailable',
-    path: '/eos/rucio/atlas/49/ad/4cd1-3287.csv'
-  });
+  const [fileDetails, setFileDetails] = useState<FileDIDDetails>();
+  const activeInstance = useStoreState(ExtensionStore, s => s.activeInstance);
+
+  const loadFileDetails = () => {
+    const query = { namespace: activeInstance.name, did };
+
+    requestAPI<FileDIDDetails>('file?' + qs.encode(query)).then(file =>
+      setFileDetails(file)
+    );
+  };
+
+  useEffect(() => {
+    loadFileDetails();
+  }, []);
 
   const makeAvailable = () => {
-    setFileDetails({ ...fileDetails, status: 'replicating' });
+    setFileDetails({ ...fileDetails, status: 'REPLICATING' });
     setTimeout(() => {
-      setFileDetails({ ...fileDetails, status: 'available' });
+      setFileDetails({ ...fileDetails, status: 'OK' });
     }, 3000);
   };
 
   return (
     <div className={classes.container}>
-      {!fileDetails && <div>Loading...</div>}
-      {!!fileDetails && fileDetails.status === 'available' && (
+      {!fileDetails && (
+        <div className={classes.loading}>
+          <Spinning className={`${classes.icon} material-icons`}>
+            hourglass_top
+          </Spinning>
+          <span className={classes.statusText}>Loading...</span>
+        </div>
+      )}
+      {!!fileDetails && fileDetails.status === 'OK' && (
         <FileAvailable path={fileDetails.path} />
       )}
-      {!!fileDetails && fileDetails.status === 'unavailable' && (
+      {!!fileDetails && fileDetails.status === 'NOT_AVAILABLE' && (
         <FileNotAvailable onMakeAvailableClicked={makeAvailable} />
       )}
-      {!!fileDetails && fileDetails.status === 'replicating' && (
+      {!!fileDetails && fileDetails.status === 'REPLICATING' && (
         <FileReplicating />
       )}
+      {!!fileDetails && fileDetails.status === 'STUCK' && <FileStuck />}
     </div>
   );
 };
@@ -137,6 +162,17 @@ const FileReplicating: React.FC = () => {
         hourglass_top
       </Spinning>
       <span className={classes.statusText}>Replicating file...</span>
+    </div>
+  );
+};
+
+const FileStuck: React.FC = () => {
+  const classes = useStyles();
+
+  return (
+    <div className={classes.statusNotAvailable}>
+      <i className={`${classes.icon} material-icons`}>error</i>
+      <span className={classes.statusText}>Someting went wrong</span>
     </div>
   );
 };
