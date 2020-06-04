@@ -46,7 +46,7 @@ class FileDetailsHandler(RucioAPIHandler):
                 if self._check_path_exists(cached_file_did.path):
                     return dict(
                         status=cached_file_did.replication_status,
-                        replication_rule_id=cached.replication_rule_id,
+                        replication_rule_id=cached_file_did.replication_rule_id,
                         path=cached_file_did.path
                     )
             else:
