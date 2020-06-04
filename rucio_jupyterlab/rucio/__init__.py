@@ -1,3 +1,4 @@
+import logging
 import time
 import json
 import requests
@@ -20,6 +21,29 @@ class RucioAPI:
         files = [json.loads(l) for l in lines]
         return files
 
+    def get_rules(self, scope, name):
+        token = self._get_auth_token()
+        headers = {'X-Rucio-Auth-Token': token}
+        response = requests.get(url=f'{self.base_url}/dids/{scope}/{name}/rules',
+                                headers=headers, verify=False)    # TODO verify=True
+        lines = response.text.splitlines()
+        rules = [json.loads(l) for l in lines]
+        return rules
+
+    def get_rule_details(self, rule_id):
+        token = self._get_auth_token()
+        headers = {'X-Rucio-Auth-Token': token}
+        response = requests.get(
+            url=f'{self.base_url}/rules/{rule_id}', headers=headers, verify=False)    # TODO verify=True
+        return response.json()
+
+    def get_replicas(self, scope, name):
+        token = self._get_auth_token()
+        headers = {'X-Rucio-Auth-Token': token}
+        response = requests.get(url=f'{self.base_url}/replicas/{scope}/{name}',
+                                headers=headers, verify=False)    # TODO verify=True
+        return response.json()
+
     def _get_auth_token(self):
         config = self.instance_config
         instance_name = config.get('name')
@@ -32,7 +56,6 @@ class RucioAPI:
             return token
 
     def _get_cached_token(self, instance):
-        # TODO change caching method to using database. Singletons don't work.
         if instance in RucioAPI.rucio_auth_token_cache:
             token_cache, expiry = RucioAPI.rucio_auth_token_cache[instance]
             if int(expiry) > int(time.time()):
@@ -44,7 +67,8 @@ class RucioAPI:
         auth_config = self.instance_config.get('auth')
         auth_type = auth_config.get('type')
 
-        print('Attempting to authenticate using method', auth_type, '...')
+        logging.info('Attempting to authenticate using method',
+                     auth_type, '...')
 
         if auth_type == 'userpass':
             username = auth_config.get('username')

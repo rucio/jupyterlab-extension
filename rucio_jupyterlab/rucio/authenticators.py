@@ -1,6 +1,5 @@
-import time
 import requests
-
+from .utils import parse_timestamp
 
 def authenticate_userpass(base_url, username, password, account=None, app_id=None):
     headers = {'X-Rucio-Account': account, 'X-Rucio-Username': username,
@@ -14,8 +13,3 @@ def authenticate_userpass(base_url, username, password, account=None, app_id=Non
     expires = parse_timestamp(expires)
 
     return (auth_token, expires)
-
-
-def parse_timestamp(timestr):
-    time_struct = time.strptime(timestr, '%a, %d %b %Y %H:%M:%S UTC')
-    return int(time.mktime(time_struct))

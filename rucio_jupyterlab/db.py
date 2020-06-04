@@ -33,10 +33,11 @@ class DatabaseInstance:
         UserConfig.replace(key=key, value=value).execute()
 
     def get_config(self, key):
-        try:
-            return UserConfig.get(UserConfig.key == key).value
-        except DoesNotExist:
-            return None
+        config = UserConfig.get_or_none(UserConfig.key == key)
+        if config:
+            return config.value
+
+        return None
 
     def get_active_instance(self):
         return self.get_config('instance')
@@ -61,16 +62,42 @@ class NamespacedDatabaseInstance(DatabaseInstance):
         bookmark.delete_instance()
 
     def get_cached_file_dids(self, parent_did):
-        try:
-            did_cache = DIDBrowserCache.get(DIDBrowserCache.namespace == self.namespace and DIDBrowserCache.did == parent_did)
+        did_cache = DIDBrowserCache.get_or_none(
+            DIDBrowserCache.namespace == self.namespace & DIDBrowserCache.did == parent_did)
+        if did_cache:
             return json.loads(did_cache.file_dids)
-        except DoesNotExist:
-            return None
-        
+
+        return None
+
     def set_cached_file_dids(self, parent_did, file_dids):
         cache_expires = int(time.time()) + (3600)  # an hour TODO change?
         file_dids_json = json.dumps(file_dids)
-        DIDBrowserCache.replace(namespace=self.namespace, did=parent_did, file_dids=file_dids_json, expiry=cache_expires).execute()
+        DIDBrowserCache.replace(namespace=self.namespace, did=parent_did,
+                                file_dids=file_dids_json, expiry=cache_expires).execute()
+
+    def get_cached_file_details(self, file_did):
+        current_time = int(time.time())
+        return FileCache.get_or_none((FileCache.namespace == self.namespace) & (FileCache.did == file_did) & (FileCache.expiry > current_time))
+
+    def set_cached_file_details(self, file_did, replication_status=None, replication_rule_id=None, path=None, expiry=None):
+        cache = FileCache.get_or_none(namespace=self.namespace, did=file_did)
+
+        if not expiry:
+            expiry = int(time.time()) + (3600)  # TODO cache for an hour?
+
+        if not cache:
+            FileCache.create(namespace=self.namespace, did=file_did, replication_rule_id=replication_rule_id,
+                             replication_status=replication_status, path=path, expiry=expiry)
+        else:
+            if replication_status:
+                cache.replication_status = replication_status
+            if replication_rule_id:
+                cache.replication_rule_id = replication_rule_id
+            if path:
+                cache.path = path
+
+            cache.expiry = expiry
+            cache.save()
 
 
 class UserConfig(Model):
@@ -105,11 +132,10 @@ class DIDBrowserCache(Model):
 class FileCache(Model):
     namespace = TextField()
     did = TextField()
-    rse = TextField()
-    replication_rule_id = TextField()
-    replication_status = IntegerField()
-    path = TextField()
-    expiry = DateTimeField()
+    replication_rule_id = TextField(null=True)
+    replication_status = TextField()
+    path = TextField(null=True)
+    expiry = DateTimeField(null=True)
 
     class Meta:
         database = db
