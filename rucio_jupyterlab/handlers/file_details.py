@@ -34,11 +34,10 @@ class FileDetailsHandler(RucioAPIHandler):
             return from_cache
 
         file_details = self._fetch_file_details(rucio, scope, name)
-
-        if not file_details:
-            return self._file_unavailable(db, file_did)
-        else:
+        if file_details:
             return self._file_available(db, file_did, file_details)
+
+        return self._file_unavailable(db, file_did)
 
     def _from_cache(self, db, file_did):
         cached_file_did = db.get_cached_file_details(file_did)
@@ -47,17 +46,18 @@ class FileDetailsHandler(RucioAPIHandler):
                 if self._check_path_exists(cached_file_did.path):
                     return dict(
                         status=cached_file_did.replication_status,
+                        replication_rule_id=cached.replication_rule_id,
                         path=cached_file_did.path
                     )
             else:
-                return dict(status=cached_file_did.replication_status, path=None)
+                return dict(status=cached_file_did.replication_status, replication_rule_id=None, path=None)
 
         return None
 
     def _file_unavailable(self, db, file_did):
         db.set_cached_file_details(
             file_did, replication_status=FileDetailsHandler.STATUS_NOT_AVAILABLE)
-        return dict(status=FileDetailsHandler.STATUS_NOT_AVAILABLE, path=None)
+        return dict(status=FileDetailsHandler.STATUS_NOT_AVAILABLE, replication_rule_id=None, path=None)
 
     def _file_available(self, db, file_did, file_details):
         status = file_details.get('status')
@@ -68,7 +68,7 @@ class FileDetailsHandler(RucioAPIHandler):
         db.set_cached_file_details(file_did, replication_status=status,
                                    replication_rule_id=rule_id, path=path, expiry=expiry)
 
-        return dict(status=status, path=path)
+        return dict(status=status, path=path, replication_rule_id=rule_id)
 
     def _check_path_exists(self, path):
         if not path:
