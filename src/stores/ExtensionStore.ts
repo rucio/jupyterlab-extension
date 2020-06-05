@@ -3,7 +3,7 @@ import { Instance, FileDIDDetails } from '../types';
 
 export interface State {
   activeInstance?: Instance;
-  fileDetails: { [did: string]: FileDIDDetails }
+  fileDetails: { [did: string]: FileDIDDetails };
 }
 
 export const initialState: State = {

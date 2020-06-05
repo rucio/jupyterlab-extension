@@ -44,6 +44,24 @@ class RucioAPI:
                                 headers=headers, verify=False)    # TODO verify=True
         return response.json()
 
+    def add_replication_rule(self, dids, copies, rse_expression, weight=None, lifetime=None, grouping='DATASET', account=None,
+                             locked=False, source_replica_expression=None, activity=None, notify='N', purge_replicas=False,
+                             ignore_availability=False, comment=None, ask_approval=False, asynchronous=False, priority=3,
+                             meta=None):
+
+        data = {'dids': dids, 'copies': copies, 'rse_expression': rse_expression,
+                        'weight': weight, 'lifetime': lifetime, 'grouping': grouping,
+                        'account': account, 'locked': locked, 'source_replica_expression': source_replica_expression,
+                        'activity': activity, 'notify': notify, 'purge_replicas': purge_replicas,
+                        'ignore_availability': ignore_availability, 'comment': comment, 'ask_approval': ask_approval,
+                        'asynchronous': asynchronous, 'priority': priority, 'meta': meta}
+        
+        token = self._get_auth_token()
+        headers = {'X-Rucio-Auth-Token': token}
+
+        response = requests.post(url=f'{self.base_url}/rules/', headers=headers, json=data, verify=False)
+        return response.json()
+
     def _get_auth_token(self):
         config = self.instance_config
         instance_name = config.get('name')

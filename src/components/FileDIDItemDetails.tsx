@@ -86,37 +86,42 @@ export const FileDIDItemDetails: React.FC<DIDItem> = ({ did }) => {
       did
     };
 
-    requestAPI<FileDIDDetails>('file?' + qs.encode(query))
-      .then(file => {
-        setFileDetails(file);
-        if (file.status === 'REPLICATING') {
-          enablePolling();
-        } else {
-          disablePolling();
-        }
-      });
+    return requestAPI<FileDIDDetails>('file?' + qs.encode(query)).then(file => {
+      setFileDetails(file);
+      return file;
+    });
   };
 
   let pollInterval: number | undefined = undefined;
 
   const enablePolling = () => {
     if (pollInterval === undefined) {
+      console.log('Enable polling');
       pollInterval = window.setInterval(() => {
-        fetchFileDetails(true);
+        fetchFileDetails(true).then(file => {
+          if (file.status !== 'REPLICATING') {
+            disablePolling();
+          }
+        });
       }, 5000); // TODO change 5s?
     }
-  }
+  };
 
   const disablePolling = () => {
     if (pollInterval !== undefined) {
+      console.log('Disable polling');
       window.clearInterval(pollInterval);
       pollInterval = undefined;
     }
-  }
+  };
 
   useEffect(() => {
     if (!fileDetails) {
-      fetchFileDetails();
+      fetchFileDetails().then(file => {
+        if (file.status === 'REPLICATING') {
+          enablePolling();
+        }
+      });
     } else {
       if (fileDetails.status === 'REPLICATING') {
         enablePolling();
@@ -125,14 +130,24 @@ export const FileDIDItemDetails: React.FC<DIDItem> = ({ did }) => {
 
     return () => {
       disablePolling();
-    }
-  });
+    };
+  }, []);
 
   const makeAvailable = () => {
     setFileDetails({ ...fileDetails, status: 'REPLICATING' });
-    setTimeout(() => {
-      setFileDetails({ ...fileDetails, status: 'OK' });
-    }, 3000);
+
+    const init = {
+      method: 'POST',
+      body: JSON.stringify({ method: 'replica', did })
+    };
+
+    requestAPI(
+      'file/make-available?namespace=' +
+        encodeURIComponent(activeInstance.name),
+      init
+    )
+      .then(() => enablePolling())
+      .catch(e => console.log(e)); // TODO handle error
   };
 
   return (
