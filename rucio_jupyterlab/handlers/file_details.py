@@ -16,11 +16,16 @@ class FileDetailsHandler(RucioAPIHandler):
     def get(self):
         namespace = self.get_query_argument('namespace')
         poll = self.get_query_argument('poll', 0) != 0
+        plain_path = self.get_query_argument('plain_path', 0) != 0
         did = self.get_query_argument('did')
         scope, name = did.split(':')
 
         output = self.get_file_details(namespace, scope, name, not poll)
-        self.finish(json.dumps(output))
+
+        if plain_path:
+            self.finish(output.get('path'))
+        else:
+            self.finish(json.dumps(output))
 
     def get_file_details(self, namespace, scope, name, force_fetch=False):
         rucio = self.rucio.for_instance(namespace)
