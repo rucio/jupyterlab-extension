@@ -30,8 +30,8 @@ const useStyles = createUseStyles({
     'background-size': 'auto 50%',
     'background-position': 'right 16px center',
     backgroundRepeat: 'no-repeat',
-    '&:last-child': {
-      borderBottom: 'none'
+    '&:first-child': {
+      borderTop: '1px solid #E0E0E0'
     },
     '&:hover': {
       backgroundColor: '#eeeeee'

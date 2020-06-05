@@ -14,10 +14,6 @@ const useStyles = createUseStyles({
     padding: '8px'
   },
   resultsContainer: {},
-  filterContainer: {
-    padding: '0 16px 0 16px',
-    fontSize: '9pt'
-  },
   searchButton: {
     alignItems: 'center',
     padding: '4px',
@@ -34,20 +30,6 @@ const useStyles = createUseStyles({
     color: '#2196F3',
     cursor: 'pointer',
     marginLeft: '4px'
-  },
-  listItem: {
-    borderBottom: '1px solid #E0E0E0',
-    padding: '8px 16px 8px 16px',
-    cursor: 'pointer',
-    'background-size': 'auto 50%',
-    'background-position': 'right 16px center',
-    backgroundRepeat: 'no-repeat',
-    '&:last-child': {
-      borderBottom: 'none'
-    },
-    '&:hover': {
-      backgroundColor: '#eeeeee'
-    }
   },
   loading: {
     padding: '16px'

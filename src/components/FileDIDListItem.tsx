@@ -4,10 +4,7 @@ import { FileDIDItemDetails } from './FileDIDItemDetails';
 
 const useStyles = createUseStyles({
   listItemContainer: {
-    borderBottom: '1px solid #E0E0E0',
-    '&:last-child': {
-      borderBottom: 'none'
-    }
+    borderBottom: '1px solid #E0E0E0'
   },
   listItem: {
     display: 'flex',

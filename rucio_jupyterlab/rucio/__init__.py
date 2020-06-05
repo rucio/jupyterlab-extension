@@ -67,8 +67,8 @@ class RucioAPI:
         auth_config = self.instance_config.get('auth')
         auth_type = auth_config.get('type')
 
-        logging.info('Attempting to authenticate using method',
-                     auth_type, '...')
+        logging.info(
+            'Attempting to authenticate using method %s...', auth_type)
 
         if auth_type == 'userpass':
             username = auth_config.get('username')

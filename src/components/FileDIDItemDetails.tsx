@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { createUseStyles } from 'react-jss';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import qs from 'querystring';
@@ -71,20 +71,62 @@ export interface DIDItem {
 
 export const FileDIDItemDetails: React.FC<DIDItem> = ({ did }) => {
   const classes = useStyles();
-  const [fileDetails, setFileDetails] = useState<FileDIDDetails>();
   const activeInstance = useStoreState(ExtensionStore, s => s.activeInstance);
-
-  const loadFileDetails = () => {
-    const query = { namespace: activeInstance.name, did };
-
-    requestAPI<FileDIDDetails>('file?' + qs.encode(query)).then(file =>
-      setFileDetails(file)
-    );
+  const fileDetails = useStoreState(ExtensionStore, s => s.fileDetails[did]);
+  const setFileDetails = (details: FileDIDDetails) => {
+    ExtensionStore.update(s => {
+      s.fileDetails[did] = details;
+    });
   };
 
+  const fetchFileDetails = (poll = false) => {
+    const query = {
+      namespace: activeInstance.name,
+      poll: poll ? 1 : undefined,
+      did
+    };
+
+    requestAPI<FileDIDDetails>('file?' + qs.encode(query))
+      .then(file => {
+        setFileDetails(file);
+        if (file.status === 'REPLICATING') {
+          enablePolling();
+        } else {
+          disablePolling();
+        }
+      });
+  };
+
+  let pollInterval: number | undefined = undefined;
+
+  const enablePolling = () => {
+    if (pollInterval === undefined) {
+      pollInterval = window.setInterval(() => {
+        fetchFileDetails(true);
+      }, 5000); // TODO change 5s?
+    }
+  }
+
+  const disablePolling = () => {
+    if (pollInterval !== undefined) {
+      window.clearInterval(pollInterval);
+      pollInterval = undefined;
+    }
+  }
+
   useEffect(() => {
-    loadFileDetails();
-  }, []);
+    if (!fileDetails) {
+      fetchFileDetails();
+    } else {
+      if (fileDetails.status === 'REPLICATING') {
+        enablePolling();
+      }
+    }
+
+    return () => {
+      disablePolling();
+    }
+  });
 
   const makeAvailable = () => {
     setFileDetails({ ...fileDetails, status: 'REPLICATING' });
