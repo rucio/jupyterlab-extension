@@ -97,7 +97,7 @@ class FileDetailsHandler(RucioAPIHandler):
     def fetch_replication_rule_by_rule_id(self, rucio, rule_id):
         destination_rse = rucio.instance_config.get('destination_rse')
 
-        rule = rucio.get_rule_details()
+        rule = rucio.get_rule_details(rule_id)
         if not rule:
             return None
 
