@@ -181,6 +181,13 @@ export const ContainerDIDItemDetails: React.FC<DIDItem> = ({ did }) => {
   }, []);
 
   const makeAvailable = () => {
+    setContainerAttachedFiles(
+      containerAttachedFiles.map(f => ({
+        ...f,
+        status: (f.status === 'OK' ? 'OK' : 'REPLICATING')
+      }))
+    );
+
     const init = {
       method: 'POST',
       body: JSON.stringify({ method: 'replica', did })
