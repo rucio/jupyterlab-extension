@@ -96,20 +96,19 @@ export const FileDIDItemDetails: React.FC<DIDItem> = ({ did }) => {
 
   let pollInterval: number | undefined = undefined;
 
+  const poll = () => {
+    fetchFileDetails(true).then(file => {
+      if (file.status !== 'REPLICATING') {
+        disablePolling();
+      }
+    });
+  };
   const enablePolling = () => {
     if (pollInterval === undefined) {
       console.log('Enable polling');
-      fetchFileDetails(true).then(file => {
-        if (file.status !== 'REPLICATING') {
-          disablePolling();
-        }
-      });
+      poll();
       pollInterval = window.setInterval(() => {
-        fetchFileDetails(true).then(file => {
-          if (file.status !== 'REPLICATING') {
-            disablePolling();
-          }
-        });
+        poll();
       }, 10000); // TODO change 10s?
     }
   };

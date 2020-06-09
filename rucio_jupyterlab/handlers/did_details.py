@@ -20,17 +20,17 @@ class DIDDetailsHandlerImpl:
         file_replicas = self.get_file_replicas(
             scope, name, attached_files, force_fetch)
 
-        complete = True
         replicated_files = dict()
         for file_replica in file_replicas:
             file_did = file_replica.get('did')
             path = file_replica.get('path')
             replicated_files[file_did] = path
-            if file_did not in attached_files:
+        
+        complete = True
+        for attached_file in attached_files:
+            if attached_file not in replicated_files:
                 complete = False
-
-        if len(replicated_files) == 0:
-            complete = False
+                break
 
         status = DIDDetailsHandler.STATUS_NOT_AVAILABLE
         if not complete:
@@ -98,7 +98,7 @@ class DIDDetailsHandlerImpl:
         replication_rule = self.fetch_replication_rule_by_did(scope, name)
         if replication_rule != None:
             _, replication_status, _ = replication_rule
-            status = self.parse_rule_status(replication_status)
+            status = replication_status
 
         return status
 
