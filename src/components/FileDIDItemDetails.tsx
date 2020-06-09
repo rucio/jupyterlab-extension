@@ -86,9 +86,9 @@ export const FileDIDItemDetails: React.FC<DIDItem> = ({ did }) => {
       did
     };
 
-    return requestAPI<FileDIDDetails>('file?' + qs.encode(query)).then(file => {
-      setFileDetails(file);
-      return file;
+    return requestAPI<FileDIDDetails[]>('did?' + qs.encode(query)).then(file => {
+      setFileDetails(file[0]);
+      return file[0];
     });
   };
 
@@ -97,13 +97,18 @@ export const FileDIDItemDetails: React.FC<DIDItem> = ({ did }) => {
   const enablePolling = () => {
     if (pollInterval === undefined) {
       console.log('Enable polling');
+      fetchFileDetails(true).then(file => {
+        if (file.status !== 'REPLICATING') {
+          disablePolling();
+        }
+      });
       pollInterval = window.setInterval(() => {
         fetchFileDetails(true).then(file => {
           if (file.status !== 'REPLICATING') {
             disablePolling();
           }
         });
-      }, 5000); // TODO change 5s?
+      }, 10000); // TODO change 10s?
     }
   };
 
@@ -142,8 +147,8 @@ export const FileDIDItemDetails: React.FC<DIDItem> = ({ did }) => {
     };
 
     requestAPI(
-      'file/make-available?namespace=' +
-        encodeURIComponent(activeInstance.name),
+      'did/make-available?namespace=' +
+      encodeURIComponent(activeInstance.name),
       init
     )
       .then(() => enablePolling())

@@ -17,7 +17,11 @@ class RucioAPI:
         headers = {'X-Rucio-Auth-Token': token}
         response = requests.get(url=f'{self.base_url}/dids/{scope}/{name}/files',
                                 headers=headers, verify=False)    # TODO verify=True
-        lines = response.text.splitlines()
+
+        if response.text == '':
+            return []
+
+        lines = response.text.rstrip('\n').splitlines()
         files = [json.loads(l) for l in lines]
         return files
 
@@ -26,7 +30,11 @@ class RucioAPI:
         headers = {'X-Rucio-Auth-Token': token}
         response = requests.get(url=f'{self.base_url}/dids/{scope}/{name}/rules',
                                 headers=headers, verify=False)    # TODO verify=True
-        lines = response.text.splitlines()
+
+        if response.text == '':
+            return []
+
+        lines = response.text.rstrip('\n').splitlines()
         rules = [json.loads(l) for l in lines]
         return rules
 
@@ -42,7 +50,13 @@ class RucioAPI:
         headers = {'X-Rucio-Auth-Token': token}
         response = requests.get(url=f'{self.base_url}/replicas/{scope}/{name}',
                                 headers=headers, verify=False)    # TODO verify=True
-        return response.json()
+
+        if response.text == '':
+            return []
+
+        lines = response.text.rstrip('\n').splitlines()
+        replicas = [json.loads(l) for l in lines]
+        return replicas
 
     def add_replication_rule(self, dids, copies, rse_expression, weight=None, lifetime=None, grouping='DATASET', account=None,
                              locked=False, source_replica_expression=None, activity=None, notify='N', purge_replicas=False,
@@ -50,16 +64,17 @@ class RucioAPI:
                              meta=None):
 
         data = {'dids': dids, 'copies': copies, 'rse_expression': rse_expression,
-                        'weight': weight, 'lifetime': lifetime, 'grouping': grouping,
-                        'account': account, 'locked': locked, 'source_replica_expression': source_replica_expression,
-                        'activity': activity, 'notify': notify, 'purge_replicas': purge_replicas,
-                        'ignore_availability': ignore_availability, 'comment': comment, 'ask_approval': ask_approval,
-                        'asynchronous': asynchronous, 'priority': priority, 'meta': meta}
-        
+                'weight': weight, 'lifetime': lifetime, 'grouping': grouping,
+                'account': account, 'locked': locked, 'source_replica_expression': source_replica_expression,
+                'activity': activity, 'notify': notify, 'purge_replicas': purge_replicas,
+                'ignore_availability': ignore_availability, 'comment': comment, 'ask_approval': ask_approval,
+                'asynchronous': asynchronous, 'priority': priority, 'meta': meta}
+
         token = self._get_auth_token()
         headers = {'X-Rucio-Auth-Token': token}
 
-        response = requests.post(url=f'{self.base_url}/rules/', headers=headers, json=data, verify=False)
+        response = requests.post(
+            url=f'{self.base_url}/rules/', headers=headers, json=data, verify=False)
         return response.json()
 
     def _get_auth_token(self):

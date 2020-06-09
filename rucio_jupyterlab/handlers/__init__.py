@@ -1,9 +1,8 @@
 from notebook.utils import url_path_join
-from .bookmarks import BookmarksHandler
 from .instances import InstancesHandler
 from .did_browser import DIDBrowserHandler
-from .file_details import FileDetailsHandler
-from .file_make_available import FileMakeAvailableHandler
+from .did_details import DIDDetailsHandler
+from .did_make_available import DIDMakeAvailableHandler
 from rucio_jupyterlab.config import RucioConfig, Config
 from rucio_jupyterlab.rucio import RucioAPIFactory
 
@@ -21,9 +20,9 @@ def setup_handlers(web_app):
     base_path = url_path_join(base_url, 'rucio-jupyterlab')
     handlers = [
         (url_path_join(base_path, 'instances'), InstancesHandler, handler_params),
-        (url_path_join(base_path, 'bookmarks'), BookmarksHandler, handler_params),
         (url_path_join(base_path, 'files'), DIDBrowserHandler, handler_params),
-        (url_path_join(base_path, 'file'), FileDetailsHandler, handler_params),
-        (url_path_join(base_path, 'file', 'make-available'), FileMakeAvailableHandler, handler_params),
+        (url_path_join(base_path, 'did'), DIDDetailsHandler, handler_params),
+        (url_path_join(base_path, 'did', 'make-available'),
+         DIDMakeAvailableHandler, handler_params),
     ]
     web_app.add_handlers(host_pattern, handlers)

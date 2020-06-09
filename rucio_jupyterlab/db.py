@@ -19,12 +19,14 @@ db = prepare_db(dir_path)
 
 
 def get_db():
-    db.create_tables([UserConfig, Bookmark, DIDBrowserCache, FileCache])
+    db.create_tables([UserConfig, DIDBrowserCache, FileCache,
+                      AttachedFilesListCache, FileReplicasCache])
     return DatabaseInstance()
 
 
 def get_namespaced_db(namespace):
-    db.create_tables([UserConfig, Bookmark, DIDBrowserCache, FileCache])
+    db.create_tables([UserConfig, DIDBrowserCache, FileCache,
+                      AttachedFilesListCache, FileReplicasCache])
     return NamespacedDatabaseInstance(namespace)
 
 
@@ -45,21 +47,40 @@ class DatabaseInstance:
     def set_active_instance(self, instance_name):
         self.put_config('instance', instance_name)
 
+    def get_attached_files(self, namespace, did):
+        current_time = int(time.time())
+        attached_files = AttachedFilesListCache.get_or_none(
+            (AttachedFilesListCache.namespace == namespace) & (AttachedFilesListCache.did == did) & (AttachedFilesListCache.expiry > current_time))
+        if attached_files:
+            return json.loads(attached_files.file_dids)
+
+        return None
+
+    def set_attached_files(self, namespace, parent_did, file_dids):
+        cache_expires = int(time.time()) + (3600)  # an hour TODO change?
+        file_dids_json = json.dumps(file_dids)
+        AttachedFilesListCache.replace(namespace=namespace, did=parent_did,
+                                       file_dids=file_dids_json, expiry=cache_expires).execute()
+
+    def get_file_replica(self, namespace, file_did):
+        current_time = int(time.time())
+        replica_cache = FileReplicasCache.get_or_none((FileReplicasCache.namespace == namespace) & (
+            FileReplicasCache.did == file_did) & (FileReplicasCache.expiry > current_time))
+
+        if replica_cache != None:
+            return replica_cache.pfn
+
+        return None
+
+    def set_file_replica(self, namespace, file_did, pfn):
+        cache_expires = int(time.time()) + (3600)  # an hour TODO change?
+        FileReplicasCache.replace(
+            namespace=namespace, did=file_did, pfn=pfn, expiry=cache_expires).execute()
+
 
 class NamespacedDatabaseInstance(DatabaseInstance):
     def __init__(self, namespace):
         self.namespace = namespace
-
-    def get_bookmark(self):
-        return Bookmark.select().where(Bookmark.namespace == self.namespace)
-
-    def insert_bookmark(self, did, did_type):
-        Bookmark.create(namespace=self.namespace, did=did, did_type=did_type)
-
-    def delete_bookmark(self, did):
-        bookmark = Bookmark.get(Bookmark.namespace ==
-                                self.namespace, Bookmark.did == did)
-        bookmark.delete_instance()
 
     def get_cached_file_dids(self, parent_did):
         did_cache = DIDBrowserCache.get_or_none(
@@ -108,16 +129,6 @@ class UserConfig(Model):
         database = db
 
 
-class Bookmark(Model):
-    namespace = TextField()
-    did = TextField()
-    did_type = IntegerField()
-
-    class Meta:
-        database = db
-        primary_key = CompositeKey('namespace', 'did')
-
-
 class DIDBrowserCache(Model):
     namespace = TextField()
     did = TextField()
@@ -136,6 +147,30 @@ class FileCache(Model):
     replication_status = TextField()
     path = TextField(null=True)
     expiry = DateTimeField(null=True)
+
+    class Meta:
+        database = db
+        primary_key = CompositeKey('namespace', 'did')
+
+# ------
+
+
+class AttachedFilesListCache(Model):
+    namespace = TextField()
+    did = TextField()
+    file_dids = TextField()
+    expiry = DateTimeField()
+
+    class Meta:
+        database = db
+        primary_key = CompositeKey('namespace', 'did')
+
+
+class FileReplicasCache(Model):
+    namespace = TextField()
+    did = TextField()
+    pfn = TextField()
+    expiry = DateTimeField()
 
     class Meta:
         database = db

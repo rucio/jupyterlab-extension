@@ -4,7 +4,7 @@ from .base import RucioAPIHandler
 from rucio_jupyterlab.db import get_namespaced_db
 
 
-class FileMakeAvailableHandler(RucioAPIHandler):
+class DIDMakeAvailableHandler(RucioAPIHandler):
     @tornado.web.authenticated
     def post(self):
         namespace = self.get_query_argument('namespace')
