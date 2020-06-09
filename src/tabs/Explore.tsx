@@ -5,7 +5,7 @@ import { useStoreState } from 'pullstate';
 import { ExtensionStore } from '../stores/ExtensionStore';
 import { TextField } from '../components/TextField';
 import { HorizontalHeading } from '../components/HorizontalHeading';
-import { FileDIDListItem } from '../components/FileDIDListItem';
+import { DIDListItem } from '../components/DIDListItem';
 import { requestAPI } from '../utils/ApiRequest';
 import { Spinning } from '../components/Spinning';
 
@@ -49,8 +49,14 @@ export const Explore: React.FunctionComponent = () => {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResult, setSearchResult] = useState<string[]>();
+  const [lastQuery, setLastQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const activeInstance = useStoreState(ExtensionStore, s => s.activeInstance);
+
+  const isDIDContainer =
+    !!searchResult &&
+    searchResult.length > 0 &&
+    !searchResult.includes(lastQuery);
 
   const query = {
     namespace: activeInstance.name,
@@ -60,6 +66,7 @@ export const Explore: React.FunctionComponent = () => {
   const doSearch = () => {
     setLoading(true);
     setSearchResult(undefined);
+    setLastQuery(searchQuery);
     requestAPI<string[]>(`files?${qs.encode(query)}`)
       .then(result => setSearchResult(result))
       .catch(e => setSearchResult([]))
@@ -102,8 +109,11 @@ export const Explore: React.FunctionComponent = () => {
         <>
           <HorizontalHeading title="Search Results" />
           <div className={classes.resultsContainer}>
+            {isDIDContainer && (
+              <DIDListItem type="container" did={lastQuery} key={lastQuery} />
+            )}
             {searchResult.map(did => (
-              <FileDIDListItem did={did} key={did} />
+              <DIDListItem type="file" did={did} key={did} />
             ))}
           </div>
           {!!searchResult && searchResult.length === 0 && (

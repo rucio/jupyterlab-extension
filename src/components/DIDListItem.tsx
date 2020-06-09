@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { createUseStyles } from 'react-jss';
 import { FileDIDItemDetails } from './FileDIDItemDetails';
+import { ContainerDIDItemDetails } from './ContainerDIDItemDetails';
 
 const useStyles = createUseStyles({
   listItemContainer: {
@@ -58,12 +59,14 @@ const useStyles = createUseStyles({
 
 export interface DIDItem {
   did: string;
+  type: 'container' | 'file';
   onClick?: { (): boolean | undefined };
   expand?: boolean;
 }
 
-export const FileDIDListItem: React.FC<DIDItem> = ({
+export const DIDListItem: React.FC<DIDItem> = ({
   did,
+  type,
   onClick,
   expand
 }) => {
@@ -87,11 +90,17 @@ export const FileDIDListItem: React.FC<DIDItem> = ({
         onClick={handleItemClick}
       >
         <div className={classes.iconContainer}>
-          <i className={`${classes.fileIcon} material-icons`}>attachment</i>
+          {type === 'file' && (
+            <i className={`${classes.fileIcon} material-icons`}>attachment</i>
+          )}
+          {type === 'container' && (
+            <i className={`${classes.containerIcon} material-icons`}>folder</i>
+          )}
         </div>
         <div className={classes.textContainer}>{did}</div>
       </div>
-      {!!open && <FileDIDItemDetails did={did} />}
+      {!!open && type === 'file' && <FileDIDItemDetails did={did} />}
+      {!!open && type === 'container' && <ContainerDIDItemDetails did={did} />}
     </div>
   );
 };

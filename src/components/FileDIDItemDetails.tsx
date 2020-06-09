@@ -86,10 +86,12 @@ export const FileDIDItemDetails: React.FC<DIDItem> = ({ did }) => {
       did
     };
 
-    return requestAPI<FileDIDDetails[]>('did?' + qs.encode(query)).then(file => {
-      setFileDetails(file[0]);
-      return file[0];
-    });
+    return requestAPI<FileDIDDetails[]>('did?' + qs.encode(query)).then(
+      file => {
+        setFileDetails(file[0]);
+        return file[0];
+      }
+    );
   };
 
   let pollInterval: number | undefined = undefined;
@@ -147,8 +149,7 @@ export const FileDIDItemDetails: React.FC<DIDItem> = ({ did }) => {
     };
 
     requestAPI(
-      'did/make-available?namespace=' +
-      encodeURIComponent(activeInstance.name),
+      'did/make-available?namespace=' + encodeURIComponent(activeInstance.name),
       init
     )
       .then(() => enablePolling())
