@@ -83,7 +83,9 @@ export const ContainerDIDItemDetails: React.FC<DIDItem> = ({ did }) => {
     });
   };
 
-  const computeContainerState = (files: FileDIDDetails[]): ContainerStatus | false => {
+  const computeContainerState = (
+    files: FileDIDDetails[]
+  ): ContainerStatus | false => {
     if (!files) {
       return false;
     }
@@ -184,7 +186,7 @@ export const ContainerDIDItemDetails: React.FC<DIDItem> = ({ did }) => {
     setContainerAttachedFiles(
       containerAttachedFiles.map(f => ({
         ...f,
-        status: (f.status === 'OK' ? 'OK' : 'REPLICATING')
+        status: f.status === 'OK' ? 'OK' : 'REPLICATING'
       }))
     );
 

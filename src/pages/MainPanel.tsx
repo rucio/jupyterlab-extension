@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { createUseStyles } from 'react-jss';
 import { MenuBar } from '../components/MenuBar';
 import { Explore } from '../tabs/Explore';
-import { Bookmarks } from '../tabs/Bookmarks';
+import { Notebook } from '../tabs/Notebook';
 import { Info } from '../tabs/Info';
 
 const useStyles = createUseStyles({
@@ -35,7 +35,7 @@ export const MainPanel: React.FC<React.HTMLAttributes<HTMLElement>> = props => {
   const [activeMenu, setActiveMenu] = useState(1);
   const menus = [
     { title: 'Explore', value: 1, right: false },
-    { title: 'Bookmarks', value: 2, right: false },
+    { title: 'Notebook', value: 2, right: false },
     {
       title: (
         <div className={classes.instanceOption}>
@@ -57,7 +57,7 @@ export const MainPanel: React.FC<React.HTMLAttributes<HTMLElement>> = props => {
           <Explore />
         </div>
         <div className={activeMenu !== 2 ? classes.hidden : ''}>
-          <Bookmarks />
+          <Notebook />
         </div>
         <div className={activeMenu !== 3 ? classes.hidden : ''}>
           <Info />
