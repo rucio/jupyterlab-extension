@@ -1,7 +1,7 @@
 import React from 'react';
 import { createUseStyles } from 'react-jss';
 import { useStoreState } from 'pullstate';
-import { ExtensionStore, initialState } from '../stores/ExtensionStore';
+import { UIStore, initialState } from '../stores/UIStore';
 import { Button } from '../components/Button';
 
 const useStyles = createUseStyles({
@@ -21,10 +21,10 @@ const useStyles = createUseStyles({
 
 export const Info: React.FunctionComponent = () => {
   const classes = useStyles();
-  const activeInstance = useStoreState(ExtensionStore, s => s.activeInstance);
+  const activeInstance = useStoreState(UIStore, s => s.activeInstance);
 
   const changeInstance = () => {
-    ExtensionStore.update(s => initialState);
+    UIStore.update(s => initialState);
   };
 
   return (

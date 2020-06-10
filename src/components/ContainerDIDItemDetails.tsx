@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useStoreState } from 'pullstate';
 import qs from 'querystring';
-import { ExtensionStore } from '../stores/ExtensionStore';
+import { UIStore } from '../stores/UIStore';
 import { Spinning } from './Spinning';
 import { FileDIDDetails, ContainerStatus } from '../types';
 import { requestAPI } from '../utils/ApiRequest';
@@ -58,13 +58,13 @@ export interface DIDItem {
 export const ContainerDIDItemDetails: React.FC<DIDItem> = ({ did }) => {
   const classes = useStyles();
 
-  const activeInstance = useStoreState(ExtensionStore, s => s.activeInstance);
+  const activeInstance = useStoreState(UIStore, s => s.activeInstance);
   const containerAttachedFiles = useStoreState(
-    ExtensionStore,
+    UIStore,
     s => s.containerDetails[did]
   );
   const setContainerAttachedFiles = (attachedFiles: FileDIDDetails[]) => {
-    ExtensionStore.update(s => {
+    UIStore.update(s => {
       s.containerDetails[did] = attachedFiles;
     });
   };
@@ -78,7 +78,7 @@ export const ContainerDIDItemDetails: React.FC<DIDItem> = ({ did }) => {
       {}
     );
 
-    ExtensionStore.update(s => {
+    UIStore.update(s => {
       s.fileDetails = { ...s.fileDetails, ...fileDetails };
     });
   };

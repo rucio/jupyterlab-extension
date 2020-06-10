@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useStoreState } from 'pullstate';
 import { createUseStyles } from 'react-jss';
-import { ExtensionStore } from './stores/ExtensionStore';
+import { UIStore } from './stores/UIStore';
 import { Header } from './components/Header';
 import { MainPanel } from './pages/MainPanel';
 import { SelectInstance } from './pages/SelectInstance';
@@ -33,7 +33,7 @@ const useStyles = createUseStyles({
 
 export const Panel: React.FunctionComponent = () => {
   const classes = useStyles();
-  const activeInstance = useStoreState(ExtensionStore, s => s.activeInstance);
+  const activeInstance = useStoreState(UIStore, s => s.activeInstance);
 
   const [instances, setInstances] = useState<Instance[]>(undefined);
 
@@ -54,7 +54,7 @@ export const Panel: React.FunctionComponent = () => {
     if (objActiveInstance) {
       console.log('Active instance: ', activeInstance);
 
-      ExtensionStore.update(s => {
+      UIStore.update(s => {
         s.activeInstance = objActiveInstance;
       });
     }
@@ -63,7 +63,7 @@ export const Panel: React.FunctionComponent = () => {
   };
 
   const setActiveInstance = (value?: string) => {
-    ExtensionStore.update(s => {
+    UIStore.update(s => {
       const instance = instances.find(i => i.name === value);
       s.activeInstance = instance;
     });

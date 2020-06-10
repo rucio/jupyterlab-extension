@@ -1,16 +1,18 @@
 import React from 'react';
 
 import { VDomRenderer } from '@jupyterlab/apputils';
-import { JupyterFrontEnd } from '@jupyterlab/application';
+import { JupyterFrontEnd, ILabShell } from '@jupyterlab/application';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
-import { Session } from '@jupyterlab/services';
 
-import KernelListener from './helpers/KernelListener';
 import { Panel } from './Panel';
+import { ExtensionStore } from './stores/ExtensionStore';
+import { INotebookTracker, NotebookPanel } from '@jupyterlab/notebook';
 
 export interface ExtensionPanelOptions {
   app: JupyterFrontEnd;
   settingRegistry: ISettingRegistry;
+  labShell: ILabShell;
+  notebooks: INotebookTracker;
   widgetId: string;
 }
 
@@ -20,12 +22,11 @@ export class ExtensionPanel extends VDomRenderer {
   app: JupyterFrontEnd;
   weatherData?: any;
   settingRegistry: ISettingRegistry;
-  kernelListener: KernelListener;
 
   constructor(options: ExtensionPanelOptions) {
     super();
     super.addClass(PANEL_CLASS);
-    const { app, settingRegistry, widgetId } = options;
+    const { app, settingRegistry, labShell, notebooks, widgetId } = options;
 
     super.id = widgetId;
     super.title.closable = true;
@@ -34,22 +35,27 @@ export class ExtensionPanel extends VDomRenderer {
     this.app = app;
     this.settingRegistry = settingRegistry;
 
-    const sessionManager = app.serviceManager.sessions;
-    this.kernelListener = new KernelListener(sessionManager, {
-      connectListeners: [this.onKernelAdded],
-      disconnectListeners: [this.onKernelRemoved]
+    const setActiveNotebook = (activeNotebook?: NotebookPanel) => {
+      console.log('Set active notebook', activeNotebook);
+      ExtensionStore.update(s => {
+        s.activeNotebookPanel = activeNotebook;
+      });
+    };
+
+    labShell.currentChanged.connect(() => {
+      const widget = labShell.currentWidget;
+      const nbWidget = notebooks.currentWidget;
+      if (widget === nbWidget) {
+        nbWidget.revealed.then(() => {
+          setActiveNotebook(nbWidget);
+        });
+      } else {
+        setActiveNotebook(undefined);
+      }
     });
   }
 
   render(): React.ReactElement {
     return <Panel />;
-  }
-
-  private onKernelAdded(model: Session.IModel) {
-    console.log('Kernel added!', model);
-  }
-
-  private onKernelRemoved(kernelId: string) {
-    console.log('Kernel removed!', kernelId);
   }
 }

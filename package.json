@@ -50,8 +50,7 @@
     "camelcase-keys-deep": "^0.1.0",
     "pullstate": "^1.13.2",
     "react-copy-to-clipboard": "^5.0.2",
-    "react-jss": "^10.1.1",
-    "ts-event-bus": "^2.1.2"
+    "react-jss": "^10.1.1"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^3.0.1",

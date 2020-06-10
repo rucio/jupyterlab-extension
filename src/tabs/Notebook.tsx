@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { createUseStyles } from 'react-jss';
-import EventBus from '../utils/EventBus';
+import { useStoreState } from 'pullstate';
+import { ExtensionStore } from '../stores/ExtensionStore';
 
 const useStyles = createUseStyles({
   container: {
@@ -10,28 +11,15 @@ const useStyles = createUseStyles({
 
 export const Notebook: React.FunctionComponent = () => {
   const classes = useStyles();
-  const [activeModel, setActiveModel] = useState<any>();
-
-  useEffect(() => {
-    const unsubscribe = EventBus.activeNotebook.on(notebookPanel => {
-      if (notebookPanel) {
-        console.log('Notebook active');
-        notebookPanel.revealed.then(() => {
-          setActiveModel(notebookPanel.content.model.metadata.toJSON());
-        });
-      } else {
-        setActiveModel(undefined);
-      }
-    });
-
-    return () => {
-      unsubscribe();
-    };
-  }, []);
+  const activeNotebookPanel = useStoreState(
+    ExtensionStore,
+    s => s.activeNotebookPanel
+  );
 
   return (
     <div className={classes.container}>
-      {!!activeModel && JSON.stringify(activeModel)}
+      {!!activeNotebookPanel &&
+        JSON.stringify(activeNotebookPanel.model.metadata.toJSON())}
     </div>
   );
 };

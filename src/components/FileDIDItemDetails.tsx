@@ -3,7 +3,7 @@ import { createUseStyles } from 'react-jss';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import qs from 'querystring';
 import { useStoreState } from 'pullstate';
-import { ExtensionStore } from '../stores/ExtensionStore';
+import { UIStore } from '../stores/UIStore';
 import { FileDIDDetails } from '../types';
 import { requestAPI } from '../utils/ApiRequest';
 import { Spinning } from './Spinning';
@@ -71,10 +71,10 @@ export interface DIDItem {
 
 export const FileDIDItemDetails: React.FC<DIDItem> = ({ did }) => {
   const classes = useStyles();
-  const activeInstance = useStoreState(ExtensionStore, s => s.activeInstance);
-  const fileDetails = useStoreState(ExtensionStore, s => s.fileDetails[did]);
+  const activeInstance = useStoreState(UIStore, s => s.activeInstance);
+  const fileDetails = useStoreState(UIStore, s => s.fileDetails[did]);
   const setFileDetails = (details: FileDIDDetails) => {
-    ExtensionStore.update(s => {
+    UIStore.update(s => {
       s.fileDetails[did] = details;
     });
   };

@@ -1,15 +1,10 @@
 import { Store } from 'pullstate';
-import { Instance, FileDIDDetails } from '../types';
+import { NotebookPanel } from '@jupyterlab/notebook';
 
-export interface State {
-  activeInstance?: Instance;
-  fileDetails: { [did: string]: FileDIDDetails };
-  containerDetails: { [did: string]: FileDIDDetails[] };
+export interface ExtensionState {
+  activeNotebookPanel?: NotebookPanel;
 }
 
-export const initialState: State = {
-  fileDetails: {},
-  containerDetails: {}
-};
+export const initialState: ExtensionState = {};
 
 export const ExtensionStore = new Store(initialState);

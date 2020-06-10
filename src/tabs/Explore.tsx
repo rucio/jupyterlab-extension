@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { createUseStyles } from 'react-jss';
 import qs from 'querystring';
 import { useStoreState } from 'pullstate';
-import { ExtensionStore } from '../stores/ExtensionStore';
+import { UIStore } from '../stores/UIStore';
 import { TextField } from '../components/TextField';
 import { HorizontalHeading } from '../components/HorizontalHeading';
 import { DIDListItem } from '../components/DIDListItem';
@@ -51,7 +51,7 @@ export const Explore: React.FunctionComponent = () => {
   const [searchResult, setSearchResult] = useState<string[]>();
   const [lastQuery, setLastQuery] = useState('');
   const [loading, setLoading] = useState(false);
-  const activeInstance = useStoreState(ExtensionStore, s => s.activeInstance);
+  const activeInstance = useStoreState(UIStore, s => s.activeInstance);
 
   const isDIDContainer =
     !!searchResult &&
