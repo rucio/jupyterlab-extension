@@ -9,6 +9,12 @@ export interface FileDIDDetails {
   path?: string;
 }
 
+export interface NotebookDIDAttachment {
+  did: string;
+  variableName: string;
+  type: 'container' | 'file';
+}
+
 export type FileStatus = 'OK' | 'REPLICATING' | 'NOT_AVAILABLE' | 'STUCK';
 export type ContainerStatus =
   | 'NOT_AVAILABLE'

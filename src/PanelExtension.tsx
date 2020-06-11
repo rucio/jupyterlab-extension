@@ -5,8 +5,11 @@ import { JupyterFrontEnd, ILabShell } from '@jupyterlab/application';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
 import { Panel } from './Panel';
-import { ExtensionStore } from './stores/ExtensionStore';
+import { ExtensionStore, ExtensionState } from './stores/ExtensionStore';
 import { INotebookTracker, NotebookPanel } from '@jupyterlab/notebook';
+import { ReadonlyPartialJSONArray } from '@lumino/coreutils';
+import { NotebookDIDAttachment } from './types';
+import { METADATA_KEY } from './const';
 
 export interface ExtensionPanelOptions {
   app: JupyterFrontEnd;
@@ -36,23 +39,65 @@ export class ExtensionPanel extends VDomRenderer {
     this.settingRegistry = settingRegistry;
 
     const setActiveNotebook = (activeNotebook?: NotebookPanel) => {
-      console.log('Set active notebook', activeNotebook);
       ExtensionStore.update(s => {
         s.activeNotebookPanel = activeNotebook;
       });
     };
 
-    labShell.currentChanged.connect(() => {
+    const setActiveNotebookAttachments = (
+      attachments: NotebookDIDAttachment[]
+    ) => {
+      ExtensionStore.update(s => {
+        s.activeNotebookAttachment = attachments;
+      });
+    };
+
+    const onNotebookAttachmentChanged = (
+      attachments: NotebookDIDAttachment[],
+      state: ExtensionState
+    ) => {
+      if (attachments) {
+        const { metadata } = state.activeNotebookPanel.model;
+        const current = metadata.get(METADATA_KEY) as ReadonlyArray<any>;
+        const rucioDidAttachments = attachments as ReadonlyArray<any>;
+
+        if (current !== rucioDidAttachments) {
+          metadata.set(
+            METADATA_KEY,
+            rucioDidAttachments as ReadonlyPartialJSONArray
+          );
+        }
+      }
+    };
+
+    ExtensionStore.subscribe(
+      s => s.activeNotebookAttachment,
+      onNotebookAttachmentChanged
+    );
+
+    const onActiveTabChanged = () => {
       const widget = labShell.currentWidget;
       const nbWidget = notebooks.currentWidget;
-      if (widget === nbWidget) {
+      if (!!widget && widget === nbWidget) {
         nbWidget.revealed.then(() => {
           setActiveNotebook(nbWidget);
+          const rucioDidAttachments = nbWidget.model.metadata.get(METADATA_KEY);
+          if (rucioDidAttachments) {
+            const attachedDIDs = rucioDidAttachments as ReadonlyArray<any>;
+            setActiveNotebookAttachments(
+              attachedDIDs as NotebookDIDAttachment[]
+            );
+          } else {
+            setActiveNotebookAttachments(undefined);
+          }
         });
       } else {
         setActiveNotebook(undefined);
+        setActiveNotebookAttachments(undefined);
       }
-    });
+    };
+
+    labShell.currentChanged.connect(onActiveTabChanged);
   }
 
   render(): React.ReactElement {
