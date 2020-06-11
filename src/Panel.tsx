@@ -31,7 +31,7 @@ const useStyles = createUseStyles({
   }
 });
 
-const _Panel: React.FunctionComponent = (props) => {
+const _Panel: React.FunctionComponent = props => {
   const classes = useStyles();
   const { actions } = props as WithRequestAPIProps;
 
@@ -44,7 +44,8 @@ const _Panel: React.FunctionComponent = (props) => {
   }, []);
 
   const loadInstances = () => {
-    actions.fetchInstancesConfig()
+    actions
+      .fetchInstancesConfig()
       .then(({ activeInstance, instances }) =>
         instancesLoaded(activeInstance, instances)
       )

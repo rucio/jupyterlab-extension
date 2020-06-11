@@ -43,7 +43,7 @@ const useStyles = createUseStyles({
   }
 });
 
-const _Explore: React.FunctionComponent = (props) => {
+const _Explore: React.FunctionComponent = props => {
   const classes = useStyles();
 
   const { actions } = props as WithRequestAPIProps;
@@ -63,7 +63,8 @@ const _Explore: React.FunctionComponent = (props) => {
     setLoading(true);
     setSearchResult(undefined);
     setLastQuery(searchQuery);
-    actions.fetchAttachedFileDIDs(activeInstance.name, searchQuery)
+    actions
+      .fetchAttachedFileDIDs(activeInstance.name, searchQuery)
       .then(result => setSearchResult(result))
       .catch(e => setSearchResult([]))
       .finally(() => setLoading(false));

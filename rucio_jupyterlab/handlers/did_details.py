@@ -17,15 +17,14 @@ class DIDDetailsHandlerImpl:
         did = f'{scope}:{name}'
 
         attached_files = self.get_attached_files(scope, name, force_fetch)
-        file_replicas = self.get_file_replicas(
-            scope, name, attached_files, force_fetch)
+        file_replicas = self.get_file_replicas(scope, name, attached_files, force_fetch)
 
         replicated_files = dict()
         for file_replica in file_replicas:
             file_did = file_replica.get('did')
             path = file_replica.get('path')
             replicated_files[file_did] = path
-        
+
         complete = True
         for attached_file in attached_files:
             if attached_file not in replicated_files:
@@ -40,10 +39,11 @@ class DIDDetailsHandlerImpl:
         for file_did in attached_files:
             if file_did in replicated_files:
                 path = replicated_files[file_did]
-                results.append(
-                    dict(status=DIDDetailsHandler.STATUS_OK, did=file_did, path=path))
+                results.append(dict(status=DIDDetailsHandler.STATUS_OK, did=file_did, path=path))
             else:
-                results.append(dict(status=status, did=file_did, path=None))
+                # This is to handle newly-attached files in which the replication rule hasn't been reevaluated by the judger daemon.
+                result_status = status if status != DIDDetailsHandler.STATUS_OK else DIDDetailsHandler.STATUS_REPLICATING
+                results.append(dict(status=result_status, did=file_did, path=None))
 
         return results
 
@@ -81,8 +81,7 @@ class DIDDetailsHandlerImpl:
 
         if not complete:
             file_replicas = []
-            fetched_file_replicas = self.fetch_file_replicas(
-                scope, name, attached_files)
+            fetched_file_replicas = self.fetch_file_replicas(scope, name, attached_files)
             for file_replica in fetched_file_replicas:
                 did = file_replica.get('did')
                 pfn = file_replica.get('pfn')
@@ -115,8 +114,7 @@ class DIDDetailsHandlerImpl:
                 if states[destination_rse] == 'AVAILABLE':
                     pfns = rses[destination_rse]
                     if len(pfns) > 0:
-                        did = rucio_replica['scope'] + \
-                            ':' + rucio_replica['name']
+                        did = rucio_replica['scope'] + ':' + rucio_replica['name']
                         replica = dict(pfn=pfns[0], did=did)
                         replicas.append(replica)
 

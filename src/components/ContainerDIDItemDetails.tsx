@@ -100,11 +100,22 @@ const _ContainerDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
     return 'AVAILABLE';
   };
 
+  const stillMounted = { value: false };
+  useEffect(() => {
+    stillMounted.value = true;
+    return () => (stillMounted.value = false);
+  }, []);
+
   const fetchDIDDetails = (poll = false) => {
-    return actions.getContainerDIDDetails(activeInstance.name, did)
+    return actions
+      .getContainerDIDDetails(activeInstance.name, did, poll)
       .then(files => {
         const containerState = computeContainerState(files);
-        if (containerState !== 'REPLICATING') {
+        if (containerState === 'REPLICATING') {
+          if (stillMounted.value) {
+            enablePolling();
+          }
+        } else {
           disablePolling();
         }
         return files;
@@ -134,14 +145,7 @@ const _ContainerDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
   };
 
   useEffect(() => {
-    if (!containerAttachedFiles) {
-      fetchDIDDetails();
-    } else {
-      const containerState = computeContainerState(containerAttachedFiles);
-      if (containerState === 'REPLICATING') {
-        enablePolling();
-      }
-    }
+    fetchDIDDetails();
 
     return () => {
       disablePolling();
@@ -149,12 +153,15 @@ const _ContainerDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
   }, []);
 
   const makeAvailable = () => {
-    actions.makeContainerAvailable(activeInstance.name, did)
+    actions
+      .makeContainerAvailable(activeInstance.name, did)
       .then(() => enablePolling())
       .catch(e => console.log(e)); // TODO handle error
   };
 
-  const containerState = !!containerAttachedFiles ? computeContainerState(containerAttachedFiles) : undefined;
+  const containerState = containerAttachedFiles
+    ? computeContainerState(containerAttachedFiles)
+    : undefined;
 
   return (
     <div className={classes.container}>

@@ -74,11 +74,20 @@ const _FileDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
   const activeInstance = useStoreState(UIStore, s => s.activeInstance);
   const fileDetails = useStoreState(UIStore, s => s.fileDetails[did]);
 
+  const stillMounted = { value: false };
+  useEffect(() => {
+    stillMounted.value = true;
+    return () => (stillMounted.value = false);
+  }, []);
+
   const fetchFileDetails = (poll = false) => {
-    return actions.getFileDIDDetails(activeInstance.name, did, poll)
+    return actions
+      .getFileDIDDetails(activeInstance.name, did, poll)
       .then(file => {
         if (file.status === 'REPLICATING') {
-          enablePolling();
+          if (stillMounted.value) {
+            enablePolling();
+          }
         } else {
           disablePolling();
         }
@@ -95,7 +104,6 @@ const _FileDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
 
   const enablePolling = () => {
     if (pollInterval === undefined) {
-      console.log('Enable polling');
       poll();
       pollInterval = window.setInterval(() => {
         poll();
@@ -105,7 +113,6 @@ const _FileDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
 
   const disablePolling = () => {
     if (pollInterval !== undefined) {
-      console.log('Disable polling');
       window.clearInterval(pollInterval);
       pollInterval = undefined;
     }
@@ -120,7 +127,8 @@ const _FileDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
   }, []);
 
   const makeAvailable = () => {
-    actions.makeFileAvailable(activeInstance.name, did)
+    actions
+      .makeFileAvailable(activeInstance.name, did)
       .then(() => enablePolling())
       .catch(e => console.log(e)); // TODO handle error
   };
