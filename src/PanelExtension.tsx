@@ -56,7 +56,7 @@ export class ExtensionPanel extends VDomRenderer {
       attachments: NotebookDIDAttachment[],
       state: ExtensionState
     ) => {
-      if (attachments) {
+      if (attachments && state.activeNotebookPanel) {
         const { metadata } = state.activeNotebookPanel.model;
         const current = metadata.get(METADATA_KEY) as ReadonlyArray<any>;
         const rucioDidAttachments = attachments as ReadonlyArray<any>;

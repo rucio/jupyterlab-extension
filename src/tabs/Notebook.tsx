@@ -35,7 +35,10 @@ export const Notebook: React.FunctionComponent = () => {
       variableName: 'coolme'
     };
 
-    setActiveNotebookAttachments([...activeNotebookAttachments, attachment]);
+    const notebookAttachments = activeNotebookAttachments
+      ? [...activeNotebookAttachments, attachment]
+      : [attachment];
+    setActiveNotebookAttachments(notebookAttachments);
   };
 
   return (
