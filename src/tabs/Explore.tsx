@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import { createUseStyles } from 'react-jss';
-import qs from 'querystring';
 import { useStoreState } from 'pullstate';
 import { UIStore } from '../stores/UIStore';
 import { TextField } from '../components/TextField';
 import { HorizontalHeading } from '../components/HorizontalHeading';
 import { DIDListItem } from '../components/DIDListItem';
-import { requestAPI } from '../utils/ApiRequest';
 import { Spinning } from '../components/Spinning';
+import { withRequestAPI, WithRequestAPIProps } from '../utils/Actions';
 
 const useStyles = createUseStyles({
   searchContainer: {
@@ -44,8 +43,10 @@ const useStyles = createUseStyles({
   }
 });
 
-export const Explore: React.FunctionComponent = () => {
+const _Explore: React.FunctionComponent = (props) => {
   const classes = useStyles();
+
+  const { actions } = props as WithRequestAPIProps;
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResult, setSearchResult] = useState<string[]>();
@@ -58,16 +59,11 @@ export const Explore: React.FunctionComponent = () => {
     searchResult.length > 0 &&
     !searchResult.includes(lastQuery);
 
-  const query = {
-    namespace: activeInstance.name,
-    did: searchQuery
-  };
-
   const doSearch = () => {
     setLoading(true);
     setSearchResult(undefined);
     setLastQuery(searchQuery);
-    requestAPI<string[]>(`files?${qs.encode(query)}`)
+    actions.fetchAttachedFileDIDs(activeInstance.name, searchQuery)
       .then(result => setSearchResult(result))
       .catch(e => setSearchResult([]))
       .finally(() => setLoading(false));
@@ -124,3 +120,5 @@ export const Explore: React.FunctionComponent = () => {
     </div>
   );
 };
+
+export const Explore = withRequestAPI(_Explore);

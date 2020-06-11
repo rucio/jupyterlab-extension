@@ -5,9 +5,9 @@ import { UIStore } from './stores/UIStore';
 import { Header } from './components/Header';
 import { MainPanel } from './pages/MainPanel';
 import { SelectInstance } from './pages/SelectInstance';
-import { requestAPI } from './utils/ApiRequest';
 import { Instance } from './types';
 import { Spinning } from './components/Spinning';
+import { WithRequestAPIProps, withRequestAPI } from './utils/Actions';
 
 const useStyles = createUseStyles({
   panel: {
@@ -31,8 +31,10 @@ const useStyles = createUseStyles({
   }
 });
 
-export const Panel: React.FunctionComponent = () => {
+const _Panel: React.FunctionComponent = (props) => {
   const classes = useStyles();
+  const { actions } = props as WithRequestAPIProps;
+
   const activeInstance = useStoreState(UIStore, s => s.activeInstance);
 
   const [instances, setInstances] = useState<Instance[]>(undefined);
@@ -42,7 +44,7 @@ export const Panel: React.FunctionComponent = () => {
   }, []);
 
   const loadInstances = () => {
-    requestAPI<{ activeInstance?: string; instances: Instance[] }>('instances')
+    actions.fetchInstancesConfig()
       .then(({ activeInstance, instances }) =>
         instancesLoaded(activeInstance, instances)
       )
@@ -68,14 +70,7 @@ export const Panel: React.FunctionComponent = () => {
       s.activeInstance = instance;
     });
 
-    const init = {
-      method: 'PUT',
-      body: JSON.stringify({
-        instance: value
-      })
-    };
-
-    requestAPI('instances', init).catch(e => console.log(e));
+    actions.postActiveInstance(value).catch(e => console.log(e));
   };
 
   return (
@@ -99,3 +94,5 @@ export const Panel: React.FunctionComponent = () => {
     </div>
   );
 };
+
+export const Panel = withRequestAPI(_Panel);

@@ -1,11 +1,10 @@
 import React, { useEffect } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useStoreState } from 'pullstate';
-import qs from 'querystring';
 import { UIStore } from '../stores/UIStore';
 import { Spinning } from './Spinning';
 import { FileDIDDetails, ContainerStatus } from '../types';
-import { requestAPI } from '../utils/ApiRequest';
+import { withRequestAPI, WithRequestAPIProps } from '../utils/Actions';
 
 const useStyles = createUseStyles({
   container: {
@@ -55,33 +54,16 @@ export interface DIDItem {
   did: string;
 }
 
-export const ContainerDIDItemDetails: React.FC<DIDItem> = ({ did }) => {
+const _ContainerDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
   const classes = useStyles();
+
+  const { actions } = props as WithRequestAPIProps;
 
   const activeInstance = useStoreState(UIStore, s => s.activeInstance);
   const containerAttachedFiles = useStoreState(
     UIStore,
     s => s.containerDetails[did]
   );
-  const setContainerAttachedFiles = (attachedFiles: FileDIDDetails[]) => {
-    UIStore.update(s => {
-      s.containerDetails[did] = attachedFiles;
-    });
-  };
-
-  const updateFileDetails = (files: FileDIDDetails[]) => {
-    const fileDetails = files.reduce(
-      (acc: { [key: string]: FileDIDDetails }, curr) => {
-        acc[curr.did] = curr;
-        return acc;
-      },
-      {}
-    );
-
-    UIStore.update(s => {
-      s.fileDetails = { ...s.fileDetails, ...fileDetails };
-    });
-  };
 
   const computeContainerState = (
     files: FileDIDDetails[]
@@ -119,31 +101,20 @@ export const ContainerDIDItemDetails: React.FC<DIDItem> = ({ did }) => {
   };
 
   const fetchDIDDetails = (poll = false) => {
-    const query = {
-      namespace: activeInstance.name,
-      poll: poll ? 1 : undefined,
-      did
-    };
-
-    return requestAPI<FileDIDDetails[]>('did?' + qs.encode(query)).then(
-      files => {
-        // Only update files with OK status, since it is the only time where the status matches in container and file.
-        updateFileDetails(files.filter(file => file.status === 'OK'));
-        setContainerAttachedFiles(files);
+    return actions.getContainerDIDDetails(activeInstance.name, did)
+      .then(files => {
+        const containerState = computeContainerState(files);
+        if (containerState !== 'REPLICATING') {
+          disablePolling();
+        }
         return files;
-      }
-    );
+      });
   };
 
   let pollInterval: number | undefined = undefined;
 
   const poll = () => {
-    fetchDIDDetails(true).then(files => {
-      const containerState = computeContainerState(files);
-      if (containerState !== 'REPLICATING') {
-        disablePolling();
-      }
-    });
+    fetchDIDDetails(true);
   };
 
   const enablePolling = () => {
@@ -164,12 +135,7 @@ export const ContainerDIDItemDetails: React.FC<DIDItem> = ({ did }) => {
 
   useEffect(() => {
     if (!containerAttachedFiles) {
-      fetchDIDDetails().then(files => {
-        const containerState = computeContainerState(files);
-        if (containerState !== 'REPLICATING') {
-          disablePolling();
-        }
-      });
+      fetchDIDDetails();
     } else {
       const containerState = computeContainerState(containerAttachedFiles);
       if (containerState === 'REPLICATING') {
@@ -183,27 +149,12 @@ export const ContainerDIDItemDetails: React.FC<DIDItem> = ({ did }) => {
   }, []);
 
   const makeAvailable = () => {
-    setContainerAttachedFiles(
-      containerAttachedFiles.map(f => ({
-        ...f,
-        status: f.status === 'OK' ? 'OK' : 'REPLICATING'
-      }))
-    );
-
-    const init = {
-      method: 'POST',
-      body: JSON.stringify({ method: 'replica', did })
-    };
-
-    requestAPI(
-      'did/make-available?namespace=' + encodeURIComponent(activeInstance.name),
-      init
-    )
+    actions.makeContainerAvailable(activeInstance.name, did)
       .then(() => enablePolling())
       .catch(e => console.log(e)); // TODO handle error
   };
 
-  const containerState = computeContainerState(containerAttachedFiles);
+  const containerState = !!containerAttachedFiles ? computeContainerState(containerAttachedFiles) : undefined;
 
   return (
     <div className={classes.container}>
@@ -300,3 +251,5 @@ const FileStuck: React.FC = () => {
     </div>
   );
 };
+
+export const ContainerDIDItemDetails = withRequestAPI(_ContainerDIDItemDetails);

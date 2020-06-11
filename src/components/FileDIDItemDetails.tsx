@@ -1,12 +1,10 @@
 import React, { useEffect } from 'react';
 import { createUseStyles } from 'react-jss';
 import CopyToClipboard from 'react-copy-to-clipboard';
-import qs from 'querystring';
 import { useStoreState } from 'pullstate';
 import { UIStore } from '../stores/UIStore';
-import { FileDIDDetails } from '../types';
-import { requestAPI } from '../utils/ApiRequest';
 import { Spinning } from './Spinning';
+import { withRequestAPI, WithRequestAPIProps } from '../utils/Actions';
 
 const useStyles = createUseStyles({
   container: {
@@ -69,40 +67,32 @@ export interface DIDItem {
   did: string;
 }
 
-export const FileDIDItemDetails: React.FC<DIDItem> = ({ did }) => {
+const _FileDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
+  const { actions } = props as WithRequestAPIProps;
+
   const classes = useStyles();
   const activeInstance = useStoreState(UIStore, s => s.activeInstance);
   const fileDetails = useStoreState(UIStore, s => s.fileDetails[did]);
-  const setFileDetails = (details: FileDIDDetails) => {
-    UIStore.update(s => {
-      s.fileDetails[did] = details;
-    });
-  };
 
   const fetchFileDetails = (poll = false) => {
-    const query = {
-      namespace: activeInstance.name,
-      poll: poll ? 1 : undefined,
-      did
-    };
+    return actions.getFileDIDDetails(activeInstance.name, did, poll)
+      .then(file => {
+        if (file.status === 'REPLICATING') {
+          enablePolling();
+        } else {
+          disablePolling();
+        }
 
-    return requestAPI<FileDIDDetails[]>('did?' + qs.encode(query)).then(
-      file => {
-        setFileDetails(file[0]);
-        return file[0];
-      }
-    );
+        return file;
+      });
   };
 
   let pollInterval: number | undefined = undefined;
 
   const poll = () => {
-    fetchFileDetails(true).then(file => {
-      if (file.status !== 'REPLICATING') {
-        disablePolling();
-      }
-    });
+    fetchFileDetails(true);
   };
+
   const enablePolling = () => {
     if (pollInterval === undefined) {
       console.log('Enable polling');
@@ -122,17 +112,7 @@ export const FileDIDItemDetails: React.FC<DIDItem> = ({ did }) => {
   };
 
   useEffect(() => {
-    if (!fileDetails) {
-      fetchFileDetails().then(file => {
-        if (file.status === 'REPLICATING') {
-          enablePolling();
-        }
-      });
-    } else {
-      if (fileDetails.status === 'REPLICATING') {
-        enablePolling();
-      }
-    }
+    fetchFileDetails();
 
     return () => {
       disablePolling();
@@ -140,17 +120,7 @@ export const FileDIDItemDetails: React.FC<DIDItem> = ({ did }) => {
   }, []);
 
   const makeAvailable = () => {
-    setFileDetails({ ...fileDetails, status: 'REPLICATING' });
-
-    const init = {
-      method: 'POST',
-      body: JSON.stringify({ method: 'replica', did })
-    };
-
-    requestAPI(
-      'did/make-available?namespace=' + encodeURIComponent(activeInstance.name),
-      init
-    )
+    actions.makeFileAvailable(activeInstance.name, did)
       .then(() => enablePolling())
       .catch(e => console.log(e)); // TODO handle error
   };
@@ -238,3 +208,5 @@ const FileStuck: React.FC = () => {
     </div>
   );
 };
+
+export const FileDIDItemDetails = withRequestAPI(_FileDIDItemDetails);
