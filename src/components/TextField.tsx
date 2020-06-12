@@ -36,6 +36,7 @@ export const TextField: React.FC<MyProps> = ({
   before,
   after,
   outlineColor,
+  className,
   ...props
 }) => {
   const classes = useStyles({ outlineColor });
@@ -48,7 +49,11 @@ export const TextField: React.FC<MyProps> = ({
   return (
     <div className={classes.control}>
       {before}
-      <input type="text" className={inputClasses.join(' ')} {...props} />
+      <input
+        type="text"
+        className={inputClasses.join(' ') + ' ' + className || ''}
+        {...props}
+      />
       {after}
     </div>
   );

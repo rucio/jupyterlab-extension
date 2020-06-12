@@ -5,6 +5,7 @@ import { useStoreState } from 'pullstate';
 import { UIStore } from '../stores/UIStore';
 import { Spinning } from './Spinning';
 import { withRequestAPI, WithRequestAPIProps } from '../utils/Actions';
+import { AddToNotebookPopover } from './AddToNotebookPopover';
 
 const useStyles = createUseStyles({
   container: {
@@ -25,7 +26,8 @@ const useStyles = createUseStyles({
     paddingLeft: '4px'
   },
   statusAvailable: {
-    color: '#5a9216'
+    color: '#5a9216',
+    flex: 1
   },
   statusNotAvailable: {
     color: '#dd2c00',
@@ -34,7 +36,7 @@ const useStyles = createUseStyles({
   statusReplicating: {
     color: '#ffa000'
   },
-  statusNotAvailableContainer: {
+  statusContainer: {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center'
@@ -144,7 +146,7 @@ const _FileDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
         </div>
       )}
       {!!fileDetails && fileDetails.status === 'OK' && (
-        <FileAvailable path={fileDetails.path} />
+        <FileAvailable did={did} path={fileDetails.path} />
       )}
       {!!fileDetails && fileDetails.status === 'NOT_AVAILABLE' && (
         <FileNotAvailable onMakeAvailableClicked={makeAvailable} />
@@ -157,14 +159,24 @@ const _FileDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
   );
 };
 
-const FileAvailable: React.FC<{ path: string }> = ({ path }) => {
+const FileAvailable: React.FC<{ did: string; path: string }> = ({
+  did,
+  path
+}) => {
   const classes = useStyles();
 
   return (
     <>
-      <div className={classes.statusAvailable}>
-        <i className={`${classes.icon} material-icons`}>check_circle</i>
-        <span className={classes.statusText}>Available</span>
+      <div className={classes.statusContainer}>
+        <div className={classes.statusAvailable}>
+          <i className={`${classes.icon} material-icons`}>check_circle</i>
+          <span className={classes.statusText}>Available</span>
+        </div>
+        <div className={classes.action}>
+          <AddToNotebookPopover did={did} type="file">
+            Add to Notebook
+          </AddToNotebookPopover>
+        </div>
       </div>
       <CopyToClipboard text={path}>
         <div className={classes.path}>
@@ -181,7 +193,7 @@ const FileNotAvailable: React.FC<{ onMakeAvailableClicked?: { (): void } }> = ({
   const classes = useStyles();
 
   return (
-    <div className={classes.statusNotAvailableContainer}>
+    <div className={classes.statusContainer}>
       <div className={classes.statusNotAvailable}>
         <i className={`${classes.icon} material-icons`}>cancel</i>
         <span className={classes.statusText}>Not Available</span>

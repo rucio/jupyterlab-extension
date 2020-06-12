@@ -1,10 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useStoreState } from 'pullstate';
 import { UIStore } from '../stores/UIStore';
 import { Spinning } from './Spinning';
 import { FileDIDDetails, ContainerStatus } from '../types';
 import { withRequestAPI, WithRequestAPIProps } from '../utils/Actions';
+import { AddToNotebookPopover } from './AddToNotebookPopover';
 
 const useStyles = createUseStyles({
   container: {
@@ -25,7 +26,8 @@ const useStyles = createUseStyles({
     paddingLeft: '4px'
   },
   statusAvailable: {
-    color: '#5a9216'
+    color: '#5a9216',
+    flex: 1
   },
   statusPartiallyAvailable: {
     color: '#ffa000',
@@ -38,7 +40,7 @@ const useStyles = createUseStyles({
   statusReplicating: {
     color: '#ffa000'
   },
-  statusNotAvailableContainer: {
+  statusContainer: {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center'
@@ -159,9 +161,11 @@ const _ContainerDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
       .catch(e => console.log(e)); // TODO handle error
   };
 
-  const containerState = containerAttachedFiles
-    ? computeContainerState(containerAttachedFiles)
-    : undefined;
+  const containerState = useMemo(() => {
+    return containerAttachedFiles
+      ? computeContainerState(containerAttachedFiles)
+      : undefined;
+  }, [containerAttachedFiles]);
 
   return (
     <div className={classes.container}>
@@ -173,7 +177,7 @@ const _ContainerDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
           <span className={classes.statusText}>Loading...</span>
         </div>
       )}
-      {containerState === 'AVAILABLE' && <FileAvailable />}
+      {containerState === 'AVAILABLE' && <FileAvailable did={did} />}
       {containerState === 'PARTIALLY_AVAILABLE' && (
         <FilePartiallyAvailable onMakeAvailableClicked={makeAvailable} />
       )}
@@ -186,14 +190,21 @@ const _ContainerDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
   );
 };
 
-const FileAvailable: React.FC = () => {
+const FileAvailable: React.FC<{ did: string }> = ({ did }) => {
   const classes = useStyles();
 
   return (
     <>
-      <div className={classes.statusAvailable}>
-        <i className={`${classes.icon} material-icons`}>check_circle</i>
-        <span className={classes.statusText}>All files available</span>
+      <div className={classes.statusContainer}>
+        <div className={classes.statusAvailable}>
+          <i className={`${classes.icon} material-icons`}>check_circle</i>
+          <span className={classes.statusText}>All files available</span>
+        </div>
+        <div className={classes.action}>
+          <AddToNotebookPopover did={did} type="container">
+            Add to Notebook
+          </AddToNotebookPopover>
+        </div>
       </div>
     </>
   );
@@ -205,7 +216,7 @@ const FileNotAvailable: React.FC<{ onMakeAvailableClicked?: { (): void } }> = ({
   const classes = useStyles();
 
   return (
-    <div className={classes.statusNotAvailableContainer}>
+    <div className={classes.statusContainer}>
       <div className={classes.statusNotAvailable}>
         <i className={`${classes.icon} material-icons`}>cancel</i>
         <span className={classes.statusText}>Not available</span>
@@ -223,7 +234,7 @@ const FilePartiallyAvailable: React.FC<{
   const classes = useStyles();
 
   return (
-    <div className={classes.statusNotAvailableContainer}>
+    <div className={classes.statusContainer}>
       <div className={classes.statusPartiallyAvailable}>
         <i className={`${classes.icon} material-icons`}>cancel</i>
         <span className={classes.statusText}>Partially available</span>
