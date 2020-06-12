@@ -22,7 +22,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     app: JupyterFrontEnd,
     labShell: ILabShell,
     settingRegistry: ISettingRegistry,
-    notebooks: INotebookTracker
+    notebookTracker: INotebookTracker
   ) => {
     console.log('JupyterLab extension rucio-jupyterlab is activated!');
 
@@ -30,7 +30,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       app,
       settingRegistry,
       labShell,
-      notebooks,
+      notebookTracker,
       widgetId: `${EXTENSION_ID}:panel`
     });
 

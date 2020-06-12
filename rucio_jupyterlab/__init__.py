@@ -1,5 +1,6 @@
 # from ._version import __version__
 from .handlers import setup_handlers
+import rucio_jupyterlab.kernels.ipython
 
 
 def _jupyter_server_extension_paths():
