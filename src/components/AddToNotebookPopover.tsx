@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef
+} from 'react';
 import Popover from 'react-popover';
 import { createUseStyles } from 'react-jss';
 import { useStoreState } from 'pullstate';
@@ -48,6 +54,7 @@ export const AddToNotebookPopover: React.FC<MyProps> = ({
   type
 }) => {
   const classes = useStyles();
+  const textFieldRef = useRef<HTMLInputElement>();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string>();
   const [varName, setVarName] = useState('');
@@ -166,6 +173,7 @@ export const AddToNotebookPopover: React.FC<MyProps> = ({
   const popoverBody = (
     <>
       <TextField
+        ref={textFieldRef}
         className={classes.textField}
         outlineColor="#FFFFFF"
         placeholder="Enter a variable name"
@@ -181,6 +189,15 @@ export const AddToNotebookPopover: React.FC<MyProps> = ({
     </>
   );
 
+  const openPopover = () => {
+    console.log('Open');
+    setOpen(true);
+    setVarName('');
+    setTimeout(() => {
+      textFieldRef.current.focus();
+    }, 10);
+  };
+
   return (
     <>
       {!!activeNotebookPanel && !didAttached && (
@@ -191,7 +208,7 @@ export const AddToNotebookPopover: React.FC<MyProps> = ({
           body={popoverBody}
           onOuterAction={() => setOpen(false)}
         >
-          <div onClick={() => setOpen(!open)}>{children}</div>
+          <div onClick={openPopover}>{children}</div>
         </Popover>
       )}
     </>

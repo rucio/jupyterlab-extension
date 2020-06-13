@@ -31,30 +31,33 @@ interface TextFieldProps {
 
 type MyProps = TextFieldProps & React.InputHTMLAttributes<HTMLInputElement>;
 
-export const TextField: React.FC<MyProps> = ({
-  block,
-  before,
-  after,
-  outlineColor,
-  className,
-  ...props
-}) => {
+const _TextField = (props: MyProps, ref: React.Ref<HTMLInputElement>) => {
+  const {
+    block,
+    before,
+    after,
+    outlineColor,
+    className,
+    ...carriedProps
+  } = props;
   const classes = useStyles({ outlineColor });
 
   const inputClasses = [classes.input];
   if (block) {
     inputClasses.push(classes.block);
   }
-
   return (
     <div className={classes.control}>
       {before}
       <input
+        ref={ref}
         type="text"
         className={inputClasses.join(' ') + ' ' + className || ''}
-        {...props}
+        {...carriedProps}
       />
       {after}
     </div>
   );
 };
+
+export const TextField = React.forwardRef(_TextField);
