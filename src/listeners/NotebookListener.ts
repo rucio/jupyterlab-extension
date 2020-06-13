@@ -88,10 +88,7 @@ export class NotebookListener {
   ) {
     if (attachments && state.activeNotebookPanel) {
       this.setJupyterNotebookFileRucioMetadata(attachments, state);
-
-      state.activeNotebookPanel.sessionContext.ready.then(() => {
-        this.triggerKernelVariableInjection();
-      });
+      this.triggerKernelVariableInjection();
     }
   }
 
@@ -178,15 +175,17 @@ export class NotebookListener {
       return;
     }
 
-    const notYetInjectedAttachments = this.getNotYetInjectedAttachments();
+    activeNotebookPanel.sessionContext.ready.then(() => {
+      const notYetInjectedAttachments = this.getNotYetInjectedAttachments();
 
-    notYetInjectedAttachments.forEach(attachment => {
-      const { type } = attachment;
-      if (type === 'container') {
-        this.injectContainerAttachment(attachment).catch(e => console.log(e));
-      } else {
-        this.injectFileAttachment(attachment).catch(e => console.log(e));
-      }
+      notYetInjectedAttachments.forEach(attachment => {
+        const { type } = attachment;
+        if (type === 'container') {
+          this.injectContainerAttachment(attachment).catch(e => console.log(e));
+        } else {
+          this.injectFileAttachment(attachment).catch(e => console.log(e));
+        }
+      });
     });
   }
 
