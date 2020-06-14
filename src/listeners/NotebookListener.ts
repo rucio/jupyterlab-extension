@@ -6,7 +6,7 @@ import { NotebookDIDAttachment, FileDIDDetails } from '../types';
 import { METADATA_KEY, COMM_NAME_KERNEL, COMM_NAME_FRONTEND } from '../const';
 import { ReadonlyPartialJSONArray } from '@lumino/coreutils';
 import { Actions } from '../utils/Actions';
-import { SessionManager } from '@jupyterlab/services';
+import { SessionManager, KernelMessage, Kernel } from '@jupyterlab/services';
 import { IKernelConnection } from '@jupyterlab/services/lib/kernel/kernel';
 
 interface NotebookVariableInjection {
@@ -96,9 +96,16 @@ export class NotebookListener {
     attachments: NotebookDIDAttachment[],
     state: ExtensionState
   ) {
-    if (attachments && state.activeNotebookPanel) {
+    const { activeNotebookPanel } = state;
+    if (attachments && activeNotebookPanel) {
       this.setJupyterNotebookFileRucioMetadata(attachments, state);
-      this.triggerKernelVariableInjection();
+      activeNotebookPanel.sessionContext.ready
+        .then(() => {
+          return this.createVariableInjectionPayload();
+        })
+        .then(injections => {
+          return this.injectAttachments(injections);
+        });
     }
   }
 
@@ -151,15 +158,29 @@ export class NotebookListener {
 
   private setupKernelReceiverComm(kernelConnection: IKernelConnection) {
     kernelConnection.registerCommTarget(COMM_NAME_FRONTEND, (comm, openMsg) => {
-      const data = openMsg.content.data;
-      if (data.action === 'request-inject') {
-        this.triggerKernelVariableInjection();
-      } else if (data.action === 'ack-inject') {
-        const kernelConnectionId = kernelConnection.id;
-        const variableNames = data.variable_names as string[];
-        this.appendInjectedVariableNames(kernelConnectionId, variableNames);
-      }
+      this.processIncomingMessage(kernelConnection, comm, openMsg);
+
+      comm.onMsg = msg => {
+        this.processIncomingMessage(kernelConnection, comm, msg);
+      };
     });
+  }
+
+  private processIncomingMessage(
+    kernelConnection: IKernelConnection,
+    comm: Kernel.IComm,
+    msg: KernelMessage.ICommMsgMsg | KernelMessage.ICommOpenMsg
+  ) {
+    const data = msg.content.data;
+    if (data.action === 'request-inject') {
+      this.createVariableInjectionPayload().then(injections => {
+        return comm.send({ action: 'inject', dids: injections }).done;
+      });
+    } else if (data.action === 'ack-inject') {
+      const kernelConnectionId = kernelConnection.id;
+      const variableNames = data.variable_names as string[];
+      this.appendInjectedVariableNames(kernelConnectionId, variableNames);
+    }
   }
 
   private appendInjectedVariableNames(
@@ -178,34 +199,22 @@ export class NotebookListener {
     delete this.injectedVariableNames[kernelConnectionId];
   }
 
-  private triggerKernelVariableInjection() {
-    const { activeNotebookPanel } = ExtensionStore.getRawState();
+  private async createVariableInjectionPayload() {
+    const notYetInjectedAttachments = this.getNotYetInjectedAttachments();
+    const promises = notYetInjectedAttachments.map(attachment =>
+      this.createAttachmentResolvePromise(attachment)
+    );
 
-    activeNotebookPanel.sessionContext.ready.then(() => {
-      if (!activeNotebookPanel.sessionContext.session) {
-        return;
-      }
+    return Promise.all(promises).then(attributes => {
+      return attributes.map(({ attachment, didDetails }) => {
+        const { variableName, type } = attachment;
+        const path =
+          type === 'container'
+            ? this.getContainerDIDPaths(didDetails as FileDIDDetails[])
+            : this.getFileDIDPaths(didDetails as FileDIDDetails);
 
-      const notYetInjectedAttachments = this.getNotYetInjectedAttachments();
-      const promises = notYetInjectedAttachments.map(attachment =>
-        this.createAttachmentResolvePromise(attachment)
-      );
-
-      return Promise.all(promises)
-        .then(attributes => {
-          return attributes.map(({ attachment, didDetails }) => {
-            const { variableName, type } = attachment;
-            const path =
-              type === 'container'
-                ? this.getContainerDIDPaths(didDetails as FileDIDDetails[])
-                : this.getFileDIDPaths(didDetails as FileDIDDetails);
-
-            return { variableName: variableName, path };
-          });
-        })
-        .then(dids => {
-          return this.injectAttachments(dids);
-        });
+        return { variableName: variableName, path };
+      });
     });
   }
 
@@ -255,6 +264,10 @@ export class NotebookListener {
   private injectAttachments(
     injections: NotebookVariableInjection[]
   ): Promise<any> {
+    if (injections.length === 0) {
+      return;
+    }
+
     const { activeNotebookPanel } = ExtensionStore.getRawState();
     const comm = activeNotebookPanel.sessionContext.session.kernel.createComm(
       COMM_NAME_KERNEL
@@ -263,10 +276,10 @@ export class NotebookListener {
     return comm
       .open()
       .done.then(() => {
-        return comm.send({ action: 'inject', dids: injections as any[] });
+        return comm.send({ action: 'inject', dids: injections as any[] }).done;
       })
       .then(() => {
-        return comm.close();
+        return comm.close().done;
       });
   }
 

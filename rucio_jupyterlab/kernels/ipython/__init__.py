@@ -10,6 +10,13 @@ class RucioDIDAttachmentConnector:
     def __init__(self, ipython):
         self.ipython = ipython
 
+    def register_outgoing_comm(self):
+        self.send_comm = Comm(target_name=FRONTEND_COMM_NAME)
+
+        @self.send_comm.on_msg
+        def _recv(msg):
+            self.handle_comm_message(msg)
+
     def register_comm(self):
         self.ipython.kernel.comm_manager.register_target(KERNEL_COMM_NAME, self.target_func)
 
@@ -40,21 +47,20 @@ class RucioDIDAttachmentConnector:
 
             injected_variable_names.append(variable_name)
             self.ipython.push({variable_name: injected_obj})
-        
+
         self.send_ack_inject(injected_variable_names)
-    
+
     def send_ack_inject(self, injected_variable_names):
-        send_comm = Comm(target_name=FRONTEND_COMM_NAME, data={ 'action': 'ack-inject', 'variable_names': injected_variable_names })
-        send_comm.send()
+        self.send_comm.send(data={'action': 'ack-inject', 'variable_names': injected_variable_names})
 
     def send_injection_request(self):
-        send_comm = Comm(target_name=FRONTEND_COMM_NAME, data={'action': 'request-inject'})
-        send_comm.close()
+        self.send_comm.send(data={'action': 'request-inject'})
 
 
 def load_ipython_extension(ipython):
     connector = RucioDIDAttachmentConnector(ipython)
     connector.register_comm()
+    connector.register_outgoing_comm()
     connector.send_injection_request()
 
 

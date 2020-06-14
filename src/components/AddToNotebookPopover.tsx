@@ -190,7 +190,6 @@ export const AddToNotebookPopover: React.FC<MyProps> = ({
   );
 
   const openPopover = () => {
-    console.log('Open');
     setOpen(true);
     setVarName('');
     setTimeout(() => {
