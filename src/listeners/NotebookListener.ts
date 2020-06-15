@@ -38,11 +38,9 @@ export class NotebookListener {
 
   setup(): void {
     const { labShell, notebookTracker } = this.options;
-    ExtensionStore.subscribe(
-      s => s.activeNotebookAttachment,
+    ExtensionStore.subscribe(s => s.activeNotebookAttachment,
       (attachments, state) =>
-        this.onNotebookAttachmentChanged(attachments, state)
-    );
+        this.onNotebookAttachmentChanged(attachments, state));
     labShell.currentChanged.connect(this.onCurrentTabChanged, this);
     notebookTracker.widgetAdded.connect(this.onNotebookOpened, this);
   }
@@ -66,9 +64,7 @@ export class NotebookListener {
       }
 
       const attachedDIDs = rucioDidAttachments as ReadonlyArray<any>;
-      this.setActiveNotebookAttachments(
-        attachedDIDs as NotebookDIDAttachment[]
-      );
+      this.setActiveNotebookAttachments(attachedDIDs as NotebookDIDAttachment[]);
     });
   }
 
@@ -92,10 +88,8 @@ export class NotebookListener {
     });
   }
 
-  private onNotebookAttachmentChanged(
-    attachments: NotebookDIDAttachment[],
-    state: ExtensionState
-  ) {
+  private onNotebookAttachmentChanged(attachments: NotebookDIDAttachment[],
+    state: ExtensionState) {
     const { activeNotebookPanel } = state;
 
     if (!attachments || !activeNotebookPanel) {
@@ -107,30 +101,37 @@ export class NotebookListener {
     }
 
     this.setJupyterNotebookFileRucioMetadata(attachments, state);
+    this.removeNonExistentInjectedVariableNames(attachments, state);
+
     activeNotebookPanel.sessionContext.ready
       .then(() => {
         const attachments = this.getNotYetInjectedAttachments();
         return this.createVariableInjectionPayload(attachments);
       })
       .then(injections => {
-        console.log("Injecting due to changed attachment");
+        console.log('Injecting due to changed attachment');
         return this.injectAttachments(injections);
       });
   }
 
-  private setJupyterNotebookFileRucioMetadata(
-    attachments: NotebookDIDAttachment[],
-    state: ExtensionState
-  ) {
+  private setJupyterNotebookFileRucioMetadata(attachments: NotebookDIDAttachment[],
+    state: ExtensionState) {
     const { metadata } = state.activeNotebookPanel.model;
     const current = metadata.get(METADATA_KEY) as ReadonlyArray<any>;
     const rucioDidAttachments = attachments as ReadonlyArray<any>;
 
     if (current !== rucioDidAttachments) {
-      metadata.set(
-        METADATA_KEY,
-        rucioDidAttachments as ReadonlyPartialJSONArray
-      );
+      metadata.set(METADATA_KEY,
+        rucioDidAttachments as ReadonlyPartialJSONArray);
+    }
+  }
+
+  private removeNonExistentInjectedVariableNames(attachments: NotebookDIDAttachment[], state: ExtensionState) {
+    const kernelConnectionId = state.activeNotebookPanel.sessionContext.session?.kernel?.id;
+    const injectedVariableNames = this.injectedVariableNames[kernelConnectionId];
+
+    if (!!kernelConnectionId && !!injectedVariableNames) {
+      this.injectedVariableNames[kernelConnectionId] = injectedVariableNames.filter(n => attachments.find(a => a.variableName === n));
     }
   }
 
@@ -156,28 +157,28 @@ export class NotebookListener {
   }
 
   private onKernelRestarted(kernelConnection: IKernelConnection) {
-    console.log("Kernel restarted", kernelConnection.id);
+    console.log('Kernel restarted', kernelConnection.id);
     this.clearInjectedVariableNames(kernelConnection.id);
   }
 
   private onKernelDetached(kernelConnection: IKernelConnection) {
-    console.log("Kernel detached", kernelConnection.id);
+    console.log('Kernel detached', kernelConnection.id);
     this.clearInjectedVariableNames(kernelConnection.id);
   }
 
   private onKernelAttached(kernelConnection: IKernelConnection) {
-    console.log("Kernel attached");
+    console.log('Kernel attached');
     this.setupKernelReceiverComm(kernelConnection);
 
     const attachments = this.getNotYetInjectedAttachments();
     this.createVariableInjectionPayload(attachments).then(injections => {
-      console.log("Injecting due to kernel attached");
+      console.log('Injecting due to kernel attached');
       this.injectAttachments(injections);
     });
   }
 
   private setupKernelReceiverComm(kernelConnection: IKernelConnection) {
-    console.log("Setup receiver comm");
+    console.log('Setup receiver comm');
     kernelConnection.registerCommTarget(COMM_NAME_FRONTEND, (comm, openMsg) => {
       comm.onMsg = msg => {
         this.processIncomingMessage(kernelConnection, comm, msg);
@@ -186,13 +187,11 @@ export class NotebookListener {
     });
   }
 
-  private processIncomingMessage(
-    kernelConnection: IKernelConnection,
+  private processIncomingMessage(kernelConnection: IKernelConnection,
     comm: Kernel.IComm,
-    msg: KernelMessage.ICommMsgMsg | KernelMessage.ICommOpenMsg
-  ) {
+    msg: KernelMessage.ICommMsgMsg | KernelMessage.ICommOpenMsg) {
     const data = msg.content.data;
-    console.log("Incoming message", data);
+    console.log('Incoming message', data);
     if (data.action === 'request-inject') {
       const { activeNotebookAttachment } = ExtensionStore.getRawState();
       if (!activeNotebookAttachment) {
@@ -200,7 +199,7 @@ export class NotebookListener {
       }
 
       this.createVariableInjectionPayload(activeNotebookAttachment).then(injections => {
-        console.log("Replying request-inject", injections);
+        console.log('Replying request-inject', injections);
         return comm.send({ action: 'inject', dids: injections }).done;
       });
     } else if (data.action === 'ack-inject') {
@@ -210,17 +209,15 @@ export class NotebookListener {
     }
   }
 
-  private appendInjectedVariableNames(
-    kernelConnectionId: string,
-    variableNames: string[]
-  ) {
+  private appendInjectedVariableNames(kernelConnectionId: string,
+    variableNames: string[]) {
     const injectedVariableNames =
       this.injectedVariableNames[kernelConnectionId] || [];
     this.injectedVariableNames[kernelConnectionId] = [
       ...injectedVariableNames,
       ...variableNames
     ];
-    console.log("Append varnames", kernelConnectionId, variableNames);
+    console.log('Append varnames', kernelConnectionId, variableNames);
   }
 
   private clearInjectedVariableNames(kernelConnectionId: string) {
@@ -229,8 +226,7 @@ export class NotebookListener {
 
   private async createVariableInjectionPayload(attachments: NotebookDIDAttachment[]) {
     const promises = attachments.map(attachment =>
-      this.createAttachmentResolvePromise(attachment)
-    );
+      this.createAttachmentResolvePromise(attachment));
 
     return Promise.all(promises).then(attributes => {
       return attributes.map(({ attachment, didDetails }) => {
@@ -257,19 +253,13 @@ export class NotebookListener {
       this.injectedVariableNames[kernelConnectionId] || [];
     const attachments = activeNotebookAttachment || [];
 
-    return attachments.filter(
-      a => !injectedVariableNames.includes(a.variableName)
-    );
+    return attachments.filter(a => !injectedVariableNames.includes(a.variableName));
   }
 
-  private createAttachmentResolvePromise(
-    attachment: NotebookDIDAttachment
-  ): Promise<AttachmentResolveIntermediate> {
+  private createAttachmentResolvePromise(attachment: NotebookDIDAttachment): Promise<AttachmentResolveIntermediate> {
     const retrieveFunction = async () => {
       if (attachment.type === 'container') {
-        const didDetails = await this.resolveContainerDIDDetails(
-          attachment.did
-        );
+        const didDetails = await this.resolveContainerDIDDetails(attachment.did);
         return { attachment, didDetails };
       } else {
         const didDetails = await this.resolveFileDIDDetails(attachment.did);
@@ -288,18 +278,14 @@ export class NotebookListener {
     return didDetails.path;
   }
 
-  private injectAttachments(
-    injections: NotebookVariableInjection[]
-  ): Promise<any> {
-    console.log("Injecting variables", injections);
+  private injectAttachments(injections: NotebookVariableInjection[]): Promise<any> {
+    console.log('Injecting variables', injections);
     if (injections.length === 0) {
       return;
     }
 
     const { activeNotebookPanel } = ExtensionStore.getRawState();
-    const comm = activeNotebookPanel.sessionContext.session.kernel.createComm(
-      COMM_NAME_KERNEL
-    );
+    const comm = activeNotebookPanel.sessionContext.session.kernel.createComm(COMM_NAME_KERNEL);
 
     return comm.open().done
       .then(() => comm.send({ action: 'inject', dids: injections as any[] }).done)
@@ -315,9 +301,7 @@ export class NotebookListener {
     return this.actions.getFileDIDDetails(activeInstance.name, did);
   }
 
-  private async resolveContainerDIDDetails(
-    did: string
-  ): Promise<FileDIDDetails[]> {
+  private async resolveContainerDIDDetails(did: string): Promise<FileDIDDetails[]> {
     const { activeInstance } = UIStore.getRawState();
     return this.actions.getContainerDIDDetails(activeInstance.name, did);
   }

@@ -3,9 +3,9 @@ import { createUseStyles } from 'react-jss';
 import { useStoreState } from 'pullstate';
 import { UIStore } from '../stores/UIStore';
 import { Spinning } from './Spinning';
-import { FileDIDDetails, ContainerStatus } from '../types';
 import { withRequestAPI, WithRequestAPIProps } from '../utils/Actions';
 import { AddToNotebookPopover } from './AddToNotebookPopover';
+import { computeContainerState } from '../utils/Helpers';
 
 const useStyles = createUseStyles({
   container: {
@@ -66,41 +66,6 @@ const _ContainerDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
     UIStore,
     s => s.containerDetails[did]
   );
-
-  const computeContainerState = (
-    files: FileDIDDetails[]
-  ): ContainerStatus | false => {
-    if (!files) {
-      return false;
-    }
-
-    if (files.length === 0) {
-      return 'AVAILABLE';
-    }
-
-    const available = files.find(file => file.status === 'OK');
-    const notAvailable = files.find(file => file.status === 'NOT_AVAILABLE');
-    const replicating = files.find(file => file.status === 'REPLICATING');
-    const stuck = files.find(file => file.status === 'STUCK');
-
-    if (replicating) {
-      return 'REPLICATING';
-    }
-
-    if (stuck) {
-      return 'STUCK';
-    }
-
-    if (!available) {
-      return 'NOT_AVAILABLE';
-    }
-
-    if (notAvailable) {
-      return 'PARTIALLY_AVAILABLE';
-    }
-
-    return 'AVAILABLE';
-  };
 
   const stillMounted = { value: false };
   useEffect(() => {

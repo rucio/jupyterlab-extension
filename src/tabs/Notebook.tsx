@@ -2,9 +2,14 @@ import React from 'react';
 import { createUseStyles } from 'react-jss';
 import { useStoreState } from 'pullstate';
 import { ExtensionStore } from '../stores/ExtensionStore';
+import { NotebookAttachmentListItem } from '../components/NotebookAttachmentListItem';
+import { HorizontalHeading } from '../components/HorizontalHeading';
 
 const useStyles = createUseStyles({
   container: {
+    padding: '16px 0 16px 0'
+  },
+  messageContainer: {
     padding: '16px'
   }
 });
@@ -21,14 +26,32 @@ export const Notebook: React.FunctionComponent = () => {
   );
 
   return (
-    <div className={classes.container}>
+    <>
       {!!activeNotebookPanel &&
         !!activeNotebookAttachments &&
-        activeNotebookAttachments.map((attachment, i) => (
-          <div key={i}>
-            {attachment.did} {attachment.variableName}
+        activeNotebookAttachments.length > 0 && (
+          <div className={classes.container}>
+            {activeNotebookAttachments.length > 0 && (
+              <>
+                <HorizontalHeading title="Attached DIDs" />
+                {activeNotebookAttachments.map((attachment, i) => (
+                  <NotebookAttachmentListItem key={i} attachment={attachment} />
+                ))}
+              </>
+            )}
           </div>
-        ))}
-    </div>
+        )}
+      {!!activeNotebookPanel &&
+        !!activeNotebookAttachments &&
+        activeNotebookAttachments.length === 0 && (
+          <div className={classes.messageContainer}>
+            You have not attached any DID. Use the Explore menu to add a DID to
+            this notebook.
+          </div>
+        )}
+      {!activeNotebookPanel && (
+        <div className={classes.messageContainer}>Please open a Notebook.</div>
+      )}
+    </>
   );
 };

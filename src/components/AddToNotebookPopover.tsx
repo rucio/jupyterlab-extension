@@ -11,6 +11,7 @@ import { useStoreState } from 'pullstate';
 import { ExtensionStore } from '../stores/ExtensionStore';
 import { TextField } from '../components/TextField';
 import { NotebookDIDAttachment } from '../types';
+import { checkVariableNameValid } from '../utils/Helpers';
 
 const useStyles = createUseStyles({
   textField: {
@@ -128,25 +129,6 @@ export const AddToNotebookPopover: React.FC<MyProps> = ({
     if (e.key === 'Enter') {
       addAttachment();
     }
-  };
-
-  const checkVariableNameValid = (variableName: string) => {
-    // Empty string
-    if (!variableName) {
-      return false;
-    }
-
-    // Includes non-alphanumeric and non-underscore characters
-    if (!variableName.match(/^[a-zA-Z0-9_]*$/)) {
-      return false;
-    }
-
-    // Begins with number
-    if (!isNaN(parseInt(variableName.charAt(0)))) {
-      return false;
-    }
-
-    return true;
   };
 
   const checkVariableNameExists = (variableName: string) => {

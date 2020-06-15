@@ -28,7 +28,8 @@ module.exports = {
     ],
     curly: ['error', 'all'],
     eqeqeq: 'error',
-    'prefer-arrow-callback': 'error'
+    'prefer-arrow-callback': 'error',
+    'max-len': ["error", { "code": 256 }]
   },
   settings: {
     react: {
