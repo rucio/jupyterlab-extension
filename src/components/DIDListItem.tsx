@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { createUseStyles } from 'react-jss';
 import { FileDIDItemDetails } from './FileDIDItemDetails';
 import { ContainerDIDItemDetails } from './ContainerDIDItemDetails';
+import { toHumanReadableSize } from '../utils/Helpers';
 
 const useStyles = createUseStyles({
   listItemContainer: {
@@ -49,16 +50,14 @@ const useStyles = createUseStyles({
     extend: 'icon',
     color: '#FFB100'
   },
-  starActiveIcon: {
-    color: '#ffd600'
-  },
-  starInactiveIcon: {
-    color: '#E0E0E0'
+  sizeContainer: {
+    color: '#808080'
   }
 });
 
 export interface DIDItem {
   did: string;
+  size?: number;
   type: 'container' | 'file';
   onClick?: { (): boolean | undefined };
   expand?: boolean;
@@ -66,6 +65,7 @@ export interface DIDItem {
 
 export const DIDListItem: React.FC<DIDItem> = ({
   did,
+  size,
   type,
   onClick,
   expand
@@ -98,6 +98,7 @@ export const DIDListItem: React.FC<DIDItem> = ({
           )}
         </div>
         <div className={classes.textContainer}>{did}</div>
+        {!!size && <div className={classes.sizeContainer}>{toHumanReadableSize(size)}</div>}
       </div>
       {!!open && type === 'file' && <FileDIDItemDetails did={did} />}
       {!!open && type === 'container' && <ContainerDIDItemDetails did={did} />}

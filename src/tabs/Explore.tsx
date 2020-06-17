@@ -111,7 +111,7 @@ const _Explore: React.FunctionComponent = props => {
               <DIDListItem type="container" did={lastQuery} key={lastQuery} />
             )}
             {searchResult.map(file => (
-              <DIDListItem type="file" did={file.did} key={file.did} />
+              <DIDListItem type="file" did={file.did} size={file.size} key={file.did} />
             ))}
           </div>
           {!!searchResult && searchResult.length === 0 && (

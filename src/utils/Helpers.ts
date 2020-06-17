@@ -53,3 +53,18 @@ export const checkVariableNameValid = (variableName: string): boolean => {
 
   return true;
 };
+
+export const toHumanReadableSize = (bytes: number): string => {
+  if (bytes / (1024 * 1024 * 1024) >= 1) {
+    const sizeInGb = bytes / (1024 * 1024 * 1024);
+    return `${Math.round(sizeInGb * 100) / 100}GiB`;
+  } else if (bytes / (1024 * 1024) >= 1) {
+    const sizeInMb = bytes / (1024 * 1024);
+    return `${Math.round(sizeInMb * 100) / 100}MiB`;
+  } else if (bytes / (1024) >= 1) {
+    const sizeInKb = bytes / (1024);
+    return `${Math.round(sizeInKb * 100) / 100}KiB`;
+  } else {
+    return `${bytes}B`;
+  }
+}
