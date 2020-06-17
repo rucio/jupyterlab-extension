@@ -3,10 +3,16 @@ export interface Instance {
   name: string;
 }
 
+export interface AttachedFile {
+  did: string;
+  size: number;
+}
+
 export interface FileDIDDetails {
   status: FileStatus;
   did: string;
   path?: string;
+  size: number;
 }
 
 export interface NotebookDIDAttachment {

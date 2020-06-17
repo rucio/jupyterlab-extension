@@ -1,7 +1,6 @@
 import tornado
 import json
 from .base import RucioAPIHandler
-from rucio_jupyterlab.db import get_namespaced_db
 
 
 class DIDMakeAvailableHandler(RucioAPIHandler):
@@ -23,7 +22,6 @@ class DIDMakeAvailableHandler(RucioAPIHandler):
 
     def transfer_replica(self, namespace, scope, name):
         rucio = self.rucio.for_instance(namespace)
-        db = get_namespaced_db(namespace)
 
         dids = [{'scope': scope, 'name': name}]
         destination_rse = rucio.instance_config.get('destination_rse')

@@ -4,6 +4,8 @@ import json
 from urllib.parse import urlparse
 from .base import RucioAPIHandler
 from rucio_jupyterlab.db import get_db
+from rucio_jupyterlab.entity import AttachedFile, FileReplica, PfnFileReplica
+import rucio_jupyterlab.utils as utils
 
 
 class DIDDetailsHandlerImpl:
@@ -14,120 +16,117 @@ class DIDDetailsHandlerImpl:
 
     def get_did_details(self, scope, name, force_fetch=False):
         db = get_db()
-        did = f'{scope}:{name}'
 
-        attached_files = self.get_attached_files(scope, name, force_fetch)
-        file_replicas = self.get_file_replicas(scope, name, attached_files, force_fetch)
-
-        replicated_files = dict()
-        for file_replica in file_replicas:
-            file_did = file_replica.get('did')
-            path = file_replica.get('path')
-            replicated_files[file_did] = path
-
-        complete = True
-        for attached_file in attached_files:
-            if attached_file not in replicated_files:
-                complete = False
-                break
+        attached_file_replicas = self.get_attached_file_replicas(scope, name, force_fetch)
+        complete = utils.find(lambda x: x.path is None, attached_file_replicas) is None
 
         status = DIDDetailsHandler.STATUS_NOT_AVAILABLE
         if not complete:
             status = self.get_did_status(scope, name)
 
-        results = []
-        for file_did in attached_files:
-            if file_did in replicated_files:
-                path = replicated_files[file_did]
-                results.append(dict(status=DIDDetailsHandler.STATUS_OK, did=file_did, path=path))
+        def result_mapper(file_replica, _):
+            file_did = file_replica.did
+            path = file_replica.path
+            size = file_replica.size
+
+            if path is not None:
+                return dict(status=DIDDetailsHandler.STATUS_OK, did=file_did, path=path, size=size)
             else:
                 # This is to handle newly-attached files in which the replication rule hasn't been reevaluated by the judger daemon.
                 result_status = status if status != DIDDetailsHandler.STATUS_OK else DIDDetailsHandler.STATUS_REPLICATING
-                results.append(dict(status=result_status, did=file_did, path=None))
+                return dict(status=result_status, did=file_did, path=None, size=size)
 
+        results = utils.map(attached_file_replicas, result_mapper)
         return results
 
-    def get_attached_files(self, scope, name, force_fetch=False):
-        did = f'{scope}:{name}'
+    def get_attached_file_replicas(self, scope, name, force_fetch=False):
+        did = scope + ':' + name
+        attached_files = self.db.get_attached_files(self.namespace, did) if not force_fetch else None
 
-        if not force_fetch:
-            attached_files = self.db.get_attached_files(self.namespace, did)
-        else:
-            attached_files = None
+        pfn_file_replicas = self.get_all_pfn_file_replicas_from_db(attached_files) if attached_files else None
 
-        if attached_files == None:
-            rucio_attached_files = self.rucio.get_files(scope, name)
-            attached_files = [
-                (x.get('scope') + ':' + x.get('name')) for x in rucio_attached_files
-            ]
-            self.db.set_attached_files(self.namespace, did, attached_files)
+        if pfn_file_replicas is None:
+            pfn_file_replicas = self.fetch_attached_pfn_file_replicas(scope, name)
 
-        return attached_files
+        def file_replica_mapper(pfn_file_replica, _):
+            file_did = pfn_file_replica.did
+            pfn = pfn_file_replica.pfn
+            size = pfn_file_replica.size
 
-    def get_file_replicas(self, scope, name, attached_files, force_fetch=False):
-        complete = True
-        file_replicas = []
+            path = self.translate_pfn_to_path(pfn) if pfn else None
+            return FileReplica(did=file_did, path=path, size=size)
 
-        if force_fetch:
-            complete = False
-        else:
-            for file_did in attached_files:
-                pfn = self.db.get_file_replica(self.namespace, file_did)
-                if pfn != None:
-                    path = self.translate_pfn_to_path(pfn)
-                    file_replicas.append(dict(did=file_did, path=path))
-                else:
-                    complete = False
-
-        if not complete:
-            file_replicas = []
-            fetched_file_replicas = self.fetch_file_replicas(scope, name, attached_files)
-            for file_replica in fetched_file_replicas:
-                did = file_replica.get('did')
-                pfn = file_replica.get('pfn')
-                self.db.set_file_replica(self.namespace, file_did=did, pfn=pfn)
-
-                path = self.translate_pfn_to_path(pfn)
-                file_replicas.append(dict(did=did, path=path))
-
+        file_replicas = utils.map(pfn_file_replicas, file_replica_mapper)
         return file_replicas
+
+    def get_all_pfn_file_replicas_from_db(self, attached_files):
+        pfn_file_replicas = []
+        for attached_file in attached_files:
+            file_did = attached_file.did
+            db_file_replica = self.db.get_file_replica(self.namespace, file_did)
+
+            if db_file_replica is None:
+                return None
+
+            pfn_file_replica = PfnFileReplica(did=db_file_replica.did, pfn=db_file_replica.pfn, size=db_file_replica.size)
+            pfn_file_replicas.append(pfn_file_replica)
+
+        return pfn_file_replicas
+
+    def fetch_attached_pfn_file_replicas(self, scope, name):
+        pfn_file_replicas = []
+        attached_dids = []
+        fetched_file_replicas = self.fetch_file_replicas(scope, name)
+        for pfn_file_replica in fetched_file_replicas:
+            self.db.set_file_replica(self.namespace, file_did=pfn_file_replica.did, pfn=pfn_file_replica.pfn, size=pfn_file_replica.size)
+            pfn_file_replicas.append(pfn_file_replica)
+            attached_dids.append(AttachedFile(did=pfn_file_replica.did, size=pfn_file_replica.size))
+
+        did = scope + ':' + name
+        self.db.set_attached_files(self.namespace, did, attached_dids)
+
+        return pfn_file_replicas
+
+    def fetch_file_replicas(self, scope, name):
+        destination_rse = self.rucio.instance_config.get('destination_rse')
+
+        replicas = []
+        rucio_replicas = self.rucio.get_replicas(scope, name)
+
+        def rucio_replica_mapper(rucio_replica, _):
+            rses = rucio_replica['rses']
+            states = rucio_replica['states']
+            scope = rucio_replica['scope']
+            name = rucio_replica['name']
+            size = rucio_replica['bytes']
+
+            pfn = None
+            if (destination_rse in rses) and (destination_rse in states):
+                if states[destination_rse] == 'AVAILABLE':
+                    pfns = rses[destination_rse]
+                    if len(pfns) > 0:
+                        pfn = pfns[0]
+
+            did = scope + ':' + name
+            return PfnFileReplica(pfn=pfn, did=did, size=size)
+
+        replicas = utils.map(rucio_replicas, rucio_replica_mapper)
+        return replicas
 
     def get_did_status(self, scope, name):
         status = DIDDetailsHandler.STATUS_NOT_AVAILABLE
         replication_rule = self.fetch_replication_rule_by_did(scope, name)
-        if replication_rule != None:
+        if replication_rule is not None:
             _, replication_status, _ = replication_rule
             status = replication_status
 
         return status
 
-    def fetch_file_replicas(self, scope, name, attached_files):
-        destination_rse = self.rucio.instance_config.get('destination_rse')
-
-        replicas = []
-        rucio_replicas = self.rucio.get_replicas(scope, name)
-        for rucio_replica in rucio_replicas:
-            rses = rucio_replica['rses']
-            states = rucio_replica['states']
-
-            if (destination_rse in rses) and (destination_rse in states):
-                if states[destination_rse] == 'AVAILABLE':
-                    pfns = rses[destination_rse]
-                    if len(pfns) > 0:
-                        did = rucio_replica['scope'] + ':' + rucio_replica['name']
-                        replica = dict(pfn=pfns[0], did=did)
-                        replicas.append(replica)
-
-        return replicas
-
     def fetch_replication_rule_by_did(self, scope, name):
         destination_rse = self.rucio.instance_config.get('destination_rse')
 
         rules = self.rucio.get_rules(scope, name)
-        filtered_rules = []
-        for rule in rules:
-            if rule['rse_expression'] == destination_rse:
-                filtered_rules.append(rule)
+        filtered_rules = utils.filter(rules, lambda x, _: x['rse_expression'] == destination_rse)
 
         if len(filtered_rules) > 0:
             replication_rule = filtered_rules[0]

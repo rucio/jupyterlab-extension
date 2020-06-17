@@ -2,7 +2,7 @@ import React from 'react';
 import qs from 'querystring';
 import { requestAPI } from './ApiRequest';
 import { UIStore } from '../stores/UIStore';
-import { FileDIDDetails, Instance } from '../types';
+import { FileDIDDetails, Instance, AttachedFile } from '../types';
 
 export class Actions {
   async fetchInstancesConfig(): Promise<{
@@ -28,9 +28,9 @@ export class Actions {
   async fetchAttachedFileDIDs(
     namespace: string,
     did: string
-  ): Promise<string[]> {
+  ): Promise<AttachedFile[]> {
     const query = { namespace, did };
-    return requestAPI<string[]>(`files?${qs.encode(query)}`);
+    return requestAPI<AttachedFile[]>(`files?${qs.encode(query)}`);
   }
 
   async fetchDIDDetails(

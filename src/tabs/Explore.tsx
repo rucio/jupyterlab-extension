@@ -7,6 +7,7 @@ import { HorizontalHeading } from '../components/HorizontalHeading';
 import { DIDListItem } from '../components/DIDListItem';
 import { Spinning } from '../components/Spinning';
 import { withRequestAPI, WithRequestAPIProps } from '../utils/Actions';
+import { AttachedFile } from '../types';
 
 const useStyles = createUseStyles({
   searchContainer: {
@@ -49,7 +50,7 @@ const _Explore: React.FunctionComponent = props => {
   const { actions } = props as WithRequestAPIProps;
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResult, setSearchResult] = useState<string[]>();
+  const [searchResult, setSearchResult] = useState<AttachedFile[]>();
   const [lastQuery, setLastQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const activeInstance = useStoreState(UIStore, s => s.activeInstance);
@@ -57,7 +58,7 @@ const _Explore: React.FunctionComponent = props => {
   const isDIDContainer =
     !!searchResult &&
     searchResult.length > 0 &&
-    !searchResult.includes(lastQuery);
+    !searchResult.find(r => r.did === lastQuery);
 
   const doSearch = () => {
     setLoading(true);
@@ -109,8 +110,8 @@ const _Explore: React.FunctionComponent = props => {
             {isDIDContainer && (
               <DIDListItem type="container" did={lastQuery} key={lastQuery} />
             )}
-            {searchResult.map(did => (
-              <DIDListItem type="file" did={did} key={did} />
+            {searchResult.map(file => (
+              <DIDListItem type="file" did={file.did} key={file.did} />
             ))}
           </div>
           {!!searchResult && searchResult.length === 0 && (
