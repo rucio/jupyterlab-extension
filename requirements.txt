@@ -1,0 +1,6 @@
+jupyterlab~=2.0
+peewee~=3.0
+jsonschema~=3.0
+pytest
+pytest-mock
+requests-mock
