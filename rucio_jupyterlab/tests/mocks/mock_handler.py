@@ -7,3 +7,9 @@ class MockHandler:
     
     def get_json_body(*args, **kwargs):
         pass
+
+    def get_query_argument(*args, **kwargs):
+        pass
+
+    def set_status(*args, **kwargs):
+        pass
