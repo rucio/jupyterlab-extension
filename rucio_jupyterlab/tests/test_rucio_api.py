@@ -1,39 +1,8 @@
 import pytest
 import json
 from rucio_jupyterlab.rucio import RucioAPI
+from .conftest import mock_base_url, mock_username, mock_password, mock_account, mock_app_id, mock_auth_token
 import rucio_jupyterlab
-
-mock_base_url = "https://rucio/"
-mock_username = "username"
-mock_password = "password"
-mock_account = "account"
-mock_app_id = "app_id"
-mock_auth_token = 'abcde_token_ghijk'
-
-
-@pytest.fixture
-def rucio():
-    instance_config = {
-        "name": "atlas",
-        "display_name": "ATLAS",
-        "rucio_base_url": mock_base_url,
-        "auth": {
-            "type": "userpass",
-            "username": mock_username,
-            "password": mock_password,
-            "account": mock_account,
-            "app_id": mock_app_id
-        },
-        "destination_rse": "SWAN-EOS",
-        "rse_mount_path": "/eos/user/rucio",
-        "path_begins_at": 4,
-        "create_replication_rule_enabled": True,
-        "direct_download_enabled": True
-    }
-
-    rucio_api = RucioAPI(instance_config)
-    return rucio_api
-
 
 def test_get_files_non_empty_result(rucio, mocker, requests_mock):
     mocker.patch('rucio_jupyterlab.rucio.authenticate_userpass', return_value=(mock_auth_token, 1368440583))
