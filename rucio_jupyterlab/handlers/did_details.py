@@ -15,8 +15,6 @@ class DIDDetailsHandlerImpl:
         self.db = get_db()
 
     def get_did_details(self, scope, name, force_fetch=False):
-        db = get_db()
-
         attached_file_replicas = self.get_attached_file_replicas(scope, name, force_fetch)
         complete = utils.find(lambda x: x.path is None, attached_file_replicas) is None
 
