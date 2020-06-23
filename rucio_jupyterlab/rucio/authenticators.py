@@ -1,6 +1,7 @@
 import requests
 from .utils import parse_timestamp
 
+
 def authenticate_userpass(base_url, username, password, account=None, app_id=None):
     headers = {'X-Rucio-Account': account, 'X-Rucio-Username': username,
                'X-Rucio-Password': password, 'X-Rucio-AppID': app_id}

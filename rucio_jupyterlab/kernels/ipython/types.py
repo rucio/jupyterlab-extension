@@ -24,7 +24,7 @@ class SingleItemDID(str):
     def __init__(self, path):
         super(SingleItemDID, self).__init__()
         self.path = path
-        self.did_available = path != None
+        self.did_available = path is not None
 
     def __str__(self):
         if not self.did_available:

@@ -110,8 +110,7 @@ class RucioAPI:
             app_id = auth_config.get('app_id')
 
             return authenticate_userpass(base_url=self.base_url, username=username, password=password, account=account, app_id=app_id)
-        else:
-            return None
+        return None
 
 
 class RucioAPIFactory:

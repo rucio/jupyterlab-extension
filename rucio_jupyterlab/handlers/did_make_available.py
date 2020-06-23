@@ -2,8 +2,10 @@ import tornado
 import json
 from .base import RucioAPIHandler
 
+
 class UnknownMethodException(Exception):
     pass
+
 
 class DIDMakeAvailableHandlerImpl:
     def __init__(self, namespace, rucio):
@@ -39,5 +41,5 @@ class DIDMakeAvailableHandler(RucioAPIHandler):
         except UnknownMethodException:
             self.set_status(400)
             output = {'error': 'Unknown method'}
-        
+
         self.finish(json.dumps(output))

@@ -15,6 +15,7 @@ class FileReplica(BaseEntity):
         self.size = size
         self.path = path
 
+
 class PfnFileReplica(BaseEntity):
     def __init__(self, did, pfn, size):
         self.did = did

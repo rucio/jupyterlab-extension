@@ -1,8 +1,10 @@
 from rucio_jupyterlab.entity import AttachedFile
 
+
 class Struct:
     def __init__(self, **entries):
         self.__dict__.update(entries)
+
 
 class MockDatabaseInstance:
     def put_config(self, key, value):

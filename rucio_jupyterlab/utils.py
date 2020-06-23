@@ -13,6 +13,7 @@ def map(iterable, mapper):
         i += 1
     return result
 
+
 def filter(iterable, filter):
     result = []
     i = 0

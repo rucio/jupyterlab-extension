@@ -42,7 +42,7 @@ def test_post_handler__method_replica(mocker, rucio):
     This unit test handles the POST handler for the endpoint.
     It checks whether a query argument named 'namespace' is read,
     whether get_json_body is called, and whether set_status is
-    NOT called. It also checks whether 
+    NOT called. It also checks whether
     DIDMakeAvailableHandlerImpl.handle_make_available() is called.
     """
 

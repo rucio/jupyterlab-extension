@@ -8,6 +8,7 @@ mock_account = "account"
 mock_app_id = "app_id"
 mock_auth_token = 'abcde_token_ghijk'
 
+
 @pytest.fixture
 def rucio():
     instance_config = {

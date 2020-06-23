@@ -4,6 +4,7 @@ from rucio_jupyterlab.rucio import RucioAPI
 from .conftest import mock_base_url, mock_username, mock_password, mock_account, mock_app_id, mock_auth_token
 import rucio_jupyterlab
 
+
 def test_get_files_non_empty_result(rucio, mocker, requests_mock):
     mocker.patch('rucio_jupyterlab.rucio.authenticate_userpass', return_value=(mock_auth_token, 1368440583))
     scope, name = "scope", "name"
