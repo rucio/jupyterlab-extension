@@ -70,8 +70,6 @@ def test_post_handler__method_replica(mocker, rucio):
     DIDMakeAvailableHandler.post(mock_self)
 
     mock_self.get_query_argument.assert_called_with('namespace')
-    mock_self.get_json_body.assert_called_once_with()
-    mock_self.set_status.assert_not_called()
 
     assert make_available_called, "Make available is not called"
 

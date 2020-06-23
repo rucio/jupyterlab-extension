@@ -1,0 +1,129 @@
+import json
+import time
+import pytest
+import rucio_jupyterlab
+from rucio_jupyterlab.db import DatabaseInstance
+from rucio_jupyterlab.entity import AttachedFile
+from .mocks.mock_db import Struct
+
+
+@pytest.fixture
+def database_instance():
+    return DatabaseInstance()
+
+
+def test_get_config__config_exists(database_instance, mocker):
+    class MockUserConfig:
+        key = 'key'
+
+        def get_or_none(*args, **kwargs):
+            return Struct(key='key', value='value')
+
+    mocker.patch('rucio_jupyterlab.db.UserConfig', MockUserConfig)
+    result = database_instance.get_config('key')
+
+    assert result == 'value', "Invalid return value"
+
+
+def test_get_config__config_not_exists(database_instance, mocker):
+    class MockUserConfig:
+        key = 'key'
+
+        def get_or_none(*args, **kwargs):
+            return None
+
+    mocker.patch('rucio_jupyterlab.db.UserConfig', MockUserConfig)
+    result = database_instance.get_config('key')
+
+    assert result is None, "Return value should be None"
+
+
+def test_get_attached_files__files_exist(database_instance, mocker):
+    class MockAttachedFilesListCache:
+        namespace = 'namespace'
+        did = 'did'
+        expiry = 0
+
+        def get_or_none(*args, **kwargs):
+            file_dids = [
+                {'did': 'did1', 'size': 1},
+                {'did': 'did2', 'size': 3}
+            ]
+            file_dids_json = json.dumps(file_dids)
+            return Struct(file_dids=file_dids_json)
+
+    mocker.patch('rucio_jupyterlab.db.AttachedFilesListCache', MockAttachedFilesListCache)
+    result = database_instance.get_attached_files('namespace', 'did')
+    result_dict = [x.__dict__ for x in result]
+
+    expected_result = [
+        AttachedFile(did='did1', size=1),
+        AttachedFile(did='did2', size=3)
+    ]
+    expected_result_dict = [x.__dict__ for x in expected_result]
+
+    assert result_dict == expected_result_dict, "Invalid return value"
+
+    for x in result:
+        assert isinstance(x, AttachedFile), "Return array element is not AttachedFile"
+
+
+def test_get_attached_files__files_not_exist(database_instance, mocker):
+    class MockAttachedFilesListCache:
+        namespace = 'namespace'
+        did = 'did'
+        expiry = 0
+
+        def get_or_none(*args, **kwargs):
+            return None
+
+    mocker.patch('rucio_jupyterlab.db.AttachedFilesListCache', MockAttachedFilesListCache)
+    result = database_instance.get_attached_files('namespace', 'did')
+
+    assert result is None, "Invalid return value"
+
+
+def test_set_attached_files(database_instance, mocker):
+    class MockAttachedFilesListCache:
+        def execute(*args, **kwargs):
+            pass
+
+        def replace(namespace, did, file_dids, expiry, *args, **kwargs):
+            assert namespace == 'namespace', "Invalid namespace"
+            assert did == 'scope:name', "Invalid DID"
+            expected_file_dids = [
+                {'did': 'did1', 'size': 1},
+                {'did': 'did2', 'size': 3}
+            ]
+
+            assert json.loads(file_dids) == expected_file_dids, "Invalid file DIDs"
+            assert expiry > int(time.time()), "Expiry should be later than current time"
+
+            return MockAttachedFilesListCache
+
+    mocker.patch('rucio_jupyterlab.db.AttachedFilesListCache', MockAttachedFilesListCache)
+
+    attached_files = [
+        AttachedFile(did='did1', size=1),
+        AttachedFile(did='did2', size=3)
+    ]
+    database_instance.set_attached_files('namespace', 'scope:name', attached_files)
+
+
+def test_set_file_replica(database_instance, mocker):
+    class MockFileReplicasCache:
+        def execute(*args, **kwargs):
+            pass
+
+        def replace(namespace, did, pfn, size, expiry, *args, **kwargs):
+            assert namespace == 'namespace', "Invalid namespace"
+            assert did == 'scope:name', "Invalid DID"
+            assert pfn == 'root://xrd1:1094//test', "Invalid PFN"
+            assert size == 123, "Invalid size"
+            assert expiry > int(time.time()), "Expiry should be later than current time"
+
+            return MockFileReplicasCache
+
+    mocker.patch('rucio_jupyterlab.db.FileReplicasCache', MockFileReplicasCache)
+
+    database_instance.set_file_replica('namespace', 'scope:name', 'root://xrd1:1094//test', 123)

@@ -69,10 +69,7 @@ class DatabaseInstance:
         replica_cache = FileReplicasCache.get_or_none((FileReplicasCache.namespace == namespace) & (
             FileReplicasCache.did == file_did) & (FileReplicasCache.expiry > current_time))
 
-        if replica_cache is not None:
-            return replica_cache
-
-        return None
+        return replica_cache
 
     def set_file_replica(self, namespace, file_did, pfn, size):
         cache_expires = int(time.time()) + (3600)  # an hour TODO change?

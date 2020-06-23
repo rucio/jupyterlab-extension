@@ -32,9 +32,6 @@ def test_get_instances(mocker):
 
     InstancesHandler.get(mock_self)
 
-    rucio_jupyterlab.handlers.instances.get_db.assert_called_once_with()
-    mock_db.get_active_instance.assert_called_once_with()
-
     expected_json = {
         'active_instance': mock_active_instance,
         'instances': mock_instances
