@@ -62,10 +62,7 @@ const _ContainerDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
   const { actions } = props as WithRequestAPIProps;
 
   const activeInstance = useStoreState(UIStore, s => s.activeInstance);
-  const containerAttachedFiles = useStoreState(
-    UIStore,
-    s => s.containerDetails[did]
-  );
+  const containerAttachedFiles = useStoreState(UIStore, s => s.containerDetails[did]);
 
   const stillMounted = { value: false };
   useEffect(() => {
@@ -74,19 +71,17 @@ const _ContainerDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
   }, []);
 
   const fetchDIDDetails = (poll = false) => {
-    return actions
-      .getContainerDIDDetails(activeInstance.name, did, poll)
-      .then(files => {
-        const containerState = computeContainerState(files);
-        if (containerState === 'REPLICATING') {
-          if (stillMounted.value) {
-            enablePolling();
-          }
-        } else {
-          disablePolling();
+    return actions.getContainerDIDDetails(activeInstance.name, did, poll).then(files => {
+      const containerState = computeContainerState(files);
+      if (containerState === 'REPLICATING') {
+        if (stillMounted.value) {
+          enablePolling();
         }
-        return files;
-      });
+      } else {
+        disablePolling();
+      }
+      return files;
+    });
   };
 
   let pollInterval: number | undefined = undefined;
@@ -127,28 +122,20 @@ const _ContainerDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
   };
 
   const containerState = useMemo(() => {
-    return containerAttachedFiles
-      ? computeContainerState(containerAttachedFiles)
-      : undefined;
+    return containerAttachedFiles ? computeContainerState(containerAttachedFiles) : undefined;
   }, [containerAttachedFiles]);
 
   return (
     <div className={classes.container}>
       {!containerAttachedFiles && (
         <div className={classes.loading}>
-          <Spinning className={`${classes.icon} material-icons`}>
-            hourglass_top
-          </Spinning>
+          <Spinning className={`${classes.icon} material-icons`}>hourglass_top</Spinning>
           <span className={classes.statusText}>Loading...</span>
         </div>
       )}
       {containerState === 'AVAILABLE' && <FileAvailable did={did} />}
-      {containerState === 'PARTIALLY_AVAILABLE' && (
-        <FilePartiallyAvailable onMakeAvailableClicked={makeAvailable} />
-      )}
-      {containerState === 'NOT_AVAILABLE' && (
-        <FileNotAvailable onMakeAvailableClicked={makeAvailable} />
-      )}
+      {containerState === 'PARTIALLY_AVAILABLE' && <FilePartiallyAvailable onMakeAvailableClicked={makeAvailable} />}
+      {containerState === 'NOT_AVAILABLE' && <FileNotAvailable onMakeAvailableClicked={makeAvailable} />}
       {containerState === 'REPLICATING' && <FileReplicating />}
       {containerState === 'STUCK' && <FileStuck />}
     </div>
@@ -175,9 +162,7 @@ const FileAvailable: React.FC<{ did: string }> = ({ did }) => {
   );
 };
 
-const FileNotAvailable: React.FC<{ onMakeAvailableClicked?: { (): void } }> = ({
-  onMakeAvailableClicked
-}) => {
+const FileNotAvailable: React.FC<{ onMakeAvailableClicked?: { (): void } }> = ({ onMakeAvailableClicked }) => {
   const classes = useStyles();
 
   return (
@@ -216,9 +201,7 @@ const FileReplicating: React.FC = () => {
 
   return (
     <div className={classes.statusReplicating}>
-      <Spinning className={`${classes.icon} material-icons`}>
-        hourglass_top
-      </Spinning>
+      <Spinning className={`${classes.icon} material-icons`}>hourglass_top</Spinning>
       <span className={classes.statusText}>Replicating files...</span>
     </div>
   );

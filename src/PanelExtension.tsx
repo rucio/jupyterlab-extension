@@ -27,13 +27,7 @@ export class ExtensionPanel extends VDomRenderer {
   constructor(options: ExtensionPanelOptions) {
     super();
     super.addClass(PANEL_CLASS);
-    const {
-      app,
-      settingRegistry,
-      labShell,
-      notebookTracker,
-      widgetId
-    } = options;
+    const { app, settingRegistry, labShell, notebookTracker, widgetId } = options;
 
     super.id = widgetId;
     super.title.closable = true;

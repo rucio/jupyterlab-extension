@@ -7,9 +7,7 @@ const useStyles = createUseStyles({
   }
 });
 
-export const Header: React.FunctionComponent<
-  React.HTMLAttributes<HTMLElement>
-> = props => {
+export const Header: React.FunctionComponent<React.HTMLAttributes<HTMLElement>> = props => {
   const classes = useStyles();
 
   return (

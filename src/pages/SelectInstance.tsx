@@ -46,20 +46,14 @@ interface SelectInstanceProps {
 
 type MyProps = SelectInstanceProps & React.HTMLAttributes<HTMLElement>;
 
-export const SelectInstance: React.FC<MyProps> = ({
-  instances,
-  onSelectInstance,
-  ...props
-}) => {
+export const SelectInstance: React.FC<MyProps> = ({ instances, onSelectInstance, ...props }) => {
   const classes = useStyles();
 
   return (
     <div className={classes.container} {...props}>
       <div className={classes.heading}>
         <h2 className={classes.title}>Select an Instance</h2>
-        <p className={classes.subtitle}>
-          Select one of the instances relevant to your experiment.
-        </p>
+        <p className={classes.subtitle}>Select one of the instances relevant to your experiment.</p>
       </div>
       <div className={classes.listContainer}>
         {instances &&

@@ -19,14 +19,11 @@ const useStyles = createUseStyles({
     cursor: 'pointer',
     borderRadius: '2px',
     '&:hover': {
-      backgroundColor: (props: ButtonProps) =>
-        `${props.outlineColor || '#000000'}09`,
-      borderColor: (props: ButtonProps) =>
-        `${props.outlineColor || '#000000'}B0`
+      backgroundColor: (props: ButtonProps) => `${props.outlineColor || '#000000'}09`,
+      borderColor: (props: ButtonProps) => `${props.outlineColor || '#000000'}B0`
     },
     '&:active': {
-      backgroundColor: (props: ButtonProps) =>
-        `${props.outlineColor || '#000000'}12`
+      backgroundColor: (props: ButtonProps) => `${props.outlineColor || '#000000'}12`
     }
   },
   block: {
@@ -40,12 +37,7 @@ const useStyles = createUseStyles({
 
 type MyProps = ButtonProps & React.ButtonHTMLAttributes<HTMLButtonElement>;
 
-export const Button: React.FC<MyProps> = ({
-  children,
-  block,
-  onClick,
-  ...props
-}) => {
+export const Button: React.FC<MyProps> = ({ children, block, onClick, ...props }) => {
   const classes = useStyles(props);
 
   const btnClasses = [classes.button];

@@ -63,13 +63,7 @@ export interface DIDItem {
   expand?: boolean;
 }
 
-export const DIDListItem: React.FC<DIDItem> = ({
-  did,
-  size,
-  type,
-  onClick,
-  expand
-}) => {
+export const DIDListItem: React.FC<DIDItem> = ({ did, size, type, onClick, expand }) => {
   const classes = useStyles();
   const [open, setOpen] = useState(expand);
 
@@ -85,17 +79,10 @@ export const DIDListItem: React.FC<DIDItem> = ({
 
   return (
     <div className={classes.listItemContainer}>
-      <div
-        className={open ? classes.listItemExpanded : classes.listItemCollapsed}
-        onClick={handleItemClick}
-      >
+      <div className={open ? classes.listItemExpanded : classes.listItemCollapsed} onClick={handleItemClick}>
         <div className={classes.iconContainer}>
-          {type === 'file' && (
-            <i className={`${classes.fileIcon} material-icons`}>attachment</i>
-          )}
-          {type === 'container' && (
-            <i className={`${classes.containerIcon} material-icons`}>folder</i>
-          )}
+          {type === 'file' && <i className={`${classes.fileIcon} material-icons`}>attachment</i>}
+          {type === 'container' && <i className={`${classes.containerIcon} material-icons`}>folder</i>}
         </div>
         <div className={classes.textContainer}>{did}</div>
         {!!size && <div className={classes.sizeContainer}>{toHumanReadableSize(size)}</div>}

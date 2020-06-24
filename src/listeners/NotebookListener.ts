@@ -38,9 +38,10 @@ export class NotebookListener {
 
   setup(): void {
     const { labShell, notebookTracker } = this.options;
-    ExtensionStore.subscribe(s => s.activeNotebookAttachment,
-      (attachments, state) =>
-        this.onNotebookAttachmentChanged(attachments, state));
+    ExtensionStore.subscribe(
+      s => s.activeNotebookAttachment,
+      (attachments, state) => this.onNotebookAttachmentChanged(attachments, state)
+    );
     labShell.currentChanged.connect(this.onCurrentTabChanged, this);
     notebookTracker.widgetAdded.connect(this.onNotebookOpened, this);
   }
@@ -88,8 +89,7 @@ export class NotebookListener {
     });
   }
 
-  private onNotebookAttachmentChanged(attachments: NotebookDIDAttachment[],
-    state: ExtensionState) {
+  private onNotebookAttachmentChanged(attachments: NotebookDIDAttachment[], state: ExtensionState) {
     const { activeNotebookPanel } = state;
 
     if (!attachments || !activeNotebookPanel) {
@@ -114,15 +114,13 @@ export class NotebookListener {
       });
   }
 
-  private setJupyterNotebookFileRucioMetadata(attachments: NotebookDIDAttachment[],
-    state: ExtensionState) {
+  private setJupyterNotebookFileRucioMetadata(attachments: NotebookDIDAttachment[], state: ExtensionState) {
     const { metadata } = state.activeNotebookPanel.model;
     const current = metadata.get(METADATA_KEY) as ReadonlyArray<any>;
     const rucioDidAttachments = attachments as ReadonlyArray<any>;
 
     if (current !== rucioDidAttachments) {
-      metadata.set(METADATA_KEY,
-        rucioDidAttachments as ReadonlyPartialJSONArray);
+      metadata.set(METADATA_KEY, rucioDidAttachments as ReadonlyPartialJSONArray);
     }
   }
 
@@ -131,7 +129,9 @@ export class NotebookListener {
     const injectedVariableNames = this.injectedVariableNames[kernelConnectionId];
 
     if (!!kernelConnectionId && !!injectedVariableNames) {
-      this.injectedVariableNames[kernelConnectionId] = injectedVariableNames.filter(n => attachments.find(a => a.variableName === n));
+      this.injectedVariableNames[kernelConnectionId] = injectedVariableNames.filter(n =>
+        attachments.find(a => a.variableName === n)
+      );
     }
   }
 
@@ -151,7 +151,7 @@ export class NotebookListener {
       if (newKernel) {
         panel.sessionContext.ready.then(() => {
           this.onKernelAttached(newKernel);
-        })
+        });
       }
     });
   }
@@ -187,9 +187,11 @@ export class NotebookListener {
     });
   }
 
-  private processIncomingMessage(kernelConnection: IKernelConnection,
+  private processIncomingMessage(
+    kernelConnection: IKernelConnection,
     comm: Kernel.IComm,
-    msg: KernelMessage.ICommMsgMsg | KernelMessage.ICommOpenMsg) {
+    msg: KernelMessage.ICommMsgMsg | KernelMessage.ICommOpenMsg
+  ) {
     const data = msg.content.data;
     console.log('Incoming message', data);
     if (data.action === 'request-inject') {
@@ -209,14 +211,9 @@ export class NotebookListener {
     }
   }
 
-  private appendInjectedVariableNames(kernelConnectionId: string,
-    variableNames: string[]) {
-    const injectedVariableNames =
-      this.injectedVariableNames[kernelConnectionId] || [];
-    this.injectedVariableNames[kernelConnectionId] = [
-      ...injectedVariableNames,
-      ...variableNames
-    ];
+  private appendInjectedVariableNames(kernelConnectionId: string, variableNames: string[]) {
+    const injectedVariableNames = this.injectedVariableNames[kernelConnectionId] || [];
+    this.injectedVariableNames[kernelConnectionId] = [...injectedVariableNames, ...variableNames];
     console.log('Append varnames', kernelConnectionId, variableNames);
   }
 
@@ -225,8 +222,7 @@ export class NotebookListener {
   }
 
   private async createVariableInjectionPayload(attachments: NotebookDIDAttachment[]) {
-    const promises = attachments.map(attachment =>
-      this.createAttachmentResolvePromise(attachment));
+    const promises = attachments.map(attachment => this.createAttachmentResolvePromise(attachment));
 
     return Promise.all(promises).then(attributes => {
       return attributes.map(({ attachment, didDetails }) => {
@@ -242,15 +238,10 @@ export class NotebookListener {
   }
 
   private getNotYetInjectedAttachments() {
-    const {
-      activeNotebookPanel,
-      activeNotebookAttachment
-    } = ExtensionStore.getRawState();
+    const { activeNotebookPanel, activeNotebookAttachment } = ExtensionStore.getRawState();
 
-    const kernelConnectionId =
-      activeNotebookPanel.sessionContext.session.kernel.id;
-    const injectedVariableNames =
-      this.injectedVariableNames[kernelConnectionId] || [];
+    const kernelConnectionId = activeNotebookPanel.sessionContext.session.kernel.id;
+    const injectedVariableNames = this.injectedVariableNames[kernelConnectionId] || [];
     const attachments = activeNotebookAttachment || [];
 
     return attachments.filter(a => !injectedVariableNames.includes(a.variableName));
@@ -287,12 +278,16 @@ export class NotebookListener {
     const { activeNotebookPanel } = ExtensionStore.getRawState();
     const comm = activeNotebookPanel.sessionContext.session.kernel.createComm(COMM_NAME_KERNEL);
 
-    return comm.open().done
-      .then(() => comm.send({ action: 'inject', dids: injections as any[] }).done)
+    return comm
+      .open()
+      .done.then(() => comm.send({ action: 'inject', dids: injections as any[] }).done)
       .then(() => comm.close().done)
       .then(() => {
         const kernelConnectionId = activeNotebookPanel.sessionContext.session.kernel.id;
-        this.appendInjectedVariableNames(kernelConnectionId, injections.map(i => i.variableName));
+        this.appendInjectedVariableNames(
+          kernelConnectionId,
+          injections.map(i => i.variableName)
+        );
       });
   }
 

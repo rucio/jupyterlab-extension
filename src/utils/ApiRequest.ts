@@ -10,11 +10,7 @@ import { EXTENSION_ID } from '../const';
  * @param init Initial values for the request
  * @returns The response body interpreted as JSON
  */
-export async function requestAPI<T>(
-  endPoint = '',
-  init: RequestInit = {},
-  convertSnakeCase = true
-): Promise<T> {
+export async function requestAPI<T>(endPoint = '', init: RequestInit = {}, convertSnakeCase = true): Promise<T> {
   // Make request to Jupyter API
   const settings = ServerConnection.makeSettings();
   const requestUrl = URLExt.join(

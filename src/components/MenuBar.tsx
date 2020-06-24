@@ -43,11 +43,7 @@ export interface Menu {
   right?: boolean;
 }
 
-export const MenuBar: React.FunctionComponent<MenuBarProps> = ({
-  menus,
-  value,
-  onChange
-}) => {
+export const MenuBar: React.FunctionComponent<MenuBarProps> = ({ menus, value, onChange }) => {
   const classes = useStyles();
 
   return (
@@ -57,11 +53,7 @@ export const MenuBar: React.FunctionComponent<MenuBarProps> = ({
           const activeClass = menu.value === value ? 'active' : '';
           const tabClass = menu.right ? classes.tabItemRight : classes.tabItem;
           return (
-            <li
-              onClick={() => onChange(menu.value)}
-              key={menu.value}
-              className={`${tabClass} ${activeClass}`}
-            >
+            <li onClick={() => onChange(menu.value)} key={menu.value} className={`${tabClass} ${activeClass}`}>
               {menu.title}
             </li>
           );

@@ -1,8 +1,4 @@
-import {
-  JupyterFrontEnd,
-  JupyterFrontEndPlugin,
-  ILabShell
-} from '@jupyterlab/application';
+import { JupyterFrontEnd, JupyterFrontEndPlugin, ILabShell } from '@jupyterlab/application';
 
 import { INotebookTracker } from '@jupyterlab/notebook';
 

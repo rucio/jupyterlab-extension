@@ -1,8 +1,6 @@
 import { FileDIDDetails, ContainerStatus } from '../types';
 
-export const computeContainerState = (
-  files: FileDIDDetails[]
-): ContainerStatus | false => {
+export const computeContainerState = (files: FileDIDDetails[]): ContainerStatus | false => {
   if (!files) {
     return false;
   }
@@ -61,10 +59,10 @@ export const toHumanReadableSize = (bytes: number): string => {
   } else if (bytes / (1024 * 1024) >= 1) {
     const sizeInMb = bytes / (1024 * 1024);
     return `${Math.round(sizeInMb * 100) / 100}MiB`;
-  } else if (bytes / (1024) >= 1) {
-    const sizeInKb = bytes / (1024);
+  } else if (bytes / 1024 >= 1) {
+    const sizeInKb = bytes / 1024;
     return `${Math.round(sizeInKb * 100) / 100}KiB`;
   } else {
     return `${bytes}B`;
   }
-}
+};

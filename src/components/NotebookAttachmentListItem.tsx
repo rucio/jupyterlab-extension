@@ -66,9 +66,7 @@ export interface NotebookAttachmentListItemProps {
   attachment: NotebookDIDAttachment;
 }
 
-const _NotebookAttachmentListItem: React.FC<
-  NotebookAttachmentListItemProps
-> = ({ attachment, ...props }) => {
+const _NotebookAttachmentListItem: React.FC<NotebookAttachmentListItemProps> = ({ attachment, ...props }) => {
   const classes = useStyles();
   const { actions } = props as WithRequestAPIProps;
   const { did } = attachment;
@@ -87,25 +85,19 @@ const _NotebookAttachmentListItem: React.FC<
 
   const deleteAttachment = () => {
     ExtensionStore.update(s => {
-      s.activeNotebookAttachment = s.activeNotebookAttachment.filter(
-        a => a.did !== did
-      );
+      s.activeNotebookAttachment = s.activeNotebookAttachment.filter(a => a.did !== did);
     });
   };
 
   const containerState = useMemo(() => {
-    return containerDetails
-      ? computeContainerState(containerDetails)
-      : undefined;
+    return containerDetails ? computeContainerState(containerDetails) : undefined;
   }, [containerDetails]);
 
   return (
     <div className={classes.listItemContainer}>
       <div className={classes.listItemIconContainer}>
         {!fileDetails && !containerDetails && (
-          <Spinning className={`${classes.statusIcon} material-icons`}>
-            hourglass_top
-          </Spinning>
+          <Spinning className={`${classes.statusIcon} material-icons`}>hourglass_top</Spinning>
         )}
         {!!fileDetails && <FileStatusIcon status={fileDetails.status} />}
         {!!containerState && <ContainerStatusIcon status={containerState} />}
@@ -128,49 +120,25 @@ const FileStatusIcon: React.FC<{ status: FileStatus }> = ({ status }) => {
 
   switch (status) {
     case 'OK':
-      return (
-        <i className={`${classes.availableIcon} material-icons`}>
-          check_circle
-        </i>
-      );
+      return <i className={`${classes.availableIcon} material-icons`}>check_circle</i>;
     case 'REPLICATING':
-      return (
-        <Spinning className={`${classes.replicatingIcon} material-icons`}>
-          hourglass_top
-        </Spinning>
-      );
+      return <Spinning className={`${classes.replicatingIcon} material-icons`}>hourglass_top</Spinning>;
     default:
-      return (
-        <i className={`${classes.notAvailableIcon} material-icons`}>cancel</i>
-      );
+      return <i className={`${classes.notAvailableIcon} material-icons`}>cancel</i>;
   }
 };
 
-const ContainerStatusIcon: React.FC<{ status: ContainerStatus }> = ({
-  status
-}) => {
+const ContainerStatusIcon: React.FC<{ status: ContainerStatus }> = ({ status }) => {
   const classes = useStyles();
 
   switch (status) {
     case 'AVAILABLE':
-      return (
-        <i className={`${classes.availableIcon} material-icons`}>
-          check_circle
-        </i>
-      );
+      return <i className={`${classes.availableIcon} material-icons`}>check_circle</i>;
     case 'REPLICATING':
-      return (
-        <Spinning className={`${classes.replicatingIcon} material-icons`}>
-          hourglass_top
-        </Spinning>
-      );
+      return <Spinning className={`${classes.replicatingIcon} material-icons`}>hourglass_top</Spinning>;
     default:
-      return (
-        <i className={`${classes.notAvailableIcon} material-icons`}>cancel</i>
-      );
+      return <i className={`${classes.notAvailableIcon} material-icons`}>cancel</i>;
   }
 };
 
-export const NotebookAttachmentListItem = withRequestAPI(
-  _NotebookAttachmentListItem
-);
+export const NotebookAttachmentListItem = withRequestAPI(_NotebookAttachmentListItem);

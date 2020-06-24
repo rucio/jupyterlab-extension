@@ -9,9 +9,7 @@ export class Actions {
     activeInstance?: string;
     instances: Instance[];
   }> {
-    return requestAPI<{ activeInstance?: string; instances: Instance[] }>(
-      'instances'
-    );
+    return requestAPI<{ activeInstance?: string; instances: Instance[] }>('instances');
   }
 
   async postActiveInstance(instanceName: string): Promise<void> {
@@ -25,28 +23,17 @@ export class Actions {
     return requestAPI('instances', init);
   }
 
-  async fetchAttachedFileDIDs(
-    namespace: string,
-    did: string
-  ): Promise<AttachedFile[]> {
+  async fetchAttachedFileDIDs(namespace: string, did: string): Promise<AttachedFile[]> {
     const query = { namespace, did };
     return requestAPI<AttachedFile[]>(`files?${qs.encode(query)}`);
   }
 
-  async fetchDIDDetails(
-    namespace: string,
-    did: string,
-    poll = false
-  ): Promise<FileDIDDetails[]> {
+  async fetchDIDDetails(namespace: string, did: string, poll = false): Promise<FileDIDDetails[]> {
     const query = { namespace, did, poll: poll ? 1 : undefined };
     return requestAPI<FileDIDDetails[]>('did?' + qs.encode(query));
   }
 
-  async getFileDIDDetails(
-    namespace: string,
-    did: string,
-    poll = false
-  ): Promise<FileDIDDetails> {
+  async getFileDIDDetails(namespace: string, did: string, poll = false): Promise<FileDIDDetails> {
     const fileDetails = UIStore.getRawState().fileDetails[did];
 
     if (!poll && !!fileDetails) {
@@ -54,13 +41,10 @@ export class Actions {
     }
 
     const didDetails = await this.fetchDIDDetails(namespace, did, poll);
-    const didMap = didDetails.reduce(
-      (acc: { [did: string]: FileDIDDetails }, curr) => {
-        acc[curr.did] = curr;
-        return acc;
-      },
-      {}
-    );
+    const didMap = didDetails.reduce((acc: { [did: string]: FileDIDDetails }, curr) => {
+      acc[curr.did] = curr;
+      return acc;
+    }, {});
 
     UIStore.update(s => {
       s.fileDetails = { ...s.fileDetails, ...didMap };
@@ -69,11 +53,7 @@ export class Actions {
     return didDetails[0];
   }
 
-  async getContainerDIDDetails(
-    namespace: string,
-    did: string,
-    poll = false
-  ): Promise<FileDIDDetails[]> {
+  async getContainerDIDDetails(namespace: string, did: string, poll = false): Promise<FileDIDDetails[]> {
     const containerDetails = UIStore.getRawState().containerDetails[did];
     if (!poll && !!containerDetails) {
       return containerDetails;
@@ -106,17 +86,15 @@ export class Actions {
       body: JSON.stringify({ method: 'replica', did })
     };
 
-    return requestAPI(
-      'did/make-available?namespace=' + encodeURIComponent(namespace),
-      init
-    );
+    return requestAPI('did/make-available?namespace=' + encodeURIComponent(namespace), init);
   }
 
   async makeContainerAvailable(namespace: string, did: string): Promise<void> {
     const containerAttachedFiles = UIStore.getRawState().containerDetails[did];
-    const updatedContainerAttachedFiles: FileDIDDetails[] = containerAttachedFiles.map(
-      f => ({ ...f, status: f.status === 'OK' ? 'OK' : 'REPLICATING' })
-    );
+    const updatedContainerAttachedFiles: FileDIDDetails[] = containerAttachedFiles.map(f => ({
+      ...f,
+      status: f.status === 'OK' ? 'OK' : 'REPLICATING'
+    }));
     UIStore.update(s => {
       s.containerDetails[did] = updatedContainerAttachedFiles;
     });
@@ -126,10 +104,7 @@ export class Actions {
       body: JSON.stringify({ method: 'replica', did })
     };
 
-    return requestAPI(
-      'did/make-available?namespace=' + encodeURIComponent(namespace),
-      init
-    );
+    return requestAPI('did/make-available?namespace=' + encodeURIComponent(namespace), init);
   }
 }
 
@@ -145,7 +120,7 @@ export function withRequestAPI<P>(Component: React.ComponentType<P>) {
     //eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     render() {
       const { ...props } = this.props;
-      return <Component {...props as P} actions={this.actions} />;
+      return <Component {...(props as P)} actions={this.actions} />;
     }
   };
 }

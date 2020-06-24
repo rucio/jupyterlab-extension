@@ -17,9 +17,7 @@ interface HorizontalHeadingProps {
   title: string;
 }
 
-export const HorizontalHeading: React.FC<HorizontalHeadingProps> = ({
-  title
-}) => {
+export const HorizontalHeading: React.FC<HorizontalHeadingProps> = ({ title }) => {
   const classes = useStyles();
   return <div className={classes.heading}>{title}</div>;
 };

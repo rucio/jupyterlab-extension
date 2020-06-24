@@ -55,10 +55,7 @@ const _Explore: React.FunctionComponent = props => {
   const [loading, setLoading] = useState(false);
   const activeInstance = useStoreState(UIStore, s => s.activeInstance);
 
-  const isDIDContainer =
-    !!searchResult &&
-    searchResult.length > 0 &&
-    !searchResult.find(r => r.did === lastQuery);
+  const isDIDContainer = !!searchResult && searchResult.length > 0 && !searchResult.find(r => r.did === lastQuery);
 
   const doSearch = () => {
     setLoading(true);
@@ -97,9 +94,7 @@ const _Explore: React.FunctionComponent = props => {
       </div>
       {loading && (
         <div className={classes.loading}>
-          <Spinning className={`${classes.icon} material-icons`}>
-            hourglass_top
-          </Spinning>
+          <Spinning className={`${classes.icon} material-icons`}>hourglass_top</Spinning>
           <span className={classes.iconText}>Loading...</span>
         </div>
       )}
@@ -107,16 +102,12 @@ const _Explore: React.FunctionComponent = props => {
         <>
           <HorizontalHeading title="Search Results" />
           <div className={classes.resultsContainer}>
-            {isDIDContainer && (
-              <DIDListItem type="container" did={lastQuery} key={lastQuery} />
-            )}
+            {isDIDContainer && <DIDListItem type="container" did={lastQuery} key={lastQuery} />}
             {searchResult.map(file => (
               <DIDListItem type="file" did={file.did} size={file.size} key={file.did} />
             ))}
           </div>
-          {!!searchResult && searchResult.length === 0 && (
-            <div className={classes.loading}>No results found</div>
-          )}
+          {!!searchResult && searchResult.length === 0 && <div className={classes.loading}>No results found</div>}
         </>
       )}
     </div>

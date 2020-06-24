@@ -56,23 +56,14 @@ interface InlineDropdownProps {
 
 type MyProps = React.HTMLAttributes<HTMLSpanElement> & InlineDropdownProps;
 
-export const InlineDropdown: React.FC<MyProps> = ({
-  options,
-  value,
-  onItemSelected,
-  optionWidth,
-  ...props
-}) => {
+export const InlineDropdown: React.FC<MyProps> = ({ options, value, onItemSelected, optionWidth, ...props }) => {
   const classes = useStyles({ optionWidth });
   const [open, setOpen] = useState(false);
   const currentOption = options.find(o => o.value === value);
   const clickTargetRef = useRef<HTMLElement>();
 
   const handleClickOutside = (event: Event) => {
-    if (
-      clickTargetRef &&
-      !clickTargetRef.current.contains(event.target as Node)
-    ) {
+    if (clickTargetRef && !clickTargetRef.current.contains(event.target as Node)) {
       setOpen(false);
     }
   };
@@ -85,11 +76,7 @@ export const InlineDropdown: React.FC<MyProps> = ({
   });
 
   return (
-    <span
-      className={classes.dropdown}
-      onClick={() => setOpen(!open)}
-      ref={clickTargetRef}
-    >
+    <span className={classes.dropdown} onClick={() => setOpen(!open)} ref={clickTargetRef}>
       <span className={classes.dropdownTitle} {...props}>
         {currentOption ? currentOption.title : '(select)'}
         &nbsp;

@@ -46,9 +46,7 @@ const _Panel: React.FunctionComponent = props => {
   const loadInstances = () => {
     actions
       .fetchInstancesConfig()
-      .then(({ activeInstance, instances }) =>
-        instancesLoaded(activeInstance, instances)
-      )
+      .then(({ activeInstance, instances }) => instancesLoaded(activeInstance, instances))
       .catch(e => console.log(e));
   };
 
@@ -80,18 +78,11 @@ const _Panel: React.FunctionComponent = props => {
       {!!activeInstance && <MainPanel />}
       {!instances && (
         <div className={classes.loading}>
-          <Spinning className={`${classes.icon} material-icons`}>
-            hourglass_top
-          </Spinning>
+          <Spinning className={`${classes.icon} material-icons`}>hourglass_top</Spinning>
           <span className={classes.iconText}>Loading...</span>
         </div>
       )}
-      {!activeInstance && !!instances && (
-        <SelectInstance
-          instances={instances}
-          onSelectInstance={setActiveInstance}
-        />
-      )}
+      {!activeInstance && !!instances && <SelectInstance instances={instances} onSelectInstance={setActiveInstance} />}
     </div>
   );
 };

@@ -5,8 +5,7 @@ const useStyles = createUseStyles({
   control: {
     display: 'flex',
     flexDirection: 'row',
-    border: (props: TextFieldProps) =>
-      `1px solid ${props.outlineColor || '#808080'}`,
+    border: (props: TextFieldProps) => `1px solid ${props.outlineColor || '#808080'}`,
     alignItems: 'stretch'
   },
   input: {
@@ -32,14 +31,7 @@ interface TextFieldProps {
 type MyProps = TextFieldProps & React.InputHTMLAttributes<HTMLInputElement>;
 
 const _TextField = (props: MyProps, ref: React.Ref<HTMLInputElement>) => {
-  const {
-    block,
-    before,
-    after,
-    outlineColor,
-    className,
-    ...carriedProps
-  } = props;
+  const { block, before, after, outlineColor, className, ...carriedProps } = props;
   const classes = useStyles({ outlineColor });
 
   const inputClasses = [classes.input];
@@ -49,12 +41,7 @@ const _TextField = (props: MyProps, ref: React.Ref<HTMLInputElement>) => {
   return (
     <div className={classes.control}>
       {before}
-      <input
-        ref={ref}
-        type="text"
-        className={inputClasses.join(' ') + ' ' + className || ''}
-        {...carriedProps}
-      />
+      <input ref={ref} type="text" className={inputClasses.join(' ') + ' ' + className || ''} {...carriedProps} />
       {after}
     </div>
   );

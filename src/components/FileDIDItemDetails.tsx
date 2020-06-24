@@ -83,19 +83,17 @@ const _FileDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
   }, []);
 
   const fetchFileDetails = (poll = false) => {
-    return actions
-      .getFileDIDDetails(activeInstance.name, did, poll)
-      .then(file => {
-        if (file.status === 'REPLICATING') {
-          if (stillMounted.value) {
-            enablePolling();
-          }
-        } else {
-          disablePolling();
+    return actions.getFileDIDDetails(activeInstance.name, did, poll).then(file => {
+      if (file.status === 'REPLICATING') {
+        if (stillMounted.value) {
+          enablePolling();
         }
+      } else {
+        disablePolling();
+      }
 
-        return file;
-      });
+      return file;
+    });
   };
 
   let pollInterval: number | undefined = undefined;
@@ -139,30 +137,19 @@ const _FileDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
     <div className={classes.container}>
       {!fileDetails && (
         <div className={classes.loading}>
-          <Spinning className={`${classes.icon} material-icons`}>
-            hourglass_top
-          </Spinning>
+          <Spinning className={`${classes.icon} material-icons`}>hourglass_top</Spinning>
           <span className={classes.statusText}>Loading...</span>
         </div>
       )}
-      {!!fileDetails && fileDetails.status === 'OK' && (
-        <FileAvailable did={did} path={fileDetails.path} />
-      )}
-      {!!fileDetails && fileDetails.status === 'NOT_AVAILABLE' && (
-        <FileNotAvailable onMakeAvailableClicked={makeAvailable} />
-      )}
-      {!!fileDetails && fileDetails.status === 'REPLICATING' && (
-        <FileReplicating />
-      )}
+      {!!fileDetails && fileDetails.status === 'OK' && <FileAvailable did={did} path={fileDetails.path} />}
+      {!!fileDetails && fileDetails.status === 'NOT_AVAILABLE' && <FileNotAvailable onMakeAvailableClicked={makeAvailable} />}
+      {!!fileDetails && fileDetails.status === 'REPLICATING' && <FileReplicating />}
       {!!fileDetails && fileDetails.status === 'STUCK' && <FileStuck />}
     </div>
   );
 };
 
-const FileAvailable: React.FC<{ did: string; path: string }> = ({
-  did,
-  path
-}) => {
+const FileAvailable: React.FC<{ did: string; path: string }> = ({ did, path }) => {
   const classes = useStyles();
 
   return (
@@ -187,9 +174,7 @@ const FileAvailable: React.FC<{ did: string; path: string }> = ({
   );
 };
 
-const FileNotAvailable: React.FC<{ onMakeAvailableClicked?: { (): void } }> = ({
-  onMakeAvailableClicked
-}) => {
+const FileNotAvailable: React.FC<{ onMakeAvailableClicked?: { (): void } }> = ({ onMakeAvailableClicked }) => {
   const classes = useStyles();
 
   return (
@@ -210,9 +195,7 @@ const FileReplicating: React.FC = () => {
 
   return (
     <div className={classes.statusReplicating}>
-      <Spinning className={`${classes.icon} material-icons`}>
-        hourglass_top
-      </Spinning>
+      <Spinning className={`${classes.icon} material-icons`}>hourglass_top</Spinning>
       <span className={classes.statusText}>Replicating file...</span>
     </div>
   );
