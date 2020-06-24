@@ -28,7 +28,7 @@ jobs:
     - name: Pytest
       run: pytest rucio_jupyterlab/tests/
     - name: Pylint
-      run: pylint-fail-under --fail-under 8.5 rucio_jupyterlab/
+      run: pylint-fail-under --fail_under 8.5 rucio_jupyterlab/
     - name: Build the extension
       run: |
         jlpm
