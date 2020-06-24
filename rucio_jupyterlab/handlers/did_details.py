@@ -1,18 +1,17 @@
 import os
-import tornado
 import json
 from urllib.parse import urlparse
-from .base import RucioAPIHandler
+import tornado
 from rucio_jupyterlab.db import get_db
 from rucio_jupyterlab.entity import AttachedFile, FileReplica, PfnFileReplica
 import rucio_jupyterlab.utils as utils
-
+from .base import RucioAPIHandler
 
 class DIDDetailsHandlerImpl:
     def __init__(self, namespace, rucio):
         self.namespace = namespace
         self.rucio = rucio
-        self.db = get_db()
+        self.db = get_db()  # pylint: disable=invalid-name
 
     def get_did_details(self, scope, name, force_fetch=False):
         attached_file_replicas = self.get_attached_file_replicas(scope, name, force_fetch)
@@ -27,12 +26,12 @@ class DIDDetailsHandlerImpl:
             path = file_replica.path
             size = file_replica.size
 
-            if path is not None:
-                return dict(status=DIDDetailsHandler.STATUS_OK, did=file_did, path=path, size=size)
-            else:
+            if path is None:
                 # This is to handle newly-attached files in which the replication rule hasn't been reevaluated by the judger daemon.
                 result_status = status if status != DIDDetailsHandler.STATUS_OK else DIDDetailsHandler.STATUS_REPLICATING
                 return dict(status=result_status, did=file_did, path=None, size=size)
+
+            return dict(status=DIDDetailsHandler.STATUS_OK, did=file_did, path=path, size=size)
 
         results = utils.map(attached_file_replicas, result_mapper)
         return results
@@ -155,8 +154,8 @@ class DIDDetailsHandlerImpl:
         suffix_path = self.get_path_after_nth_slash(path, path_begins_at)
         return os.path.join(prefix_path, suffix_path)
 
-    def get_path_after_nth_slash(self, path, n):
-        return path.strip('/').split('/', n)[-1]
+    def get_path_after_nth_slash(self, path, nth_slash):
+        return path.strip('/').split('/', nth_slash)[-1]
 
 
 class DIDDetailsHandler(RucioAPIHandler):

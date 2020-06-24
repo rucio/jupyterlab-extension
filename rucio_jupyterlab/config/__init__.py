@@ -1,12 +1,12 @@
-import requests
 import time
+import requests
 from jsonschema import validate
 from traitlets import List, Dict
 from traitlets.config import Configurable
 from . import schema
 
 
-class RucioConfig(Configurable):
+class RucioConfig(Configurable): # pragma: no cover
     instances = List(Dict(config=True), config=True)
 
 
@@ -49,8 +49,7 @@ class Config:
                 return remote_config
             else:
                 return remote_instance['instance']
-        else:
-            return instance
+        return instance
 
     def list_instances(self):
         instances = []

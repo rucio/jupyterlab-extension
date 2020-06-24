@@ -1,7 +1,7 @@
-import tornado
 import json
-from .base import RucioAPIHandler
+import tornado
 from rucio_jupyterlab.db import get_db
+from .base import RucioAPIHandler
 
 
 class InstancesHandler(RucioAPIHandler):
@@ -11,7 +11,7 @@ class InstancesHandler(RucioAPIHandler):
 
     @tornado.web.authenticated
     def get(self):
-        db = get_db()
+        db = get_db()  # pylint: disable=invalid-name
         active_instance = db.get_active_instance()
         instances = self.rucio_config.list_instances()
         self.finish(json.dumps({
@@ -24,7 +24,7 @@ class InstancesHandler(RucioAPIHandler):
         json_body = self.get_json_body()
         picked_instance = json_body['instance']
 
-        db = get_db()
+        db = get_db()  # pylint: disable=invalid-name
         db.set_active_instance(picked_instance)
 
         self.finish(json.dumps({'success': True}))

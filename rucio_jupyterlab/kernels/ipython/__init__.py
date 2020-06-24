@@ -1,5 +1,5 @@
-from .types import MultipleItemDID, SingleItemDID
 from ipykernel.comm import Comm
+from .types import MultipleItemDID, SingleItemDID
 
 COMM_NAME = 'rucio-jupyterlab'
 KERNEL_COMM_NAME = COMM_NAME + ':kernel'
@@ -62,7 +62,3 @@ def load_ipython_extension(ipython):
     connector.register_comm()
     connector.register_outgoing_comm()
     connector.send_injection_request()
-
-
-def unload_ipython_extension(ipython):
-    pass

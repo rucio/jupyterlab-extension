@@ -1,28 +1,27 @@
-import tornado
 import json
-from .base import RucioAPIHandler
+import tornado
 from rucio_jupyterlab.db import get_db
 from rucio_jupyterlab.entity import AttachedFile
+from .base import RucioAPIHandler
 
 
 class DIDBrowserHandlerImpl:
     def __init__(self, namespace, rucio):
         self.namespace = namespace
         self.rucio = rucio
+        self.db = get_db()  # pylint: disable=invalid-name
 
     def get_files(self, scope, name, force_fetch=False):
-        db = get_db()
-
         parent_did = f'{scope}:{name}'
 
-        attached_files = db.get_attached_files(namespace=self.namespace, did=parent_did) if not force_fetch else None
+        attached_files = self.db.get_attached_files(namespace=self.namespace, did=parent_did) if not force_fetch else None
         if attached_files:
             return [d.__dict__ for d in attached_files]
-        else:
-            file_dids = self.rucio.get_replicas(scope, name)
-            attached_files = [AttachedFile(did=(d.get('scope') + ':' + d.get('name')), size=d.get('bytes')) for d in file_dids]
-            db.set_attached_files(self.namespace, parent_did, attached_files)
-            return [d.__dict__ for d in attached_files]
+
+        file_dids = self.rucio.get_replicas(scope, name)
+        attached_files = [AttachedFile(did=(d.get('scope') + ':' + d.get('name')), size=d.get('bytes')) for d in file_dids]
+        self.db.set_attached_files(self.namespace, parent_did, attached_files)
+        return [d.__dict__ for d in attached_files]
 
 
 class DIDBrowserHandler(RucioAPIHandler):

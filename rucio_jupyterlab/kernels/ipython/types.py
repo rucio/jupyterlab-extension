@@ -1,4 +1,4 @@
-class MultipleItemDID(list):
+class MultipleItemDID(list): # pragma: no cover
     def __init__(self, items, did_available=True):
         super(MultipleItemDID, self).__init__(items)
         self.items = items
@@ -20,7 +20,7 @@ class MultipleItemDID(list):
         return super().__getitem__(key)
 
 
-class SingleItemDID(str):
+class SingleItemDID(str): # pragma: no cover
     def __init__(self, path):
         super(SingleItemDID, self).__init__()
         self.path = path

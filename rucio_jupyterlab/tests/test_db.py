@@ -1,7 +1,6 @@
 import json
 import time
 import pytest
-import rucio_jupyterlab
 from rucio_jupyterlab.db import DatabaseInstance
 from rucio_jupyterlab.entity import AttachedFile
 from .mocks.mock_db import Struct
@@ -12,11 +11,12 @@ def database_instance():
     return DatabaseInstance()
 
 
-def test_get_config__config_exists(database_instance, mocker):
+def test_get_config__config_exists(database_instance, mocker):  # pylint: disable=redefined-outer-name
     class MockUserConfig:
         key = 'key'
 
-        def get_or_none(*args, **kwargs):
+        @staticmethod
+        def get_or_none(*args, **kwargs): # pylint: disable=unused-argument
             return Struct(key='key', value='value')
 
     mocker.patch('rucio_jupyterlab.db.UserConfig', MockUserConfig)
@@ -25,11 +25,12 @@ def test_get_config__config_exists(database_instance, mocker):
     assert result == 'value', "Invalid return value"
 
 
-def test_get_config__config_not_exists(database_instance, mocker):
+def test_get_config__config_not_exists(database_instance, mocker):  # pylint: disable=redefined-outer-name
     class MockUserConfig:
         key = 'key'
 
-        def get_or_none(*args, **kwargs):
+        @staticmethod
+        def get_or_none(*args, **kwargs):  # pylint: disable=unused-argument
             return None
 
     mocker.patch('rucio_jupyterlab.db.UserConfig', MockUserConfig)
@@ -38,13 +39,14 @@ def test_get_config__config_not_exists(database_instance, mocker):
     assert result is None, "Return value should be None"
 
 
-def test_get_attached_files__files_exist(database_instance, mocker):
+def test_get_attached_files__files_exist(database_instance, mocker):  # pylint: disable=redefined-outer-name
     class MockAttachedFilesListCache:
         namespace = 'namespace'
         did = 'did'
         expiry = 0
 
-        def get_or_none(*args, **kwargs):
+        @staticmethod
+        def get_or_none(*args, **kwargs):  # pylint: disable=unused-argument
             file_dids = [
                 {'did': 'did1', 'size': 1},
                 {'did': 'did2', 'size': 3}
@@ -64,17 +66,18 @@ def test_get_attached_files__files_exist(database_instance, mocker):
 
     assert result_dict == expected_result_dict, "Invalid return value"
 
-    for x in result:
-        assert isinstance(x, AttachedFile), "Return array element is not AttachedFile"
+    for res in result:
+        assert isinstance(res, AttachedFile), "Return array element is not AttachedFile"
 
 
-def test_get_attached_files__files_not_exist(database_instance, mocker):
+def test_get_attached_files__files_not_exist(database_instance, mocker):  # pylint: disable=redefined-outer-name
     class MockAttachedFilesListCache:
         namespace = 'namespace'
         did = 'did'
         expiry = 0
 
-        def get_or_none(*args, **kwargs):
+        @staticmethod
+        def get_or_none(*args, **kwargs):  # pylint: disable=no-self-use,unused-argument
             return None
 
     mocker.patch('rucio_jupyterlab.db.AttachedFilesListCache', MockAttachedFilesListCache)
@@ -83,12 +86,14 @@ def test_get_attached_files__files_not_exist(database_instance, mocker):
     assert result is None, "Invalid return value"
 
 
-def test_set_attached_files(database_instance, mocker):
+def test_set_attached_files(database_instance, mocker):  # pylint: disable=redefined-outer-name
     class MockAttachedFilesListCache:
-        def execute(*args, **kwargs):
+        @staticmethod
+        def execute(*args, **kwargs): # pylint: disable=unused-argument
             pass
 
-        def replace(namespace, did, file_dids, expiry, *args, **kwargs):
+        @staticmethod
+        def replace(namespace, did, file_dids, expiry):
             assert namespace == 'namespace', "Invalid namespace"
             assert did == 'scope:name', "Invalid DID"
             expected_file_dids = [
@@ -110,12 +115,14 @@ def test_set_attached_files(database_instance, mocker):
     database_instance.set_attached_files('namespace', 'scope:name', attached_files)
 
 
-def test_set_file_replica(database_instance, mocker):
+def test_set_file_replica(database_instance, mocker):  # pylint: disable=redefined-outer-name
     class MockFileReplicasCache:
-        def execute(*args, **kwargs):
+        @staticmethod
+        def execute(*args, **kwargs):  #pylint: disable=unused-argument
             pass
 
-        def replace(namespace, did, pfn, size, expiry, *args, **kwargs):
+        @staticmethod
+        def replace(namespace, did, pfn, size, expiry, *args, **kwargs):  #pylint: disable=unused-argument
             assert namespace == 'namespace', "Invalid namespace"
             assert did == 'scope:name', "Invalid DID"
             assert pfn == 'root://xrd1:1094//test', "Invalid PFN"

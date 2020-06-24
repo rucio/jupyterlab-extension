@@ -1,5 +1,5 @@
-import tornado
 import json
+import tornado
 from .base import RucioAPIHandler
 
 
@@ -16,8 +16,8 @@ class DIDMakeAvailableHandlerImpl:
         scope, name = did.split(':')
         if method == 'replica':
             return self.transfer_replica(scope, name)
-        else:
-            raise UnknownMethodException()
+
+        raise UnknownMethodException()
 
     def transfer_replica(self, scope, name):
         dids = [{'scope': scope, 'name': name}]

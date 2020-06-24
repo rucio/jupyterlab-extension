@@ -1,12 +1,13 @@
 import json
 from unittest.mock import call
-from .mocks.mock_db import MockDatabaseInstance
-from .mocks.mock_handler import MockHandler
 from rucio_jupyterlab.handlers.did_browser import DIDBrowserHandler, DIDBrowserHandlerImpl
 from rucio_jupyterlab.entity import AttachedFile
 from rucio_jupyterlab.rucio import RucioAPIFactory
+from .mocks.mock_db import MockDatabaseInstance
+from .mocks.mock_handler import MockHandler
 
-mock_active_instance = 'atlas'
+
+MOCK_ACTIVE_INSTANCE = 'atlas'
 
 
 def test_get_files__cache_exist__no_force_fetch(mocker, rucio):
@@ -16,7 +17,6 @@ def test_get_files__cache_exist__no_force_fetch(mocker, rucio):
     Assert their call parameters as well.
     """
 
-    mock_self = MockHandler()
     mock_db = MockDatabaseInstance()
     mocker.patch('rucio_jupyterlab.handlers.did_browser.get_db', return_value=mock_db)
     mocker.patch.object(rucio, 'get_replicas', return_value=[])
@@ -29,11 +29,11 @@ def test_get_files__cache_exist__no_force_fetch(mocker, rucio):
 
     mocker.patch.object(mock_db, 'get_attached_files', return_value=mock_attached_files)
 
-    handler = DIDBrowserHandlerImpl(mock_active_instance, rucio)
+    handler = DIDBrowserHandlerImpl(MOCK_ACTIVE_INSTANCE, rucio)
     result = handler.get_files('scope', 'name', False)
 
     rucio.get_replicas.assert_not_called()
-    mock_db.get_attached_files.assert_called_once_with(namespace=mock_active_instance, did='scope:name')
+    mock_db.get_attached_files.assert_called_once_with(namespace=MOCK_ACTIVE_INSTANCE, did='scope:name')     # pylint: disable=no-member
 
     expected = [x.__dict__ for x in mock_attached_files]
     assert result == expected, "Invalid return value"
@@ -46,7 +46,6 @@ def test_get_files__cache_exist__force_fetch(mocker, rucio):
     Assert their call parameters as well.
     """
 
-    mock_self = MockHandler()
     mock_db = MockDatabaseInstance()
     mocker.patch('rucio_jupyterlab.handlers.did_browser.get_db', return_value=mock_db)
 
@@ -64,11 +63,11 @@ def test_get_files__cache_exist__force_fetch(mocker, rucio):
     mocker.patch.object(rucio, 'get_replicas', return_value=mock_replicas)
     mocker.patch.object(mock_db, 'get_attached_files', return_value=mock_attached_files)
 
-    handler = DIDBrowserHandlerImpl(mock_active_instance, rucio)
+    handler = DIDBrowserHandlerImpl(MOCK_ACTIVE_INSTANCE, rucio)
     result = handler.get_files('scope', 'name', True)
 
     rucio.get_replicas.assert_called_once_with('scope', 'name')
-    mock_db.get_attached_files.assert_not_called()
+    mock_db.get_attached_files.assert_not_called()   # pylint: disable=no-member
 
     expected = [x.__dict__ for x in mock_attached_files]
     assert result == expected, "Invalid return value"
@@ -81,7 +80,6 @@ def test_get_files__cache_not_exist(mocker, rucio):
     Assert their call parameters as well.
     """
 
-    mock_self = MockHandler()
     mock_db = MockDatabaseInstance()
     mocker.patch('rucio_jupyterlab.handlers.did_browser.get_db', return_value=mock_db)
 
@@ -99,11 +97,11 @@ def test_get_files__cache_not_exist(mocker, rucio):
     mocker.patch.object(rucio, 'get_replicas', return_value=mock_replicas)
     mocker.patch.object(mock_db, 'get_attached_files', return_value=None)
 
-    handler = DIDBrowserHandlerImpl(mock_active_instance, rucio)
+    handler = DIDBrowserHandlerImpl(MOCK_ACTIVE_INSTANCE, rucio)
     result = handler.get_files('scope', 'name')
 
-    rucio.get_replicas.assert_called_once_with('scope', 'name')
-    mock_db.get_attached_files.assert_called_once_with(namespace=mock_active_instance, did='scope:name')
+    rucio.get_replicas.assert_called_once_with('scope', 'name')  # pylint: disable=no-member
+    mock_db.get_attached_files.assert_called_once_with(namespace=MOCK_ACTIVE_INSTANCE, did='scope:name')  # pylint: disable=no-member
 
     expected = [x.__dict__ for x in mock_attached_files]
     assert result == expected, "Invalid return value"
@@ -114,7 +112,7 @@ def test_get_handler(mocker, rucio):
 
     def mock_get_query_argument(key, default=None):
         args = {
-            'namespace': mock_active_instance,
+            'namespace': MOCK_ACTIVE_INSTANCE,
             'poll': '0',
             'did': 'scope:name'
         }
@@ -132,30 +130,21 @@ def test_get_handler(mocker, rucio):
         AttachedFile('scope3:name3', 1)
     ]
 
-    global get_files_called
-    get_files_called = False
-
     class MockDIDBrowserHandlerImpl(DIDBrowserHandlerImpl):
-        def get_files(self, scope, name, force_fetch=False, *args, **kwargs):
-            global get_files_called
-            get_files_called = True
+        def get_files(self, scope, name, force_fetch=False):
             return [x.__dict__ for x in mock_attached_files]
 
     mocker.patch('rucio_jupyterlab.handlers.did_browser.DIDBrowserHandlerImpl', MockDIDBrowserHandlerImpl)
 
-    def finish_side_effect(str):
-        global finish_json
-        finish_json = json.loads(str)
+    def finish_side_effect(output):
+        finish_json = json.loads(output)
+        assert finish_json == [x.__dict__ for x in mock_attached_files], "Invalid finish response"
 
     mocker.patch.object(mock_self, 'finish', side_effect=finish_side_effect)
 
     DIDBrowserHandler.get(mock_self)
 
     calls = [call('namespace'), call('poll', '0'), call('did')]
-    mock_self.get_query_argument.assert_has_calls(calls, any_order=True)
+    mock_self.get_query_argument.assert_has_calls(calls, any_order=True)  # pylint: disable=no-member
 
-    rucio_api_factory.for_instance.assert_called_once_with(mock_active_instance)
-    assert get_files_called, "Get files not called"
-
-    global finish_json
-    assert finish_json == [x.__dict__ for x in mock_attached_files], "Invalid finish response"
+    rucio_api_factory.for_instance.assert_called_once_with(MOCK_ACTIVE_INSTANCE)  # pylint: disable=no-member

@@ -83,10 +83,10 @@ class RucioAPI:
         cached_token = self._get_cached_token(instance_name)
         if cached_token:
             return cached_token
-        else:
-            token, expiry = self._authenticate()
-            RucioAPI.rucio_auth_token_cache[instance_name] = (token, expiry)
-            return token
+
+        token, expiry = self._authenticate()
+        RucioAPI.rucio_auth_token_cache[instance_name] = (token, expiry)
+        return token
 
     def _get_cached_token(self, instance):
         if instance in RucioAPI.rucio_auth_token_cache:
@@ -113,7 +113,7 @@ class RucioAPI:
         return None
 
 
-class RucioAPIFactory:
+class RucioAPIFactory: # pragma: no cover
     def __init__(self, config):
         self.config = config
 

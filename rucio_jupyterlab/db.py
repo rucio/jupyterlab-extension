@@ -1,7 +1,7 @@
 import os
 import time
 import json
-from peewee import *
+from peewee import SqliteDatabase, Model, TextField, IntegerField, DateTimeField, CompositeKey
 from .entity import AttachedFile
 
 

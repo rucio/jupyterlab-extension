@@ -1,13 +1,13 @@
-from notebook.utils import url_path_join
+from notebook.utils import url_path_join  # pylint: disable=import-error
+from rucio_jupyterlab.config import RucioConfig, Config
+from rucio_jupyterlab.rucio import RucioAPIFactory
 from .instances import InstancesHandler
 from .did_browser import DIDBrowserHandler
 from .did_details import DIDDetailsHandler
 from .did_make_available import DIDMakeAvailableHandler
-from rucio_jupyterlab.config import RucioConfig, Config
-from rucio_jupyterlab.rucio import RucioAPIFactory
 
 
-def setup_handlers(web_app):
+def setup_handlers(web_app):  # pragma: no cover
     host_pattern = ".*$"
 
     rucio_config = RucioConfig(config=web_app.settings['config'])

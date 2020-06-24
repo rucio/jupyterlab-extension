@@ -1,0 +1,4 @@
+[run]
+omit =
+    rucio_jupyterlab/tests/**
+    rucio_jupyterlab/_version.py

@@ -1,4 +1,3 @@
-import json
 import pytest
 from jsonschema.exceptions import ValidationError
 from rucio_jupyterlab.config import Config
@@ -12,10 +11,10 @@ def test_config_init__local_config__schema_valid():
             "display_name": "ATLAS",
             "rucio_base_url": "https://rucio",
             "auth": {
-                    "type": "userpass",
-                    "username": "swan",
-                    "password": "swan",
-                    "account": "swan"
+                "type": "userpass",
+                "username": "swan",
+                "password": "swan",
+                "account": "swan"
             },
             "destination_rse": "SWAN-EOS",
             "rse_mount_path": "/eos/user/rucio",
@@ -181,3 +180,50 @@ def test_config_init__remote_config__schema_invalid(requests_mock):
 
     with pytest.raises(ValidationError):
         Config(mock_config)
+
+
+def test_list_instances():
+    mock_instances = [
+        {
+            "name": "atlas",
+            "display_name": "ATLAS",
+            "rucio_base_url": "https://rucio",
+            "auth": {
+                "type": "userpass",
+                "username": "swan",
+                "password": "swan",
+                "account": "swan"
+            },
+            "destination_rse": "SWAN-EOS",
+            "rse_mount_path": "/eos/user/rucio",
+            "path_begins_at": 4,
+            "create_replication_rule_enabled": True,
+            "direct_download_enabled": True
+        },
+        {
+            "name": "cms",
+            "display_name": "CMS",
+            "rucio_base_url": "https://rucio-cms",
+            "auth": {
+                "type": "userpass",
+                "username": "swan",
+                "password": "swan",
+                "account": "swan"
+            },
+            "destination_rse": "SWAN-EOS",
+            "rse_mount_path": "/eos/user/rucio",
+            "path_begins_at": 4,
+            "create_replication_rule_enabled": True,
+            "direct_download_enabled": True
+        }
+    ]
+
+    mock_config = Struct(instances=mock_instances)
+    config = Config(mock_config)
+
+    expected_instances = [
+        {'display_name': 'ATLAS', 'name': 'atlas'},
+        {'display_name': 'CMS', 'name': 'cms'}
+    ]
+
+    assert config.list_instances() == expected_instances, "Invalid instances"

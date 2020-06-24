@@ -1,12 +1,12 @@
 import pytest
 from rucio_jupyterlab.rucio import RucioAPI
 
-mock_base_url = "https://rucio/"
-mock_username = "username"
-mock_password = "password"
-mock_account = "account"
-mock_app_id = "app_id"
-mock_auth_token = 'abcde_token_ghijk'
+MOCK_BASE_URL = "https://rucio/"
+MOCK_USERNAME = "username"
+MOCK_PASSWORD = "password"
+MOCK_ACCOUNT = "account"
+MOCK_APP_ID = "app_id"
+MOCK_AUTH_TOKEN = 'abcde_token_ghijk'
 
 
 @pytest.fixture
@@ -14,13 +14,13 @@ def rucio():
     instance_config = {
         "name": "atlas",
         "display_name": "ATLAS",
-        "rucio_base_url": mock_base_url,
+        "rucio_base_url": MOCK_BASE_URL,
         "auth": {
             "type": "userpass",
-            "username": mock_username,
-            "password": mock_password,
-            "account": mock_account,
-            "app_id": mock_app_id
+            "username": MOCK_USERNAME,
+            "password": MOCK_PASSWORD,
+            "account": MOCK_ACCOUNT,
+            "app_id": MOCK_APP_ID
         },
         "destination_rse": "SWAN-EOS",
         "rse_mount_path": "/eos/user/rucio",

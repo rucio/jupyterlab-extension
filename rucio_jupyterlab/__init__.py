@@ -1,15 +1,15 @@
 # from ._version import __version__
-from .handlers import setup_handlers
 import rucio_jupyterlab.kernels.ipython
+from .handlers import setup_handlers
 
 
-def _jupyter_server_extension_paths():
+def _jupyter_server_extension_paths(): # pragma: no cover
     return [{
         "module": "rucio_jupyterlab"
     }]
 
 
-def load_jupyter_server_extension(lab_app):
+def load_jupyter_server_extension(lab_app): # pragma: no cover
     """Registers the API handler to receive HTTP requests from the frontend extension.
 
     Parameters
