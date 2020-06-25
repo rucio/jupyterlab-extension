@@ -1,7 +1,10 @@
 jest.mock('../src/utils/ApiRequest');
+jest.mock('../src/stores/UIStore');
+
 import { requestAPI } from '../src/utils/ApiRequest';
 import { Actions } from '../src/utils/Actions';
 import { Instance, AttachedFile, FileDIDDetails } from '../src/types';
+import { UIStore } from '../src/stores/UIStore';
 
 describe('fetchInstancesConfig', () => {
     test('should call /instances endpoint', async () => {
@@ -11,6 +14,7 @@ describe('fetchInstancesConfig', () => {
             instances: [] as Instance[]
         };
 
+        mockRequestAPI.mockClear();
         mockRequestAPI.mockReturnValue(Promise.resolve(mockInstanceConfig));
 
         const actions = new Actions();
@@ -28,6 +32,7 @@ describe('postActiveInstance', () => {
     test('should call /instances endpoint with method PUT', async () => {
         const mockRequestAPI = requestAPI as jest.MockedFunction<typeof requestAPI>;
 
+        mockRequestAPI.mockClear();
         mockRequestAPI.mockReturnValue(Promise.resolve());
 
         const actions = new Actions();
@@ -54,6 +59,7 @@ describe('fetchAttachedFileDIDs', () => {
             { did: 'scope:name3', size: 123 }
         ]
 
+        mockRequestAPI.mockClear();
         mockRequestAPI.mockReturnValue(Promise.resolve(mockAttachedFiles));
 
         const actions = new Actions();
@@ -76,6 +82,7 @@ describe('fetchDIDDetails', () => {
             { did: 'scope:name3', size: 123, status: 'REPLICATING' },
         ]
 
+        mockRequestAPI.mockClear();
         mockRequestAPI.mockReturnValue(Promise.resolve(mockDIDDetails));
 
         const actions = new Actions();
@@ -86,5 +93,239 @@ describe('fetchDIDDetails', () => {
         )
 
         expect(attachedDIDs).toEqual(mockDIDDetails);
+    })
+})
+
+describe('getFileDIDDetails', () => {
+    test('polling disabled, file DID exists in store, should not fetch', async () => {
+        const mockFileDetails: FileDIDDetails = {
+            status: 'OK',
+            did: 'scope:name1',
+            path: '/eos/rucio/1',
+            size: 123
+        };
+
+        const mockGetRawState = UIStore.getRawState as jest.MockedFunction<typeof UIStore.getRawState>;
+        mockGetRawState.mockClear();
+        mockGetRawState.mockReturnValue({
+            fileDetails: {
+                'scope:name1': mockFileDetails
+            },
+            containerDetails: {}
+        });
+
+        const mockRequestAPI = requestAPI as jest.MockedFunction<typeof requestAPI>;
+        mockRequestAPI.mockClear();
+        mockRequestAPI.mockReturnValue(Promise.resolve([]));
+
+        const actions = new Actions();
+        const fileDIDDetails = await actions.getFileDIDDetails('atlas', 'scope:name1');
+
+        expect(fileDIDDetails).toEqual(mockFileDetails);
+        expect(mockRequestAPI).toBeCalledTimes(0);
+    })
+
+    test('polling disabled, file DID not exists in store, should fetch', async () => {
+        const mockFileDetails: FileDIDDetails = {
+            status: 'OK',
+            did: 'scope:name1',
+            path: '/eos/rucio/1',
+            size: 123
+        };
+
+        const mockGetRawState = UIStore.getRawState as jest.MockedFunction<typeof UIStore.getRawState>;
+        mockGetRawState.mockClear();
+        mockGetRawState.mockReturnValue({
+            fileDetails: {},
+            containerDetails: {}
+        });
+
+        const mockRequestAPI = requestAPI as jest.MockedFunction<typeof requestAPI>;
+        mockRequestAPI.mockClear();
+        mockRequestAPI.mockReturnValue(Promise.resolve([mockFileDetails]));
+
+        const mockUpdateState = UIStore.update as jest.MockedFunction<typeof UIStore.update>;
+        mockUpdateState.mockClear();
+
+        const actions = new Actions();
+        const fileDIDDetails = await actions.getFileDIDDetails('atlas', 'scope:name1');
+
+        expect(fileDIDDetails).toEqual(mockFileDetails);
+        expect(mockRequestAPI).toBeCalled();
+        expect(mockUpdateState).toBeCalled();
+    })
+
+    test('polling enabled, file DID exists in store, should fetch', async () => {
+        const mockFileDetails: FileDIDDetails = {
+            status: 'OK',
+            did: 'scope:name1',
+            path: '/eos/rucio/1',
+            size: 123
+        };
+
+        const mockGetRawState = UIStore.getRawState as jest.MockedFunction<typeof UIStore.getRawState>;
+        mockGetRawState.mockClear();
+        mockGetRawState.mockReturnValue({
+            fileDetails: {
+                'scope:name1': { ...mockFileDetails, status: 'NOT_AVAILABLE', path: undefined }
+            },
+            containerDetails: {}
+        });
+
+        const mockRequestAPI = requestAPI as jest.MockedFunction<typeof requestAPI>;
+        mockRequestAPI.mockClear();
+        mockRequestAPI.mockReturnValue(Promise.resolve([mockFileDetails]));
+
+        const mockUpdateState = UIStore.update as jest.MockedFunction<typeof UIStore.update>;
+        mockUpdateState.mockClear();
+
+        const actions = new Actions();
+        const fileDIDDetails = await actions.getFileDIDDetails('atlas', 'scope:name1', true);
+
+        expect(fileDIDDetails).toEqual(mockFileDetails);
+        expect(mockRequestAPI).toBeCalled();
+        expect(mockUpdateState).toBeCalled();
+    })
+})
+
+describe('getContainerDIDDetails', () => {
+    test('polling disabled, container DID exists in store, should not fetch', async () => {
+        const mockFileDetails: FileDIDDetails = {
+            status: 'OK',
+            did: 'scope:name1',
+            path: '/eos/rucio/1',
+            size: 123
+        };
+
+        const mockGetRawState = UIStore.getRawState as jest.MockedFunction<typeof UIStore.getRawState>;
+        mockGetRawState.mockClear();
+        mockGetRawState.mockReturnValue({
+            fileDetails: {},
+            containerDetails: {
+                'scope:name': [mockFileDetails]
+            }
+        });
+
+        const mockRequestAPI = requestAPI as jest.MockedFunction<typeof requestAPI>;
+        mockRequestAPI.mockClear();
+        mockRequestAPI.mockReturnValue(Promise.resolve([]));
+
+        const actions = new Actions();
+        const fileDIDDetails = await actions.getContainerDIDDetails('atlas', 'scope:name');
+
+        expect(fileDIDDetails).toEqual([mockFileDetails]);
+        expect(mockRequestAPI).toBeCalledTimes(0);
+    })
+
+    test('polling disabled, container DID not exists in store, should fetch', async () => {
+        const mockFileDetails: FileDIDDetails = {
+            status: 'OK',
+            did: 'scope:name1',
+            path: '/eos/rucio/1',
+            size: 123
+        };
+
+        const mockGetRawState = UIStore.getRawState as jest.MockedFunction<typeof UIStore.getRawState>;
+        mockGetRawState.mockClear();
+        mockGetRawState.mockReturnValue({
+            fileDetails: {},
+            containerDetails: {}
+        });
+
+        const mockRequestAPI = requestAPI as jest.MockedFunction<typeof requestAPI>;
+        mockRequestAPI.mockClear();
+        mockRequestAPI.mockReturnValue(Promise.resolve([mockFileDetails]));
+
+        const mockUpdateState = UIStore.update as jest.MockedFunction<typeof UIStore.update>;
+        mockUpdateState.mockClear();
+
+        const actions = new Actions();
+        const fileDIDDetails = await actions.getContainerDIDDetails('atlas', 'scope:name');
+
+        expect(fileDIDDetails).toEqual([mockFileDetails]);
+        expect(mockRequestAPI).toBeCalled();
+        expect(mockUpdateState).toBeCalled();
+    })
+
+    test('polling enabled, container DID exists in store, should fetch', async () => {
+        const mockFileDetails: FileDIDDetails = {
+            status: 'OK',
+            did: 'scope:name1',
+            path: '/eos/rucio/1',
+            size: 123
+        };
+
+        const mockGetRawState = UIStore.getRawState as jest.MockedFunction<typeof UIStore.getRawState>;
+        mockGetRawState.mockClear();
+        mockGetRawState.mockReturnValue({
+            fileDetails: {},
+            containerDetails: {
+                'scope:name': [{ ...mockFileDetails, status: 'NOT_AVAILABLE', path: undefined }]
+            }
+        });
+
+        const mockRequestAPI = requestAPI as jest.MockedFunction<typeof requestAPI>;
+        mockRequestAPI.mockClear();
+        mockRequestAPI.mockReturnValue(Promise.resolve([mockFileDetails]));
+
+        const mockUpdateState = UIStore.update as jest.MockedFunction<typeof UIStore.update>;
+        mockUpdateState.mockClear();
+
+        const actions = new Actions();
+        const fileDIDDetails = await actions.getContainerDIDDetails('atlas', 'scope:name', true);
+
+        expect(fileDIDDetails).toEqual([mockFileDetails]);
+        expect(mockRequestAPI).toBeCalled();
+        expect(mockUpdateState).toBeCalled();
+    })
+})
+
+describe('makeFileAvailable', () => {
+    test('should call /did/make-available endpoint with method POST', async () => {
+        const mockRequestAPI = requestAPI as jest.MockedFunction<typeof requestAPI>;
+
+        mockRequestAPI.mockClear();
+        mockRequestAPI.mockReturnValue(Promise.resolve());
+
+        const mockUpdateState = UIStore.update as jest.MockedFunction<typeof UIStore.update>;
+        mockUpdateState.mockClear();
+
+        const actions = new Actions();
+        await actions.makeFileAvailable('atlas', 'scope:name');
+
+        expect(mockRequestAPI).toBeCalledWith(
+            expect.stringMatching(/(\b(did\/make-available|namespace=atlas)\b.*){2,}/),
+            expect.objectContaining({
+                method: 'POST',
+                body: JSON.stringify({ method: 'replica', did: 'scope:name' })
+            })
+        )
+
+        expect(mockUpdateState).toBeCalled();
+    })
+})
+
+describe('makeContainerAvailable', () => {
+    test('should call /did/make-available endpoint with method POST', async () => {
+        const mockRequestAPI = requestAPI as jest.MockedFunction<typeof requestAPI>;
+
+        mockRequestAPI.mockClear();
+        mockRequestAPI.mockReturnValue(Promise.resolve());
+
+        const mockUpdateState = UIStore.update as jest.MockedFunction<typeof UIStore.update>;
+        mockUpdateState.mockClear();
+
+        const actions = new Actions();
+        await actions.makeContainerAvailable('atlas', 'scope:name');
+
+        expect(mockRequestAPI).toBeCalledWith(
+            expect.stringMatching(/(\b(did\/make-available|namespace=atlas)\b.*){2,}/),
+            expect.objectContaining({
+                method: 'POST',
+                body: JSON.stringify({ method: 'replica', did: 'scope:name' })
+            })
+        )
+
+        expect(mockUpdateState).toBeCalled();
     })
 })
