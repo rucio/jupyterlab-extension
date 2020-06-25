@@ -111,3 +111,4 @@ dmypy.json
 *.ipynb
 .idea/
 .vscode/
+coverage/
