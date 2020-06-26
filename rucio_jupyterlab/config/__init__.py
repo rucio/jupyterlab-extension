@@ -6,7 +6,7 @@ from traitlets.config import Configurable
 from . import schema
 
 
-class RucioConfig(Configurable): # pragma: no cover
+class RucioConfig(Configurable):  # pragma: no cover
     instances = List(Dict(config=True), config=True)
 
 
@@ -36,20 +36,19 @@ class Config:
 
     def get_instance_config(self, instance_name):
         instance = self.instances[instance_name]
-        if "$url" in instance:
-            remote_instance = self.remote_instances[instance_name]
-            if remote_instance['expires_at'] <= int(time.time()):
-                remote_config, cache_expires_at = self._preprocess_remote_config(
-                    instance)
-                self.remote_instances[instance_name] = {
-                    'expires_at': cache_expires_at,
-                    'instance': remote_config
-                }
+        if "$url" not in instance:
+            return instance
 
-                return remote_config
-            else:
-                return remote_instance['instance']
-        return instance
+        remote_instance = self.remote_instances[instance_name]
+        if remote_instance['expires_at'] >= int(time.time()):
+            return remote_instance['instance']
+
+        remote_config, cache_expires_at = self._preprocess_remote_config(instance)
+        self.remote_instances[instance_name] = {
+            'expires_at': cache_expires_at,
+            'instance': remote_config
+        }
+        return remote_config
 
     def list_instances(self):
         instances = []
