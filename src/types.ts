@@ -3,6 +3,24 @@ export interface Instance {
   name: string;
 }
 
+interface RucioAuth {
+  account: string;
+}
+
+export interface RucioUserpassAuth extends RucioAuth {
+  type: 'userpass';
+  username: string;
+  password: string;
+}
+
+export interface RucioX509Auth extends RucioAuth {
+  type: 'x509';
+  certificateFilePath: string;
+  privateKeyFilePath: string;
+}
+
+export type RucioAuthCredentials = RucioUserpassAuth | RucioX509Auth;
+
 export interface AttachedFile {
   did: string;
   size: number;

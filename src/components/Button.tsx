@@ -24,6 +24,17 @@ const useStyles = createUseStyles({
     },
     '&:active': {
       backgroundColor: (props: ButtonProps) => `${props.outlineColor || '#000000'}12`
+    },
+    '&:disabled': {
+      opacity: 0.5,
+      cursor: 'inherit',
+      '&:hover': {
+        background: 'none',
+        borderColor: (props: ButtonProps) => `${props.outlineColor || '#000000'}90`
+      },
+      '&:active': {
+        background: 'none'
+      }
     }
   },
   block: {

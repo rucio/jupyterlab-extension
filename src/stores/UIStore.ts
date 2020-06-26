@@ -1,8 +1,10 @@
 import { Store } from 'pullstate';
-import { Instance, FileDIDDetails } from '../types';
+import { Instance, FileDIDDetails, RucioAuthCredentials } from '../types';
 
 export interface UIState {
   activeInstance?: Instance;
+  instances?: Instance[];
+  authConfig?: { [instance: string]: RucioAuthCredentials };
   fileDetails: { [did: string]: FileDIDDetails };
   containerDetails: { [did: string]: FileDIDDetails[] };
 }
@@ -13,3 +15,10 @@ export const initialState: UIState = {
 };
 
 export const UIStore = new Store(initialState);
+
+export const resetRucioCaches = (): void => {
+  UIStore.update(s => {
+    s.fileDetails = {};
+    s.containerDetails = {};
+  });
+};

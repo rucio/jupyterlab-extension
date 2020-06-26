@@ -23,6 +23,16 @@ const useStyles = createUseStyles({
     '&.active': {
       background: '#f0f0f0',
       fontWeight: 'bold'
+    },
+    '&.disabled': {
+      opacity: 0.5,
+      cursor: 'inherit',
+      '&:hover': {
+        background: 'none'
+      },
+      '&.active': {
+        background: 'none'
+      }
     }
   },
   tabItemRight: {
@@ -41,6 +51,7 @@ export interface Menu {
   title: any;
   value: any;
   right?: boolean;
+  disabled?: boolean;
 }
 
 export const MenuBar: React.FunctionComponent<MenuBarProps> = ({ menus, value, onChange }) => {
@@ -51,9 +62,14 @@ export const MenuBar: React.FunctionComponent<MenuBarProps> = ({ menus, value, o
       <ul className={classes.tab}>
         {menus.map(menu => {
           const activeClass = menu.value === value ? 'active' : '';
+          const disabledClass = menu.disabled ? 'disabled' : '';
           const tabClass = menu.right ? classes.tabItemRight : classes.tabItem;
           return (
-            <li onClick={() => onChange(menu.value)} key={menu.value} className={`${tabClass} ${activeClass}`}>
+            <li
+              onClick={!menu.disabled ? () => onChange(menu.value) : undefined}
+              key={menu.value}
+              className={`${tabClass} ${activeClass} ${disabledClass}`}
+            >
               {menu.title}
             </li>
           );

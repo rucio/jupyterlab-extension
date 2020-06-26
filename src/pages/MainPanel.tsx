@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { createUseStyles } from 'react-jss';
+import { useStoreState } from 'pullstate';
+import { UIStore } from '../stores/UIStore';
 import { MenuBar } from '../components/MenuBar';
 import { Explore } from '../tabs/Explore';
 import { Notebook } from '../tabs/Notebook';
-import { Info } from '../tabs/Info';
+import { Settings } from '../tabs/Settings';
 
 const useStyles = createUseStyles({
   container: {
@@ -32,10 +34,12 @@ const useStyles = createUseStyles({
 
 export const MainPanel: React.FC<React.HTMLAttributes<HTMLElement>> = props => {
   const classes = useStyles();
-  const [activeMenu, setActiveMenu] = useState(1);
+  const activeInstance = useStoreState(UIStore, s => s.activeInstance);
+
+  const [activeMenu, setActiveMenu] = useState(activeInstance ? 1 : 3);
   const menus = [
-    { title: 'Explore', value: 1, right: false },
-    { title: 'Notebook', value: 2, right: false },
+    { title: 'Explore', value: 1, right: false, disabled: !activeInstance },
+    { title: 'Notebook', value: 2, right: false, disabled: !activeInstance },
     {
       title: (
         <div className={classes.instanceOption}>
@@ -53,14 +57,10 @@ export const MainPanel: React.FC<React.HTMLAttributes<HTMLElement>> = props => {
         <MenuBar menus={menus} value={activeMenu} onChange={setActiveMenu} />
       </div>
       <div className={classes.content}>
-        <div className={activeMenu !== 1 ? classes.hidden : ''}>
-          <Explore />
-        </div>
-        <div className={activeMenu !== 2 ? classes.hidden : ''}>
-          <Notebook />
-        </div>
+        <div className={activeMenu !== 1 ? classes.hidden : ''}>{activeInstance && <Explore />}</div>
+        <div className={activeMenu !== 2 ? classes.hidden : ''}>{activeInstance && <Notebook />}</div>
         <div className={activeMenu !== 3 ? classes.hidden : ''}>
-          <Info />
+          <Settings />
         </div>
       </div>
     </div>

@@ -38,10 +38,26 @@ export class NotebookListener {
 
   setup(): void {
     const { labShell, notebookTracker } = this.options;
+
     ExtensionStore.subscribe(
       s => s.activeNotebookAttachment,
-      (attachments, state) => this.onNotebookAttachmentChanged(attachments, state)
+      (attachments, state) => {
+        this.onNotebookAttachmentChanged(attachments, state);
+      }
     );
+
+    UIStore.subscribe(
+      s => s.activeInstance,
+      activeInstance => {
+        if (!activeInstance) {
+          return;
+        }
+
+        const state = ExtensionStore.getRawState();
+        this.onNotebookAttachmentChanged(state.activeNotebookAttachment, state);
+      }
+    );
+
     labShell.currentChanged.connect(this.onCurrentTabChanged, this);
     notebookTracker.widgetAdded.connect(this.onNotebookOpened, this);
   }
@@ -103,15 +119,23 @@ export class NotebookListener {
     this.setJupyterNotebookFileRucioMetadata(attachments, state);
     this.removeNonExistentInjectedVariableNames(attachments, state);
 
-    activeNotebookPanel.sessionContext.ready
-      .then(() => {
-        const attachments = this.getNotYetInjectedAttachments();
-        return this.createVariableInjectionPayload(attachments);
-      })
-      .then(injections => {
-        console.log('Injecting due to changed attachment');
-        return this.injectAttachments(injections);
-      });
+    activeNotebookPanel.sessionContext.ready.then(() => {
+      return this.triggerInjection('Injecting due to changed attachment');
+    });
+  }
+
+  private triggerInjection(debugMessage = '') {
+    const { activeInstance } = UIStore.getRawState();
+
+    if (!activeInstance) {
+      return;
+    }
+
+    const attachments = this.getNotYetInjectedAttachments();
+    this.createVariableInjectionPayload(attachments).then(injections => {
+      console.log(debugMessage);
+      return this.injectAttachments(injections);
+    });
   }
 
   private setJupyterNotebookFileRucioMetadata(attachments: NotebookDIDAttachment[], state: ExtensionState) {
@@ -169,12 +193,7 @@ export class NotebookListener {
   private onKernelAttached(kernelConnection: IKernelConnection) {
     console.log('Kernel attached');
     this.setupKernelReceiverComm(kernelConnection);
-
-    const attachments = this.getNotYetInjectedAttachments();
-    this.createVariableInjectionPayload(attachments).then(injections => {
-      console.log('Injecting due to kernel attached');
-      this.injectAttachments(injections);
-    });
+    this.triggerInjection('Injecting due to kernel attached');
   }
 
   private setupKernelReceiverComm(kernelConnection: IKernelConnection) {
@@ -196,7 +215,9 @@ export class NotebookListener {
     console.log('Incoming message', data);
     if (data.action === 'request-inject') {
       const { activeNotebookAttachment } = ExtensionStore.getRawState();
-      if (!activeNotebookAttachment) {
+      const { activeInstance } = UIStore.getRawState();
+
+      if (!activeNotebookAttachment || !activeInstance) {
         return;
       }
 
