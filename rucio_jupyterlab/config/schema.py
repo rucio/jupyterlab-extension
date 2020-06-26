@@ -101,21 +101,13 @@ remote_config = {
 
 root = {
     "$schema": "http://json-schema.org/draft-07/schema",
-    "required": [
-        "instances"
-    ],
-    "additionalProperties": True,
-    "properties": {
-        "instances": {
-            "type": "array",
-            "default": [],
-            "additionalItems": False,
-            "items": {
-                "anyOf": [
-                    instance,
-                    remote_config
-                ]
-            }
-        }
+    "type": "array",
+    "default": [],
+    "additionalItems": False,
+    "items": {
+        "anyOf": [
+            instance,
+            remote_config
+        ]
     }
 }

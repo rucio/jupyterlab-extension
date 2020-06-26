@@ -15,7 +15,7 @@ class Config:
         self.instances = dict()
         self.remote_instances = dict()
 
-        validate(rucio_config.__dict__, schema=schema.root)
+        validate(rucio_config.instances, schema=schema.root)
         self.config = rucio_config
 
         instances = self.config.instances

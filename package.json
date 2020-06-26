@@ -17,8 +17,8 @@
     "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
     "style/**/*.{css,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
   ],
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "main": "lib/src/index.js",
+  "types": "lib/src/index.d.ts",
   "style": "style/index.css",
   "repository": {
     "type": "git",
@@ -53,7 +53,8 @@
     "pullstate": "^1.13.2",
     "react-copy-to-clipboard": "^5.0.2",
     "react-jss": "^10.1.1",
-    "react-popover": "^0.5.10"
+    "react-popover": "^0.5.10",
+    "react-select": "^3.1.0"
   },
   "devDependencies": {
     "@types/jest": "^26.0.3",
