@@ -53,6 +53,7 @@ export class NotebookListener {
           return;
         }
 
+        this.injectedVariableNames = {};
         const state = ExtensionStore.getRawState();
         this.onNotebookAttachmentChanged(state.activeNotebookAttachment, state);
       }
