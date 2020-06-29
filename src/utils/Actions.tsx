@@ -2,7 +2,7 @@ import React from 'react';
 import qs from 'querystring';
 import { requestAPI } from './ApiRequest';
 import { UIStore } from '../stores/UIStore';
-import { FileDIDDetails, Instance, AttachedFile } from '../types';
+import { FileDIDDetails, Instance, AttachedFile, RucioAuthType, RucioAuthCredentials } from '../types';
 
 export class Actions {
   async fetchInstancesConfig(): Promise<{
@@ -21,6 +21,24 @@ export class Actions {
     };
 
     return requestAPI('instances', init);
+  }
+
+  async getAuthConfig<T extends any>(namespace: string, type: RucioAuthType): Promise<T> {
+    const query = { namespace, type };
+    return requestAPI<T>(`auth?${qs.encode(query)}`);
+  }
+
+  async putAuthConfig(namespace: string, type: RucioAuthType, params: RucioAuthCredentials): Promise<void> {
+    const init = {
+      method: 'PUT',
+      body: JSON.stringify({
+        namespace,
+        type,
+        params
+      })
+    };
+
+    return requestAPI('auth', init);
   }
 
   async fetchAttachedFileDIDs(namespace: string, did: string): Promise<AttachedFile[]> {

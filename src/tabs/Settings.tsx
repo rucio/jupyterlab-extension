@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { createUseStyles } from 'react-jss';
 import Select from 'react-select';
 import { useStoreState } from 'pullstate';
@@ -8,6 +8,8 @@ import { withRequestAPI, WithRequestAPIProps } from '../utils/Actions';
 import { authTypeOptions } from '../const';
 import { UserPassAuth } from '../components/@Settings/UserPassAuth';
 import { X509Auth } from '../components/@Settings/X509Auth';
+import { RucioAuthType, RucioAuthCredentials, RucioUserpassAuth, RucioX509Auth } from '../types';
+import { HorizontalHeading } from '../components/HorizontalHeading';
 
 const useStyles = createUseStyles({
   content: {
@@ -48,12 +50,10 @@ const _Settings: React.FunctionComponent = props => {
   const instanceDefaultValue = activeInstance ? { label: activeInstance.displayName, value: activeInstance.name } : null;
 
   const [selectedInstance, setSelectedInstance] = useState<string>(instanceDefaultValue?.value);
-  const [selectedAuthType, setSelectedAuthType] = useState<string>();
+  const [selectedAuthType, setSelectedAuthType] = useState<RucioAuthType>();
+  const [rucioAuthCredentials, setRucioAuthCredentials] = useState<RucioAuthCredentials>();
 
   const instanceOptions = useMemo(() => instances?.map(i => ({ label: i.displayName, value: i.name })), [instances]);
-
-  const instanceSettingsChanged = activeInstance?.name !== selectedInstance;
-  const settingsChanged = instanceSettingsChanged;
 
   const setActiveInstance = (value?: string) => {
     resetRucioCaches();
@@ -66,9 +66,17 @@ const _Settings: React.FunctionComponent = props => {
     actions.postActiveInstance(value).catch(e => console.log(e));
   };
 
+  const setRucioAuthConfig = (namespace: string, authType: RucioAuthType, rucioAuthCredentials: RucioAuthCredentials) => {
+    actions.putAuthConfig(namespace, authType, rucioAuthCredentials);
+  };
+
   const saveSettings = () => {
-    if (instanceSettingsChanged) {
+    if (selectedInstance) {
       setActiveInstance(selectedInstance);
+    }
+
+    if (!!setSelectedAuthType && !!rucioAuthCredentials) {
+      setRucioAuthConfig(selectedInstance, selectedAuthType, rucioAuthCredentials);
     }
   };
 
@@ -78,6 +86,29 @@ const _Settings: React.FunctionComponent = props => {
       borderRadius: 0
     })
   };
+
+  const reloadAuthConfig = () => {
+    if (!selectedInstance) {
+      return;
+    }
+
+    setRucioAuthCredentials(undefined);
+    actions
+      .getAuthConfig<any>(selectedInstance, selectedAuthType)
+      .then(c => setRucioAuthCredentials(c))
+      .catch(() => {
+        switch (selectedAuthType) {
+          case 'userpass':
+            setRucioAuthCredentials({ username: '', password: '', account: '' });
+            break;
+          case 'x509':
+            setRucioAuthCredentials({ username: '', password: '', account: '' });
+            break;
+        }
+      });
+  };
+
+  useEffect(reloadAuthConfig, [selectedInstance, selectedAuthType]);
 
   return (
     <div className={classes.content}>
@@ -108,13 +139,29 @@ const _Settings: React.FunctionComponent = props => {
           </div>
         </div>
         <div>
-          {selectedAuthType === 'userpass' && <UserPassAuth />}
-          {selectedAuthType === 'x509' && <X509Auth />}
+          {selectedAuthType === 'userpass' && !!selectedInstance && (
+            <>
+              <HorizontalHeading title="Username &amp; Password" />
+              {!!rucioAuthCredentials && (
+                <UserPassAuth params={rucioAuthCredentials as RucioUserpassAuth} onChange={v => setRucioAuthCredentials(v)} />
+              )}
+              {!rucioAuthCredentials && !selectedInstance && <div className={classes.container}>Loading...</div>}
+            </>
+          )}
+          {selectedAuthType === 'x509' && !!selectedInstance && (
+            <>
+              <HorizontalHeading title="X.509 User Certificate" />
+              {!!rucioAuthCredentials && (
+                <X509Auth params={rucioAuthCredentials as RucioX509Auth} onChange={v => setRucioAuthCredentials(v)} />
+              )}
+              {!rucioAuthCredentials && !selectedInstance && <div className={classes.container}>Loading...</div>}
+            </>
+          )}
         </div>
       </div>
       <div className={classes.buttonContainer}>
-        <Button block disabled={!settingsChanged} onClick={saveSettings}>
-          Save Changes
+        <Button block onClick={saveSettings}>
+          Save Settings
         </Button>
       </div>
     </div>

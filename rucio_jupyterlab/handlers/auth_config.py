@@ -11,18 +11,26 @@ class AuthConfigHandler(RucioAPIHandler):
 
     @tornado.web.authenticated
     def get(self):
+        namespace = self.get_query_argument('namespace')
+        auth_type = self.get_query_argument('type')
+
         db = get_db()  # pylint: disable=invalid-name
-        auth_credentials = db.get_rucio_auth_credentials()
-        self.finish(json.dumps(auth_credentials))
+        auth_credentials = db.get_rucio_auth_credentials(namespace=namespace, auth_type=auth_type)
+
+        if auth_credentials:
+            self.finish(json.dumps(auth_credentials))
+        else:
+            self.set_status(404)
+            self.finish({'success': False, 'error': 'Auth credentials not set'})
 
     @tornado.web.authenticated
     def put(self):
         json_body = self.get_json_body()
-        instance = json_body['instance']
+        namespace = json_body['namespace']
         auth_type = json_body['type']
         params = json_body['params']
 
         db = get_db()  # pylint: disable=invalid-name
-        db.set_rucio_auth_credentials(namespace=instance, auth_type=auth_type, params=params)
+        db.set_rucio_auth_credentials(namespace=namespace, auth_type=auth_type, params=params)
 
         self.finish(json.dumps({'success': True}))
