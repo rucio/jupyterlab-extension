@@ -2,9 +2,9 @@ import React, { useEffect } from 'react';
 import { createUseStyles } from 'react-jss';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import { useStoreState } from 'pullstate';
-import { UIStore } from '../stores/UIStore';
-import { Spinning } from './Spinning';
-import { withRequestAPI, WithRequestAPIProps } from '../utils/Actions';
+import { UIStore } from '../../stores/UIStore';
+import { Spinning } from '../Spinning';
+import { withRequestAPI, WithRequestAPIProps } from '../../utils/Actions';
 import { AddToNotebookPopover } from './AddToNotebookPopover';
 
 const useStyles = createUseStyles({

@@ -7,3 +7,8 @@ export const searchByOptions = [
   { title: 'Datasets or Containers', value: 'datasets' },
   { title: 'Files', value: 'files' }
 ];
+
+export const authTypeOptions = [
+  { label: 'Username & Password', value: 'userpass' },
+  { label: 'X.509 User Certificate', value: 'x509' }
+];

@@ -1,12 +1,12 @@
 import React, { useEffect, useMemo } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useStoreState } from 'pullstate';
-import { NotebookDIDAttachment, FileStatus, ContainerStatus } from '../types';
-import { Spinning } from './Spinning';
-import { WithRequestAPIProps, withRequestAPI } from '../utils/Actions';
-import { UIStore } from '../stores/UIStore';
-import { computeContainerState } from '../utils/Helpers';
-import { ExtensionStore } from '../stores/ExtensionStore';
+import { NotebookDIDAttachment, FileStatus, ContainerStatus } from '../../types';
+import { Spinning } from '../Spinning';
+import { WithRequestAPIProps, withRequestAPI } from '../../utils/Actions';
+import { UIStore } from '../../stores/UIStore';
+import { computeContainerState } from '../../utils/Helpers';
+import { ExtensionStore } from '../../stores/ExtensionStore';
 
 const useStyles = createUseStyles({
   listItemContainer: {

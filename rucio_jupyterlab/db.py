@@ -20,7 +20,7 @@ db = prepare_db(dir_path)
 
 
 def get_db():
-    db.create_tables([UserConfig, AttachedFilesListCache, FileReplicasCache])
+    db.create_tables([UserConfig, RucioAuthCredentials, AttachedFilesListCache, FileReplicasCache])
     return DatabaseInstance()
 
 
@@ -40,6 +40,20 @@ class DatabaseInstance:
 
     def set_active_instance(self, instance_name):
         self.put_config('instance', instance_name)
+
+    def get_rucio_auth_credentials(self):
+        creds = RucioAuthCredentials.select()
+        cred_map = {}
+        for cred in creds:
+            if cred.namespace not in cred_map:
+                cred_map[cred.namespace] = {}
+            cred_map[cred.namespace][cred.auth_type] = json.loads(cred.params)
+
+        return cred_map
+
+    def set_rucio_auth_credentials(self, namespace, auth_type, params):
+        params_str = json.dumps(params)
+        RucioAuthCredentials.replace(namespace=namespace, auth_type=auth_type, params=params_str).execute()
 
     def get_attached_files(self, namespace, did):
         current_time = int(time.time())
@@ -83,6 +97,16 @@ class UserConfig(Model):
 
     class Meta:
         database = db
+
+
+class RucioAuthCredentials(Model):
+    namespace = TextField()
+    auth_type = TextField()
+    params = TextField(null=True)
+
+    class Meta:
+        database = db
+        primary_key = CompositeKey('namespace', 'auth_type')
 
 
 class AttachedFilesListCache(Model):

@@ -1,11 +1,11 @@
 import React, { useEffect, useMemo } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useStoreState } from 'pullstate';
-import { UIStore } from '../stores/UIStore';
-import { Spinning } from './Spinning';
-import { withRequestAPI, WithRequestAPIProps } from '../utils/Actions';
+import { UIStore } from '../../stores/UIStore';
+import { Spinning } from '../Spinning';
+import { withRequestAPI, WithRequestAPIProps } from '../../utils/Actions';
 import { AddToNotebookPopover } from './AddToNotebookPopover';
-import { computeContainerState } from '../utils/Helpers';
+import { computeContainerState } from '../../utils/Helpers';
 
 const useStyles = createUseStyles({
   container: {

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { createUseStyles } from 'react-jss';
 import { FileDIDItemDetails } from './FileDIDItemDetails';
 import { ContainerDIDItemDetails } from './ContainerDIDItemDetails';
-import { toHumanReadableSize } from '../utils/Helpers';
+import { toHumanReadableSize } from '../../utils/Helpers';
 
 const useStyles = createUseStyles({
   listItemContainer: {

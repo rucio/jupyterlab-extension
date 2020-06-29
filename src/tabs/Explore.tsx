@@ -4,7 +4,7 @@ import { useStoreState } from 'pullstate';
 import { UIStore } from '../stores/UIStore';
 import { TextField } from '../components/TextField';
 import { HorizontalHeading } from '../components/HorizontalHeading';
-import { DIDListItem } from '../components/DIDListItem';
+import { DIDListItem } from '../components/@Explore/DIDListItem';
 import { Spinning } from '../components/Spinning';
 import { withRequestAPI, WithRequestAPIProps } from '../utils/Actions';
 import { AttachedFile } from '../types';

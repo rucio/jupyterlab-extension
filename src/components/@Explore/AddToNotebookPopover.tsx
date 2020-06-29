@@ -2,10 +2,10 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import Popover from 'react-popover';
 import { createUseStyles } from 'react-jss';
 import { useStoreState } from 'pullstate';
-import { ExtensionStore } from '../stores/ExtensionStore';
-import { TextField } from '../components/TextField';
-import { NotebookDIDAttachment } from '../types';
-import { checkVariableNameValid } from '../utils/Helpers';
+import { ExtensionStore } from '../../stores/ExtensionStore';
+import { TextField } from '../TextField';
+import { NotebookDIDAttachment } from '../../types';
+import { checkVariableNameValid } from '../../utils/Helpers';
 
 const useStyles = createUseStyles({
   textField: {

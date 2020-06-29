@@ -19,7 +19,10 @@ const useStyles = createUseStyles({
   },
   content: {
     flex: 1,
-    overflow: 'auto'
+    overflow: 'auto',
+    '& > div': {
+      height: '100%'
+    }
   },
   instanceOption: {
     lineHeight: 0

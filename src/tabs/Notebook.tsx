@@ -2,7 +2,7 @@ import React from 'react';
 import { createUseStyles } from 'react-jss';
 import { useStoreState } from 'pullstate';
 import { ExtensionStore } from '../stores/ExtensionStore';
-import { NotebookAttachmentListItem } from '../components/NotebookAttachmentListItem';
+import { NotebookAttachmentListItem } from '../components/@Notebook/NotebookAttachmentListItem';
 import { HorizontalHeading } from '../components/HorizontalHeading';
 
 const useStyles = createUseStyles({
