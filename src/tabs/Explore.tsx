@@ -51,6 +51,7 @@ const _Explore: React.FunctionComponent = props => {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResult, setSearchResult] = useState<AttachedFile[]>();
+  const [error, setError] = useState<string>();
   const [lastQuery, setLastQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const activeInstance = useStoreState(UIStore, s => s.activeInstance);
@@ -61,10 +62,16 @@ const _Explore: React.FunctionComponent = props => {
     setLoading(true);
     setSearchResult(undefined);
     setLastQuery(searchQuery);
+    setError(undefined);
     actions
       .fetchAttachedFileDIDs(activeInstance.name, searchQuery)
       .then(result => setSearchResult(result))
-      .catch(e => setSearchResult([]))
+      .catch(e => {
+        setSearchResult([]);
+        if (e.response.status === 401) {
+          setError('Authentication error. Perhaps you set an invalid credential?');
+        }
+      })
       .finally(() => setLoading(false));
   };
 
@@ -107,7 +114,9 @@ const _Explore: React.FunctionComponent = props => {
               <DIDListItem type="file" did={file.did} size={file.size} key={file.did} />
             ))}
           </div>
-          {!!searchResult && searchResult.length === 0 && <div className={classes.loading}>No results found</div>}
+          {((!!searchResult && searchResult.length === 0) || !!error) && (
+            <div className={classes.loading}>{error || 'No results found'}</div>
+          )}
         </>
       )}
     </div>

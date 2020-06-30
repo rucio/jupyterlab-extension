@@ -111,7 +111,7 @@ const _Settings: React.FunctionComponent = props => {
 
     setCredentialsLoading(true);
     actions
-      .getAuthConfig<any>(selectedInstance, selectedAuthType)
+      .fetchAuthConfig<any>(selectedInstance, selectedAuthType)
       .then(c => setRucioAuthCredentials(c))
       .catch(() => setRucioAuthCredentials(undefined))
       .finally(() => setCredentialsLoading(false));

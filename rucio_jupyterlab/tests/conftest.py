@@ -15,13 +15,7 @@ def rucio():
         "name": "atlas",
         "display_name": "ATLAS",
         "rucio_base_url": MOCK_BASE_URL,
-        "auth": {
-            "type": "userpass",
-            "username": MOCK_USERNAME,
-            "password": MOCK_PASSWORD,
-            "account": MOCK_ACCOUNT,
-            "app_id": MOCK_APP_ID
-        },
+        "app_id": MOCK_APP_ID,
         "destination_rse": "SWAN-EOS",
         "rse_mount_path": "/eos/user/rucio",
         "path_begins_at": 4,
@@ -29,5 +23,11 @@ def rucio():
         "direct_download_enabled": True
     }
 
-    rucio_api = RucioAPI(instance_config)
+    mock_auth_type = 'userpass'
+    mock_auth_config = {
+        'username': MOCK_USERNAME,
+        'password': MOCK_PASSWORD,
+        'account': MOCK_ACCOUNT
+    }
+    rucio_api = RucioAPI(instance_config, auth_type=mock_auth_type, auth_config=mock_auth_config)
     return rucio_api

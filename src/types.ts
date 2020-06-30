@@ -13,8 +13,8 @@ export interface RucioUserpassAuth extends RucioAuth {
 }
 
 export interface RucioX509Auth extends RucioAuth {
-  certificateFilePath: string;
-  privateKeyFilePath?: string;
+  certificate: string;
+  key?: string;
 }
 
 export type RucioAuthCredentials = RucioUserpassAuth | RucioX509Auth;

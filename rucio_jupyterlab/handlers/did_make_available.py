@@ -1,5 +1,6 @@
 import json
 import tornado
+from rucio_jupyterlab.rucio.authenticators import RucioAuthenticationException
 from .base import RucioAPIHandler
 
 
@@ -41,5 +42,8 @@ class DIDMakeAvailableHandler(RucioAPIHandler):
         except UnknownMethodException:
             self.set_status(400)
             output = {'error': 'Unknown method'}
+        except RucioAuthenticationException:
+            self.set_status(401)
+            output = {'error': 'Authentication error'}
 
         self.finish(json.dumps(output))

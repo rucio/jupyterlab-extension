@@ -8,26 +8,8 @@ instance_properties = {
     "rucio_base_url": {
         "type": "string"
     },
-    "auth": {
-        "type": "object",
-        "required": [
-            "type"
-        ],
-        "additionalProperties": True,
-        "properties": {
-            "type": {
-                "type": "string"
-            },
-            "username": {
-                "type": "string"
-            },
-            "password": {
-                "type": "string"
-            },
-            "account": {
-                "type": "string"
-            }
-        }
+    "app_id": {
+        "type": "string"
     },
     "destination_rse": {
         "type": "string"
@@ -63,7 +45,6 @@ instance = {
         "name",
         "display_name",
         "rucio_base_url",
-        "auth",
         "destination_rse",
         "rse_mount_path"
     ],

@@ -5,6 +5,7 @@ import tornado
 from rucio_jupyterlab.db import get_db
 from rucio_jupyterlab.entity import AttachedFile, FileReplica, PfnFileReplica
 import rucio_jupyterlab.utils as utils
+from rucio_jupyterlab.rucio.authenticators import RucioAuthenticationException
 from .base import RucioAPIHandler
 
 class DIDDetailsHandlerImpl:
@@ -174,5 +175,10 @@ class DIDDetailsHandler(RucioAPIHandler):
         rucio = self.rucio.for_instance(namespace)
 
         handler = DIDDetailsHandlerImpl(namespace, rucio)
-        output = handler.get_did_details(scope, name, poll)
-        self.finish(json.dumps(output))
+
+        try:
+            output = handler.get_did_details(scope, name, poll)
+            self.finish(json.dumps(output))
+        except RucioAuthenticationException:
+            self.set_status(401)
+            self.finish(json.dumps({'error': 'Authentication error '}))

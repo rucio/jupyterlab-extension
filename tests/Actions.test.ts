@@ -3,7 +3,7 @@ jest.mock('../src/stores/UIStore');
 
 import { requestAPI } from '../src/utils/ApiRequest';
 import { Actions } from '../src/utils/Actions';
-import { Instance, AttachedFile, FileDIDDetails } from '../src/types';
+import { Instance, AttachedFile, FileDIDDetails, RucioAuthCredentials } from '../src/types';
 import { UIStore } from '../src/stores/UIStore';
 
 describe('fetchInstancesConfig', () => {
@@ -50,6 +50,59 @@ describe('postActiveInstance', () => {
         )
     })
 })
+
+describe('fetchAuthConfig', () => {
+    test('should call /auth endpoint with query', async () => {
+        const mockRequestAPI = requestAPI as jest.MockedFunction<typeof requestAPI>;
+        const mockAuthConfig: RucioAuthCredentials = {
+            username: 'username',
+            password: 'password',
+            account: 'account'
+        }
+
+        mockRequestAPI.mockClear();
+        mockRequestAPI.mockReturnValue(Promise.resolve(mockAuthConfig));
+
+        const actions = new Actions();
+        const attachedDIDs = await actions.fetchAuthConfig('atlas', 'userpass');
+
+        expect(mockRequestAPI).toBeCalledWith(
+            expect.stringMatching(/(\b(auth|type=userpass|namespace=atlas)\b.*){3,}/)
+        )
+
+        expect(attachedDIDs).toEqual(mockAuthConfig);
+    })
+})
+
+describe('putAuthConfig', () => {
+    test('should call /auth endpoint with method PUT', async () => {
+        const mockRequestAPI = requestAPI as jest.MockedFunction<typeof requestAPI>;
+        const mockAuthConfig: RucioAuthCredentials = {
+            username: 'username',
+            password: 'password',
+            account: 'account'
+        }
+
+        mockRequestAPI.mockClear();
+        mockRequestAPI.mockReturnValue(Promise.resolve());
+
+        const actions = new Actions();
+        await actions.putAuthConfig('atlas', 'userpass', mockAuthConfig);
+
+        expect(mockRequestAPI).toBeCalledWith(
+            expect.stringContaining('auth'),
+            expect.objectContaining({
+                method: 'PUT',
+                body: JSON.stringify({
+                    namespace: 'atlas',
+                    type: 'userpass',
+                    params: mockAuthConfig
+                })
+            })
+        )
+    })
+})
+
 
 describe('fetchAttachedFileDIDs', () => {
     test('should call /files endpoint with query', async () => {

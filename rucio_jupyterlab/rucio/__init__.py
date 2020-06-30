@@ -2,14 +2,17 @@ import logging
 import time
 import json
 import requests
-from .authenticators import authenticate_userpass
+from rucio_jupyterlab.db import get_db
+from .authenticators import RucioAuthenticationException, authenticate_userpass, authenticate_x509
 
 
 class RucioAPI:
     rucio_auth_token_cache = dict()
 
-    def __init__(self, instance_config):
+    def __init__(self, instance_config, auth_type, auth_config):
         self.instance_config = instance_config
+        self.auth_type = auth_type
+        self.auth_config = auth_config
         self.base_url = instance_config.get('rucio_base_url')
 
     def get_files(self, scope, name):
@@ -97,26 +100,41 @@ class RucioAPI:
         return None
 
     def _authenticate(self):
-        auth_config = self.instance_config.get('auth')
-        auth_type = auth_config.get('type')
+        auth_config = self.auth_config
+        auth_type = self.auth_type
 
-        logging.info(
-            'Attempting to authenticate using method %s...', auth_type)
+        if not auth_config or not auth_type:
+            raise RucioAuthenticationException()
+
+        logging.info('Attempting to authenticate using method %s...', auth_type)
 
         if auth_type == 'userpass':
             username = auth_config.get('username')
             password = auth_config.get('password')
             account = auth_config.get('account')
-            app_id = auth_config.get('app_id')
+            app_id = self.instance_config.get('app_id')
 
             return authenticate_userpass(base_url=self.base_url, username=username, password=password, account=account, app_id=app_id)
+        elif auth_type == 'x509':
+            cert_path = auth_config.get('certificate')
+            key_path = auth_config.get('key')
+            account = auth_config.get('account')
+            app_id = self.instance_config.get('app_id')
+
+            return authenticate_x509(base_url=self.base_url, cert_path=cert_path, key_path=key_path, account=account, app_id=app_id)
+
         return None
 
 
-class RucioAPIFactory: # pragma: no cover
+class RucioAPIFactory:  # pragma: no cover
     def __init__(self, config):
         self.config = config
 
     def for_instance(self, instance):
         instance_config = self.config.get_instance_config(instance)
-        return RucioAPI(instance_config=instance_config)
+        db = get_db()   # pylint: disable=invalid-name
+
+        auth_type = db.get_active_auth_method()
+        auth_config = db.get_rucio_auth_credentials(instance, auth_type)
+
+        return RucioAPI(instance_config=instance_config, auth_type=auth_type, auth_config=auth_config)

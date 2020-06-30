@@ -22,18 +22,15 @@ interface X509AuthProps {
   onChange: { (val: RucioX509Auth): void };
 }
 
-export const X509Auth: React.FC<X509AuthProps> = ({
-  params = { certificateFilePath: '', privateKeyFilePath: '', account: '' },
-  onChange
-}) => {
+export const X509Auth: React.FC<X509AuthProps> = ({ params = { certificate: '', key: '', account: '' }, onChange }) => {
   const classes = useStyles();
 
   const onCertPathChange = (path: string) => {
-    onChange({ ...params, certificateFilePath: path });
+    onChange({ ...params, certificate: path });
   };
 
   const onKeyPathChange = (path: string) => {
-    onChange({ ...params, privateKeyFilePath: path });
+    onChange({ ...params, key: path });
   };
 
   const onAccountChange = (account?: string) => {
@@ -47,7 +44,7 @@ export const X509Auth: React.FC<X509AuthProps> = ({
           <TextField
             placeholder="Path to certificate file"
             outlineColor="#d5d5d5"
-            value={params.certificateFilePath}
+            value={params.certificate}
             onChange={e => onCertPathChange(e.target.value)}
           />
         </div>
@@ -55,7 +52,7 @@ export const X509Auth: React.FC<X509AuthProps> = ({
           <TextField
             placeholder="Path to key file (optional)"
             outlineColor="#d5d5d5"
-            value={params.privateKeyFilePath}
+            value={params.key}
             onChange={e => onKeyPathChange(e.target.value)}
           />
         </div>

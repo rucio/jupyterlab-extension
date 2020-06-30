@@ -25,6 +25,12 @@ class MockDatabaseInstance:
     def set_active_auth_method(self, auth_method):
         pass
 
+    def get_rucio_auth_credentials(self, namespace, auth_type):
+        pass
+
+    def set_rucio_auth_credentials(self, namespace, auth_type, params):
+        pass
+
     def get_attached_files(self, namespace, did):
         return [
             AttachedFile(did='scope:name1', size=123456),

@@ -25,7 +25,7 @@ export class Actions {
     return requestAPI('instances', init);
   }
 
-  async getAuthConfig<T extends any>(namespace: string, type: RucioAuthType): Promise<T> {
+  async fetchAuthConfig<T extends any>(namespace: string, type: RucioAuthType): Promise<T> {
     const query = { namespace, type };
     return requestAPI<T>(`auth?${qs.encode(query)}`);
   }
