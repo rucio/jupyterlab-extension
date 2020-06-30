@@ -39,23 +39,27 @@ export class NotebookListener {
   setup(): void {
     const { labShell, notebookTracker } = this.options;
 
-    ExtensionStore.subscribe(
-      s => s.activeNotebookAttachment,
-      (attachments, state) => {
-        this.onNotebookAttachmentChanged(attachments, state);
-      }
-    );
+    const instanceConfigurationChange = () => {
+      console.log('[Listener] Instance config changed!');
+
+      this.injectedVariableNames = {};
+      const state = ExtensionStore.getRawState();
+      this.onNotebookAttachmentChanged(state.activeNotebookAttachment, state);
+    };
 
     UIStore.subscribe(
       s => s.activeInstance,
       activeInstance => {
-        if (!activeInstance) {
-          return;
+        if (activeInstance) {
+          instanceConfigurationChange();
         }
+      }
+    );
 
-        this.injectedVariableNames = {};
-        const state = ExtensionStore.getRawState();
-        this.onNotebookAttachmentChanged(state.activeNotebookAttachment, state);
+    ExtensionStore.subscribe(
+      s => s.activeNotebookAttachment,
+      (attachments, state) => {
+        this.onNotebookAttachmentChanged(attachments, state);
       }
     );
 

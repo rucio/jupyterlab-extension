@@ -19,6 +19,12 @@ class MockDatabaseInstance:
     def set_active_instance(self, instance_name):
         pass
 
+    def get_active_auth_method(self):
+        return 'userpass'
+
+    def set_active_auth_method(self, auth_method):
+        pass
+
     def get_attached_files(self, namespace, did):
         return [
             AttachedFile(did='scope:name1', size=123456),

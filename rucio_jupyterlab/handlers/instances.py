@@ -13,9 +13,11 @@ class InstancesHandler(RucioAPIHandler):
     def get(self):
         db = get_db()  # pylint: disable=invalid-name
         active_instance = db.get_active_instance()
+        auth_type = db.get_active_auth_method()
         instances = self.rucio_config.list_instances()
         self.finish(json.dumps({
             'active_instance': active_instance,
+            'auth_type': auth_type,
             'instances': instances
         }))
 
@@ -23,8 +25,10 @@ class InstancesHandler(RucioAPIHandler):
     def put(self):
         json_body = self.get_json_body()
         picked_instance = json_body['instance']
+        picked_auth_type = json_body['auth']
 
         db = get_db()  # pylint: disable=invalid-name
         db.set_active_instance(picked_instance)
+        db.set_active_auth_method(picked_auth_type)
 
         self.finish(json.dumps({'success': True}))

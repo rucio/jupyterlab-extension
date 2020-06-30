@@ -21,11 +21,14 @@ const useStyles = createUseStyles({
 });
 
 interface UserPassAuthProps {
-  params: RucioUserpassAuth;
+  params?: RucioUserpassAuth;
   onChange: { (val: RucioUserpassAuth): void };
 }
 
-export const UserPassAuth: React.FC<UserPassAuthProps> = ({ params, onChange }) => {
+export const UserPassAuth: React.FC<UserPassAuthProps> = ({
+  params = { username: '', password: '', account: '' },
+  onChange
+}) => {
   const classes = useStyles();
 
   const onUsernameChange = (username: string) => {

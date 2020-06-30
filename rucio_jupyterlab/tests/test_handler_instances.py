@@ -26,6 +26,7 @@ def test_get_instances(mocker):
     def finish_side_effect(output):
         expected_json = {
             'active_instance': MOCK_ACTIVE_INSTANCE,
+            'auth_type': 'userpass',
             'instances': MOCK_INSTANCES
         }
 
@@ -42,8 +43,10 @@ def test_put_instances(mocker):
 
     mocker.patch('rucio_jupyterlab.handlers.instances.get_db', return_value=mock_db)
     mocker.patch.object(mock_db, 'set_active_instance')
-    mocker.patch.object(mock_self, 'get_json_body', return_value={'instance': MOCK_ACTIVE_INSTANCE})
+    mocker.patch.object(mock_db, 'set_active_auth_method')
+    mocker.patch.object(mock_self, 'get_json_body', return_value={'instance': MOCK_ACTIVE_INSTANCE, 'auth': 'userpass'})
 
     InstancesHandler.put(mock_self)
 
     mock_db.set_active_instance.assert_called_once_with(MOCK_ACTIVE_INSTANCE)   # pylint: disable=no-member
+    mock_db.set_active_auth_method.assert_called_once_with('userpass')   # pylint: disable=no-member

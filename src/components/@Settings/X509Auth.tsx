@@ -18,11 +18,14 @@ const useStyles = createUseStyles({
 });
 
 interface X509AuthProps {
-  params: RucioX509Auth;
+  params?: RucioX509Auth;
   onChange: { (val: RucioX509Auth): void };
 }
 
-export const X509Auth: React.FC<X509AuthProps> = ({ params, onChange }) => {
+export const X509Auth: React.FC<X509AuthProps> = ({
+  params = { certificateFilePath: '', privateKeyFilePath: '', account: '' },
+  onChange
+}) => {
   const classes = useStyles();
 
   const onCertPathChange = (path: string) => {

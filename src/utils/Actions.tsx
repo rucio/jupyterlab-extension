@@ -7,16 +7,18 @@ import { FileDIDDetails, Instance, AttachedFile, RucioAuthType, RucioAuthCredent
 export class Actions {
   async fetchInstancesConfig(): Promise<{
     activeInstance?: string;
+    authType?: RucioAuthType;
     instances: Instance[];
   }> {
-    return requestAPI<{ activeInstance?: string; instances: Instance[] }>('instances');
+    return requestAPI<{ activeInstance?: string; authType?: RucioAuthType; instances: Instance[] }>('instances');
   }
 
-  async postActiveInstance(instanceName: string): Promise<void> {
+  async postActiveInstance(instanceName: string, authType: RucioAuthType): Promise<void> {
     const init = {
       method: 'PUT',
       body: JSON.stringify({
-        instance: instanceName
+        instance: instanceName,
+        auth: authType
       })
     };
 

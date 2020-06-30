@@ -41,6 +41,12 @@ class DatabaseInstance:
     def set_active_instance(self, instance_name):
         self.put_config('instance', instance_name)
 
+    def get_active_auth_method(self):
+        return self.get_config('auth_method')
+
+    def set_active_auth_method(self, auth_method):
+        self.put_config('auth_method', auth_method)
+
     def get_rucio_auth_credentials(self, namespace, auth_type):
         creds = RucioAuthCredentials.get_or_none(namespace=namespace, auth_type=auth_type)
         if creds:

@@ -36,14 +36,15 @@ describe('postActiveInstance', () => {
         mockRequestAPI.mockReturnValue(Promise.resolve());
 
         const actions = new Actions();
-        await actions.postActiveInstance('atlas');
+        await actions.postActiveInstance('atlas', 'userpass');
 
         expect(mockRequestAPI).toBeCalledWith(
             expect.stringContaining('instances'),
             expect.objectContaining({
                 method: 'PUT',
                 body: JSON.stringify({
-                    instance: 'atlas'
+                    instance: 'atlas',
+                    auth: 'userpass'
                 })
             })
         )

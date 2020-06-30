@@ -3,7 +3,7 @@ import { createUseStyles } from 'react-jss';
 import { UIStore } from './stores/UIStore';
 import { Header } from './components/Header';
 import { MainPanel } from './pages/MainPanel';
-import { Instance } from './types';
+import { Instance, RucioAuthType } from './types';
 import { Spinning } from './components/Spinning';
 import { WithRequestAPIProps, withRequestAPI } from './utils/Actions';
 
@@ -42,14 +42,15 @@ const _Panel: React.FunctionComponent = props => {
   const loadInstances = () => {
     actions
       .fetchInstancesConfig()
-      .then(({ activeInstance, instances }) => instancesLoaded(activeInstance, instances))
+      .then(({ activeInstance, instances, authType }) => instancesLoaded(activeInstance, authType, instances))
       .catch(e => console.log(e));
   };
 
-  const instancesLoaded = (activeInstance: string, instances: Instance[]) => {
+  const instancesLoaded = (activeInstance: string, authType: RucioAuthType, instances: Instance[]) => {
     const objActiveInstance = instances.find(i => i.name === activeInstance);
     UIStore.update(s => {
       s.activeInstance = objActiveInstance;
+      s.activeAuthType = authType;
       s.instances = instances;
     });
 
