@@ -40,7 +40,7 @@ export class NotebookListener {
       console.log('[Listener] Instance config changed!');
 
       this.injectedVariableNames = {};
-      // TODO reinject all?
+      notebookTracker.forEach(p => this.reinject(p));
     };
 
     UIStore.subscribe(
@@ -86,12 +86,6 @@ export class NotebookListener {
   }
 
   private injectUninjectedAttachments(kernel: Kernel.IKernelConnection, attachments: NotebookDIDAttachment[]) {
-    const { activeInstance } = UIStore.getRawState();
-
-    if (!activeInstance) {
-      return;
-    }
-
     const kernelConnectionId = kernel?.id;
     const injectedVariables = this.injectedVariableNames[kernelConnectionId] || [];
     const uninjectedAttachments = attachments.filter(a => !injectedVariables.includes(a.variableName));
@@ -99,6 +93,10 @@ export class NotebookListener {
   }
 
   private injectAttachments(kernel: Kernel.IKernelConnection, attachments: NotebookDIDAttachment[], debugMessage = '') {
+    if (!this.isExtensionProperlySetup()) {
+      return;
+    }
+    
     this.resolveAttachments(attachments).then(injections => {
       console.log(debugMessage);
       return this.injectVariables(kernel, injections);
@@ -267,5 +265,10 @@ export class NotebookListener {
   private async resolveContainerDIDDetails(did: string): Promise<FileDIDDetails[]> {
     const { activeInstance } = UIStore.getRawState();
     return actions.getContainerDIDDetails(activeInstance.name, did);
+  }
+
+  private isExtensionProperlySetup() {
+    const { activeInstance } = UIStore.getRawState();
+    return !!activeInstance;
   }
 }
