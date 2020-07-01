@@ -46,10 +46,12 @@ export class ActiveNotebookListener {
     this.setJupyterNotebookFileRucioMetadata(attachments, state);
     this.removeNonExistentInjectedVariableNames(attachments, state);
 
-    activeNotebookPanel.sessionContext.ready.then(() => {
-      const { notebookListener } = this.options;
-      notebookListener.injectUninjected(activeNotebookPanel);
-    });
+    if (activeNotebookPanel.sessionContext.session?.kernel) {
+      activeNotebookPanel.sessionContext.ready.then(() => {
+        const { notebookListener } = this.options;
+        notebookListener.injectUninjected(activeNotebookPanel);
+      });
+    }
   }
 
   private setJupyterNotebookFileRucioMetadata(attachments: NotebookDIDAttachment[], state: ExtensionState) {

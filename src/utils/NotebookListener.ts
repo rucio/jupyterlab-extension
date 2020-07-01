@@ -26,7 +26,6 @@ export interface NotebookListenerOptions {
 export class NotebookListener {
   options: NotebookListenerOptions;
   injectedVariableNames: { [kernelConnectionId: string]: string[] } = {};
-  notebookAttachments: { [notebookId: string]: NotebookDIDAttachment[] } = {};
   kernelNotebookMapping: { [kernelConnectionId: string]: string } = {};
 
   constructor(options: NotebookListenerOptions) {
@@ -60,13 +59,12 @@ export class NotebookListener {
     const attachments = this.getAttachmentsFromMetadata(notebookPanel);
     const kernel = notebookPanel.sessionContext?.session?.kernel;
 
-    this.notebookAttachments[notebookPanel.id] = attachments;
     this.injectUninjectedAttachments(kernel, attachments);
     this.removeNonExistentInjectedVariableNames(kernel?.id, attachments);
   }
 
   reinject(notebookPanel: NotebookPanel): void {
-    const attachments = this.notebookAttachments[notebookPanel.id];
+    const attachments = this.getAttachmentsFromMetadata(notebookPanel);
     const kernel = notebookPanel.sessionContext?.session?.kernel;
     this.injectAttachments(kernel, attachments);
   }
@@ -168,7 +166,7 @@ export class NotebookListener {
     const notebookId = notebook.id;
     this.kernelNotebookMapping[kernelConnection.id] = notebookId;
 
-    const activeNotebookAttachments = this.notebookAttachments[notebookId] || [];
+    const activeNotebookAttachments = this.getAttachmentsFromMetadata(notebook);
     this.injectAttachments(kernelConnection, activeNotebookAttachments);
   }
 
@@ -192,7 +190,9 @@ export class NotebookListener {
     if (data.action === 'request-inject') {
       const { activeInstance } = UIStore.getRawState();
       const notebookId = this.kernelNotebookMapping[kernelConnection.id];
-      const activeNotebookAttachments = this.notebookAttachments[notebookId];
+      const { notebookTracker } = this.options;
+      const notebook = notebookTracker.find(p => p.id === notebookId);
+      const activeNotebookAttachments = this.getAttachmentsFromMetadata(notebook);
 
       if (!activeNotebookAttachments || !activeInstance) {
         return;
