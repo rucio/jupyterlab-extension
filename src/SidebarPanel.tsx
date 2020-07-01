@@ -6,7 +6,8 @@ import { JupyterFrontEnd, ILabShell } from '@jupyterlab/application';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
 import { INotebookTracker } from '@jupyterlab/notebook';
-import { NotebookListener } from './listeners/NotebookListener';
+import { NotebookListener } from './utils/NotebookListener';
+import { ActiveNotebookListener } from './utils/ActiveNotebookListener';
 import { InstanceConfig } from './types';
 import { Header } from './components/Header';
 import { MainPanel } from './pages/MainPanel';
@@ -83,6 +84,7 @@ export class SidebarPanel extends VDomRenderer {
   app: JupyterFrontEnd;
   settingRegistry: ISettingRegistry;
   notebookListener: NotebookListener;
+  activeNotebookListener: ActiveNotebookListener;
   instanceConfig: InstanceConfig;
 
   constructor(options: SidebarPanelOptions) {
@@ -104,7 +106,12 @@ export class SidebarPanel extends VDomRenderer {
       sessionManager: app.serviceManager.sessions
     });
 
-    this.notebookListener.setup();
+    this.activeNotebookListener = new ActiveNotebookListener({
+      labShell,
+      notebookTracker,
+      sessionManager: app.serviceManager.sessions,
+      notebookListener: this.notebookListener
+    });
   }
 
   render(): React.ReactElement {
