@@ -21,6 +21,12 @@ export type RucioAuthCredentials = RucioUserpassAuth | RucioX509Auth;
 
 export type RucioAuthType = 'userpass' | 'x509';
 
+export interface InstanceConfig {
+  activeInstance?: string;
+  instances: Instance[];
+  authType?: RucioAuthType;
+}
+
 export interface AttachedFile {
   did: string;
   size: number;

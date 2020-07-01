@@ -2,15 +2,11 @@ import React from 'react';
 import qs from 'querystring';
 import { requestAPI } from './ApiRequest';
 import { UIStore } from '../stores/UIStore';
-import { FileDIDDetails, Instance, AttachedFile, RucioAuthType, RucioAuthCredentials } from '../types';
+import { FileDIDDetails, AttachedFile, RucioAuthType, RucioAuthCredentials, InstanceConfig } from '../types';
 
 export class Actions {
-  async fetchInstancesConfig(): Promise<{
-    activeInstance?: string;
-    authType?: RucioAuthType;
-    instances: Instance[];
-  }> {
-    return requestAPI<{ activeInstance?: string; authType?: RucioAuthType; instances: Instance[] }>('instances');
+  async fetchInstancesConfig(): Promise<InstanceConfig> {
+    return requestAPI<InstanceConfig>('instances');
   }
 
   async postActiveInstance(instanceName: string, authType: RucioAuthType): Promise<void> {
@@ -128,6 +124,8 @@ export class Actions {
   }
 }
 
+export const actions = new Actions();
+
 export interface WithRequestAPIProps {
   actions: Actions;
 }
@@ -135,12 +133,10 @@ export interface WithRequestAPIProps {
 //eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function withRequestAPI<P>(Component: React.ComponentType<P>) {
   return class WithRequestAPI extends React.Component<P> {
-    actions = new Actions();
-
     //eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     render() {
       const { ...props } = this.props;
-      return <Component {...(props as P)} actions={this.actions} />;
+      return <Component {...(props as P)} actions={actions} />;
     }
   };
 }

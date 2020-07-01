@@ -83,25 +83,14 @@ const _Settings: React.FunctionComponent = props => {
     actions.postActiveInstance(instanceName, authType).catch(e => console.log(e));
   };
 
-  const setRucioAuthConfig = (namespace: string, authType: RucioAuthType, rucioAuthCredentials: RucioAuthCredentials) => {
-    actions.putAuthConfig(namespace, authType, rucioAuthCredentials);
-  };
-
   const saveSettings = () => {
     if (selectedInstance && selectedAuthType) {
       setActiveInstance(selectedInstance, selectedAuthType);
     }
 
     if (!!selectedAuthType && !!rucioAuthCredentials) {
-      setRucioAuthConfig(selectedInstance, selectedAuthType, rucioAuthCredentials);
+      actions.putAuthConfig(selectedInstance, selectedAuthType, rucioAuthCredentials);
     }
-  };
-
-  const selectStyles = {
-    control: (provided: any, state: any) => ({
-      ...provided,
-      borderRadius: 0
-    })
   };
 
   const reloadAuthConfig = () => {
@@ -120,6 +109,13 @@ const _Settings: React.FunctionComponent = props => {
   useEffect(reloadAuthConfig, [selectedInstance, selectedAuthType]);
 
   const settingsComplete = selectedInstance && selectedAuthType;
+
+  const selectStyles = {
+    control: (provided: any, state: any) => ({
+      ...provided,
+      borderRadius: 0
+    })
+  };
 
   return (
     <div className={classes.content}>
