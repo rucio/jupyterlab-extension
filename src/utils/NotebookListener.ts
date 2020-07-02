@@ -1,7 +1,8 @@
 import { ILabShell } from '@jupyterlab/application';
 import { INotebookTracker, NotebookPanel } from '@jupyterlab/notebook';
+import { Store, useStoreState } from 'pullstate';
 import { UIStore } from '../stores/UIStore';
-import { NotebookDIDAttachment, FileDIDDetails } from '../types';
+import { NotebookDIDAttachment, FileDIDDetails, ResolveStatus } from '../types';
 import { COMM_NAME_KERNEL, COMM_NAME_FRONTEND, METADATA_KEY } from '../const';
 import { actions } from '../utils/Actions';
 import { SessionManager, KernelMessage, Kernel } from '@jupyterlab/services';
@@ -10,11 +11,20 @@ import { IKernelConnection } from '@jupyterlab/services/lib/kernel/kernel';
 interface NotebookVariableInjection {
   variableName: string;
   path: string | string[];
+  did: string;
 }
 
 interface AttachmentResolveIntermediate {
   attachment: NotebookDIDAttachment;
   didDetails: FileDIDDetails | FileDIDDetails[];
+}
+
+type StatusState = { [notebookId: string]: { [did: string]: ResolveStatus } };
+const StatusStore = new Store<StatusState>({});
+
+export function useResolveStatusStore(notebookId: string, did: string): ResolveStatus | undefined {
+  const resolveStatus = useStoreState(StatusStore, s => s[notebookId]);
+  return resolveStatus ? resolveStatus[did] : undefined;
 }
 
 export interface NotebookListenerOptions {
@@ -96,11 +106,19 @@ export class NotebookListener {
     if (!this.isExtensionProperlySetup()) {
       return;
     }
-    
-    this.resolveAttachments(attachments).then(injections => {
-      console.log(debugMessage);
-      return this.injectVariables(kernel, injections);
-    });
+
+    this.resolveAttachments(attachments, kernel.id)
+      .then(injections => {
+        console.log(debugMessage);
+        return this.injectVariables(kernel, injections);
+      })
+      .then(() => {
+        attachments.forEach(attachment => this.setResolveStatus(kernel.id, attachment.did, 'READY'));
+      })
+      .catch(e => {
+        console.error(e);
+        attachments.forEach(attachment => this.setResolveStatus(kernel.id, attachment.did, 'FAILED'));
+      });
   }
 
   private injectVariables(kernel: Kernel.IKernelConnection, injections: NotebookVariableInjection[]): Promise<any> {
@@ -149,11 +167,13 @@ export class NotebookListener {
   private onKernelRestarted(notebook: NotebookPanel, kernelConnection: IKernelConnection) {
     console.log('Kernel restarted', kernelConnection.id);
     this.clearInjectedVariableNames(kernelConnection.id);
+    this.clearKernelResolverStatus(kernelConnection.id);
   }
 
   private onKernelDetached(notebook: NotebookPanel, kernelConnection: IKernelConnection) {
     console.log('Kernel detached', kernelConnection.id);
     this.clearInjectedVariableNames(kernelConnection.id);
+    this.clearKernelResolverStatus(kernelConnection.id);
     delete this.kernelNotebookMapping[notebook.id];
   }
 
@@ -196,9 +216,17 @@ export class NotebookListener {
         return;
       }
 
-      this.resolveAttachments(activeNotebookAttachments).then(injections => {
+      this.resolveAttachments(activeNotebookAttachments, kernelConnection.id).then(injections => {
         console.log('Replying request-inject', injections);
-        return comm.send({ action: 'inject', dids: injections as any }).done;
+        return comm
+          .send({ action: 'inject', dids: injections as any })
+          .done.then(() => {
+            injections.forEach(injection => this.setResolveStatus(kernelConnection.id, injection.did, 'READY'));
+          })
+          .catch(e => {
+            console.error(e);
+            injections.forEach(injection => this.setResolveStatus(kernelConnection.id, injection.did, 'FAILED'));
+          });
       });
     } else if (data.action === 'ack-inject') {
       const kernelConnectionId = kernelConnection.id;
@@ -217,8 +245,32 @@ export class NotebookListener {
     delete this.injectedVariableNames[kernelConnectionId];
   }
 
-  private async resolveAttachments(attachments: NotebookDIDAttachment[]): Promise<NotebookVariableInjection[]> {
-    const promises = attachments.map(attachment => this.resolveAttachment(attachment));
+  private clearKernelResolverStatus(kernelConnectionId: string) {
+    const notebookId = this.kernelNotebookMapping[kernelConnectionId];
+    StatusStore.update(s => {
+      s[notebookId] = {};
+    });
+  }
+
+  private async resolveAttachments(
+    attachments: NotebookDIDAttachment[],
+    kernelConnectionId?: string
+  ): Promise<NotebookVariableInjection[]> {
+    const resolveFunction = (a: NotebookDIDAttachment) => {
+      this.setResolveStatus(kernelConnectionId, a.did, 'RESOLVING');
+      return this.resolveAttachment(a)
+        .then(injection => {
+          this.setResolveStatus(kernelConnectionId, a.did, 'PENDING_INJECTION');
+          return injection;
+        })
+        .catch(e => {
+          console.error(e);
+          this.setResolveStatus(kernelConnectionId, a.did, 'FAILED');
+          return null;
+        });
+    };
+
+    const promises = attachments.map(a => resolveFunction(a));
     return Promise.all(promises);
   }
 
@@ -236,17 +288,28 @@ export class NotebookListener {
     return retrieveFunction();
   }
 
+  private setResolveStatus(kernelConnectionId: string, did: string, status: ResolveStatus) {
+    const notebookId = this.kernelNotebookMapping[kernelConnectionId];
+    StatusStore.update(s => {
+      if (!s[notebookId]) {
+        s[notebookId] = {};
+      }
+
+      s[notebookId][did] = status;
+    });
+  }
+
   private translateIntermediateToNotebookVariableInjection(
     intermediate: AttachmentResolveIntermediate
   ): NotebookVariableInjection {
     const { attachment, didDetails } = intermediate;
-    const { variableName, type } = attachment;
+    const { variableName, type, did } = attachment;
     const path =
       type === 'container'
         ? this.getContainerDIDPaths(didDetails as FileDIDDetails[])
         : this.getFileDIDPaths(didDetails as FileDIDDetails);
 
-    return { variableName: variableName, path };
+    return { variableName: variableName, path, did };
   }
 
   private getContainerDIDPaths(didDetails: FileDIDDetails[]): string[] {

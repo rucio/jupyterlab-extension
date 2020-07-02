@@ -1,12 +1,13 @@
 import React, { useEffect, useMemo } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useStoreState } from 'pullstate';
-import { NotebookDIDAttachment, FileStatus, ContainerStatus } from '../../types';
+import { NotebookDIDAttachment, FileStatus, ContainerStatus, ResolveStatus } from '../../types';
 import { Spinning } from '../Spinning';
 import { WithRequestAPIProps, withRequestAPI } from '../../utils/Actions';
 import { UIStore } from '../../stores/UIStore';
 import { computeContainerState } from '../../utils/Helpers';
 import { ExtensionStore } from '../../stores/ExtensionStore';
+import { useResolveStatusStore } from '../../utils/NotebookListener';
 
 const useStyles = createUseStyles({
   listItemContainer: {
@@ -45,6 +46,14 @@ const useStyles = createUseStyles({
     extend: 'statusIcon',
     color: '#ffa000'
   },
+  pendingInjectionIcon: {
+    extend: 'statusIcon',
+    color: '#a5d6a7'
+  },
+  notResolvedIcon: {
+    extend: 'statusIcon',
+    color: '#e0e0e0'
+  },
   actionContainer: {},
   clearButton: {
     alignItems: 'center',
@@ -74,6 +83,8 @@ const _NotebookAttachmentListItem: React.FC<NotebookAttachmentListItemProps> = (
   const activeInstance = useStoreState(UIStore, s => s.activeInstance);
   const fileDetails = useStoreState(UIStore, s => s.fileDetails[did]);
   const containerDetails = useStoreState(UIStore, s => s.containerDetails[did]);
+  const activeNotebookPanel = useStoreState(ExtensionStore, s => s.activeNotebookPanel);
+  const status = useResolveStatusStore(activeNotebookPanel?.id, did);
 
   useEffect(() => {
     if (attachment.type === 'file') {
@@ -99,8 +110,8 @@ const _NotebookAttachmentListItem: React.FC<NotebookAttachmentListItemProps> = (
         {!fileDetails && !containerDetails && (
           <Spinning className={`${classes.statusIcon} material-icons`}>hourglass_top</Spinning>
         )}
-        {!!fileDetails && <FileStatusIcon status={fileDetails.status} />}
-        {!!containerState && <ContainerStatusIcon status={containerState} />}
+        {!!fileDetails && <FileStatusIcon status={fileDetails.status} resolverStatus={status} />}
+        {!!containerState && <ContainerStatusIcon status={containerState} resolverStatus={status} />}
       </div>
       <div className={classes.listItemContent}>
         <div className={classes.did}>{attachment.did}</div>
@@ -115,29 +126,45 @@ const _NotebookAttachmentListItem: React.FC<NotebookAttachmentListItemProps> = (
   );
 };
 
-const FileStatusIcon: React.FC<{ status: FileStatus }> = ({ status }) => {
+const ResolverStatusIcon: React.FC<{ status: ResolveStatus }> = ({ status }) => {
   const classes = useStyles();
 
   switch (status) {
-    case 'OK':
-      return <i className={`${classes.availableIcon} material-icons`}>check_circle</i>;
-    case 'REPLICATING':
+    case 'RESOLVING':
       return <Spinning className={`${classes.replicatingIcon} material-icons`}>hourglass_top</Spinning>;
-    default:
+    case 'PENDING_INJECTION':
+      return <i className={`${classes.pendingInjectionIcon} material-icons`}>lens</i>;
+    case 'READY':
+      return <i className={`${classes.availableIcon} material-icons`}>check_circle</i>;
+    case 'FAILED':
       return <i className={`${classes.notAvailableIcon} material-icons`}>cancel</i>;
+    default:
+      return <i className={`${classes.notResolvedIcon} material-icons`}>lens</i>;
   }
 };
 
-const ContainerStatusIcon: React.FC<{ status: ContainerStatus }> = ({ status }) => {
+const FileStatusIcon: React.FC<{ status: FileStatus; resolverStatus: ResolveStatus }> = ({ status, resolverStatus }) => {
   const classes = useStyles();
 
   switch (status) {
-    case 'AVAILABLE':
-      return <i className={`${classes.availableIcon} material-icons`}>check_circle</i>;
     case 'REPLICATING':
       return <Spinning className={`${classes.replicatingIcon} material-icons`}>hourglass_top</Spinning>;
     default:
-      return <i className={`${classes.notAvailableIcon} material-icons`}>cancel</i>;
+      return <ResolverStatusIcon status={resolverStatus} />;
+  }
+};
+
+const ContainerStatusIcon: React.FC<{ status: ContainerStatus; resolverStatus: ResolveStatus }> = ({
+  status,
+  resolverStatus
+}) => {
+  const classes = useStyles();
+
+  switch (status) {
+    case 'REPLICATING':
+      return <Spinning className={`${classes.replicatingIcon} material-icons`}>hourglass_top</Spinning>;
+    default:
+      return <ResolverStatusIcon status={resolverStatus} />;
   }
 };
 
