@@ -23,6 +23,10 @@
     background-image: url("img/icon-expand.svg");
 }
 
+.jp-RucioExtensionInjectToolbar {
+    align-items: center;
+}
+
 .Popover-body {
     display: inline-flex;
     flex-direction: column;

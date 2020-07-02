@@ -7,6 +7,7 @@ import { COMM_NAME_KERNEL, COMM_NAME_FRONTEND, METADATA_KEY } from '../const';
 import { actions } from '../utils/Actions';
 import { SessionManager, KernelMessage, Kernel } from '@jupyterlab/services';
 import { IKernelConnection } from '@jupyterlab/services/lib/kernel/kernel';
+import { InjectNotebookToolbar } from '../InjectNotebookToolbar';
 
 interface NotebookVariableInjection {
   variableName: string;
@@ -22,9 +23,14 @@ interface AttachmentResolveIntermediate {
 type StatusState = { [notebookId: string]: { [did: string]: ResolveStatus } };
 const StatusStore = new Store<StatusState>({});
 
-export function useResolveStatusStore(notebookId: string, did: string): ResolveStatus | undefined {
+export function useResolveStatusStore(notebookId: string, did?: string): ResolveStatus | undefined {
   const resolveStatus = useStoreState(StatusStore, s => s[notebookId]);
   return resolveStatus ? resolveStatus[did] : undefined;
+}
+
+export function useNotebookResolveStatusStore(notebookId: string): { [did: string]: ResolveStatus } {
+  const resolveStatus = useStoreState(StatusStore, s => s[notebookId]);
+  return resolveStatus;
 }
 
 export interface NotebookListenerOptions {
@@ -35,7 +41,7 @@ export interface NotebookListenerOptions {
 
 export class NotebookListener {
   options: NotebookListenerOptions;
-  injectedVariableNames: { [kernelConnectionId: string]: string[] } = {};
+  injectedVariableNames: { [kernelConnectionId: string]: string[] } = {}; // TODO migrate to Set
   kernelNotebookMapping: { [kernelConnectionId: string]: string } = {};
 
   constructor(options: NotebookListenerOptions) {
@@ -102,14 +108,13 @@ export class NotebookListener {
     this.injectAttachments(kernel, uninjectedAttachments);
   }
 
-  private injectAttachments(kernel: Kernel.IKernelConnection, attachments: NotebookDIDAttachment[], debugMessage = '') {
+  private injectAttachments(kernel: Kernel.IKernelConnection, attachments: NotebookDIDAttachment[]) {
     if (!this.isExtensionProperlySetup()) {
       return;
     }
 
     this.resolveAttachments(attachments, kernel.id)
       .then(injections => {
-        console.log(debugMessage);
         return this.injectVariables(kernel, injections);
       })
       .then(() => {
@@ -122,7 +127,6 @@ export class NotebookListener {
   }
 
   private injectVariables(kernel: Kernel.IKernelConnection, injections: NotebookVariableInjection[]): Promise<any> {
-    console.log('Injecting variables', injections);
     if (injections.length === 0) {
       return;
     }
@@ -143,7 +147,6 @@ export class NotebookListener {
   }
 
   private onNotebookOpened(sender: INotebookTracker, panel: NotebookPanel) {
-    console.log('Notebook opened!');
     panel.sessionContext.statusChanged.connect((sender, status) => {
       if (status === 'restarting') {
         this.onKernelRestarted(panel, sender.session.kernel);
@@ -162,23 +165,32 @@ export class NotebookListener {
         });
       }
     });
+
+    this.insertInjectButton(panel);
+  }
+
+  private insertInjectButton(notebookPanel: NotebookPanel) {
+    const onClick = () => {
+      if (notebookPanel.sessionContext?.session?.kernel) {
+        this.reinject(notebookPanel);
+      }
+    };
+    const injectNotebookButtonWidget = new InjectNotebookToolbar({ notebookPanel, onClick });
+    notebookPanel.toolbar.insertAfter('spacer', 'InjectButton', injectNotebookButtonWidget);
   }
 
   private onKernelRestarted(notebook: NotebookPanel, kernelConnection: IKernelConnection) {
-    console.log('Kernel restarted', kernelConnection.id);
     this.clearInjectedVariableNames(kernelConnection.id);
     this.clearKernelResolverStatus(kernelConnection.id);
   }
 
   private onKernelDetached(notebook: NotebookPanel, kernelConnection: IKernelConnection) {
-    console.log('Kernel detached', kernelConnection.id);
     this.clearInjectedVariableNames(kernelConnection.id);
     this.clearKernelResolverStatus(kernelConnection.id);
     delete this.kernelNotebookMapping[notebook.id];
   }
 
   private onKernelAttached(notebook: NotebookPanel, kernelConnection: IKernelConnection) {
-    console.log('Kernel attached');
     this.setupKernelReceiverComm(kernelConnection);
 
     const notebookId = notebook.id;
@@ -189,7 +201,6 @@ export class NotebookListener {
   }
 
   private setupKernelReceiverComm(kernelConnection: IKernelConnection) {
-    console.log('Setup receiver comm');
     kernelConnection.registerCommTarget(COMM_NAME_FRONTEND, (comm, openMsg) => {
       comm.onMsg = msg => {
         this.processIncomingMessage(kernelConnection, comm, msg);
@@ -238,7 +249,6 @@ export class NotebookListener {
   private appendInjectedVariableNames(kernelConnectionId: string, variableNames: string[]) {
     const injectedVariableNames = this.injectedVariableNames[kernelConnectionId] || [];
     this.injectedVariableNames[kernelConnectionId] = [...injectedVariableNames, ...variableNames];
-    console.log('Append varnames', kernelConnectionId, variableNames);
   }
 
   private clearInjectedVariableNames(kernelConnectionId: string) {
