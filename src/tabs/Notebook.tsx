@@ -26,8 +26,8 @@ export const Notebook: React.FunctionComponent = () => {
           {activeNotebookAttachments.length > 0 && (
             <>
               <HorizontalHeading title="Attached DIDs" />
-              {activeNotebookAttachments.map((attachment, i) => (
-                <NotebookAttachmentListItem key={i} attachment={attachment} />
+              {activeNotebookAttachments.map(attachment => (
+                <NotebookAttachmentListItem key={attachment.did} attachment={attachment} />
               ))}
             </>
           )}

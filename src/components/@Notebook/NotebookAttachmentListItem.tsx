@@ -107,9 +107,7 @@ const _NotebookAttachmentListItem: React.FC<NotebookAttachmentListItemProps> = (
   return (
     <div className={classes.listItemContainer}>
       <div className={classes.listItemIconContainer}>
-        {!fileDetails && !containerDetails && (
-          <Spinning className={`${classes.statusIcon} material-icons`}>hourglass_top</Spinning>
-        )}
+        {!fileDetails && !containerDetails && <ResolverStatusIcon status={status} />}
         {!!fileDetails && <FileStatusIcon status={fileDetails.status} resolverStatus={status} />}
         {!!containerState && <ContainerStatusIcon status={containerState} resolverStatus={status} />}
       </div>
@@ -131,7 +129,7 @@ const ResolverStatusIcon: React.FC<{ status: ResolveStatus }> = ({ status }) => 
 
   switch (status) {
     case 'RESOLVING':
-      return <Spinning className={`${classes.replicatingIcon} material-icons`}>hourglass_top</Spinning>;
+      return <Spinning className={`${classes.statusIcon} material-icons`}>hourglass_top</Spinning>;
     case 'PENDING_INJECTION':
       return <i className={`${classes.pendingInjectionIcon} material-icons`}>lens</i>;
     case 'READY':
