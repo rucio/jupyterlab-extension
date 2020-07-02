@@ -149,6 +149,9 @@ const FileStatusIcon: React.FC<{ status: FileStatus; resolverStatus: ResolveStat
   switch (status) {
     case 'REPLICATING':
       return <Spinning className={`${classes.replicatingIcon} material-icons`}>hourglass_top</Spinning>;
+    case 'NOT_AVAILABLE':
+    case 'STUCK':
+      return <i className={`${classes.notAvailableIcon} material-icons`}>lens</i>;
     default:
       return <ResolverStatusIcon status={resolverStatus} />;
   }
@@ -163,6 +166,10 @@ const ContainerStatusIcon: React.FC<{ status: ContainerStatus; resolverStatus: R
   switch (status) {
     case 'REPLICATING':
       return <Spinning className={`${classes.replicatingIcon} material-icons`}>hourglass_top</Spinning>;
+    case 'NOT_AVAILABLE':
+    case 'STUCK':
+    case 'PARTIALLY_AVAILABLE':
+      return <i className={`${classes.notAvailableIcon} material-icons`}>lens</i>;
     default:
       return <ResolverStatusIcon status={resolverStatus} />;
   }
