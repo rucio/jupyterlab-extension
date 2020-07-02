@@ -59,7 +59,8 @@ const useStyles = createUseStyles({
 
 const Panel: React.FC<{ notebookPanel: NotebookPanel; onClick: { (): void } }> = ({ notebookPanel, onClick }) => {
   const classes = useStyles();
-  const notebookResolveStatus = useNotebookResolveStatusStore(notebookPanel.id);
+  const notebookResolveStatusStore = useNotebookResolveStatusStore();
+  const notebookResolveStatus = notebookResolveStatusStore[notebookPanel.id];
   const statuses = notebookResolveStatus ? Object.keys(notebookResolveStatus).map(k => notebookResolveStatus[k]) : null;
   const computeSummarizedStatus = (statuses: ResolveStatus[]): ResolveStatus => {
     if (!statuses) {

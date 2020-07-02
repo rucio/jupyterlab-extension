@@ -20,16 +20,14 @@ interface AttachmentResolveIntermediate {
   didDetails: FileDIDDetails | FileDIDDetails[];
 }
 
-type StatusState = { [notebookId: string]: { [did: string]: ResolveStatus } };
-const StatusStore = new Store<StatusState>({});
+type StatusMap = { [notebookId: string]: { [did: string]: ResolveStatus } };
+type StatusState = {
+  status: StatusMap;
+};
+const StatusStore = new Store<StatusState>({ status: {} });
 
-export function useResolveStatusStore(notebookId: string, did?: string): ResolveStatus | undefined {
-  const resolveStatus = useStoreState(StatusStore, s => s[notebookId]);
-  return resolveStatus ? resolveStatus[did] : undefined;
-}
-
-export function useNotebookResolveStatusStore(notebookId: string): { [did: string]: ResolveStatus } {
-  const resolveStatus = useStoreState(StatusStore, s => s[notebookId]);
+export function useNotebookResolveStatusStore(): StatusMap {
+  const resolveStatus = useStoreState(StatusStore, s => s.status);
   return resolveStatus;
 }
 
@@ -41,7 +39,7 @@ export interface NotebookListenerOptions {
 
 export class NotebookListener {
   options: NotebookListenerOptions;
-  injectedVariableNames: { [kernelConnectionId: string]: string[] } = {}; // TODO migrate to Set
+  injectedVariableNames: { [kernelConnectionId: string]: string[] } = {}; // TODO migrate to Set, or just use StatusStore
   kernelNotebookMapping: { [kernelConnectionId: string]: string } = {};
 
   constructor(options: NotebookListenerOptions) {
@@ -258,7 +256,7 @@ export class NotebookListener {
   private clearKernelResolverStatus(kernelConnectionId: string) {
     const notebookId = this.kernelNotebookMapping[kernelConnectionId];
     StatusStore.update(s => {
-      s[notebookId] = {};
+      s.status[notebookId] = {};
     });
   }
 
@@ -301,11 +299,11 @@ export class NotebookListener {
   private setResolveStatus(kernelConnectionId: string, did: string, status: ResolveStatus) {
     const notebookId = this.kernelNotebookMapping[kernelConnectionId];
     StatusStore.update(s => {
-      if (!s[notebookId]) {
-        s[notebookId] = {};
+      if (!s.status[notebookId]) {
+        s.status[notebookId] = {};
       }
 
-      s[notebookId][did] = status;
+      s.status[notebookId][did] = status;
     });
   }
 

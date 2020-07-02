@@ -4,6 +4,7 @@ import { useStoreState } from 'pullstate';
 import { ExtensionStore } from '../stores/ExtensionStore';
 import { NotebookAttachmentListItem } from '../components/@Notebook/NotebookAttachmentListItem';
 import { HorizontalHeading } from '../components/HorizontalHeading';
+import { useNotebookResolveStatusStore } from '../utils/NotebookListener';
 
 const useStyles = createUseStyles({
   container: {
@@ -18,6 +19,8 @@ export const Notebook: React.FunctionComponent = () => {
   const classes = useStyles();
   const activeNotebookPanel = useStoreState(ExtensionStore, s => s.activeNotebookPanel);
   const activeNotebookAttachments = useStoreState(ExtensionStore, s => s.activeNotebookAttachment);
+  const notebookStatusStore = useNotebookResolveStatusStore();
+  const notebookStatus = notebookStatusStore[activeNotebookPanel?.id];
 
   return (
     <>
@@ -27,7 +30,11 @@ export const Notebook: React.FunctionComponent = () => {
             <>
               <HorizontalHeading title="Attached DIDs" />
               {activeNotebookAttachments.map(attachment => (
-                <NotebookAttachmentListItem key={attachment.did} attachment={attachment} />
+                <NotebookAttachmentListItem
+                  key={attachment.did}
+                  attachment={attachment}
+                  status={notebookStatus ? notebookStatus[attachment.did] : null}
+                />
               ))}
             </>
           )}

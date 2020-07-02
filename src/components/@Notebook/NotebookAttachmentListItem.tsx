@@ -7,7 +7,6 @@ import { WithRequestAPIProps, withRequestAPI } from '../../utils/Actions';
 import { UIStore } from '../../stores/UIStore';
 import { computeContainerState } from '../../utils/Helpers';
 import { ExtensionStore } from '../../stores/ExtensionStore';
-import { useResolveStatusStore } from '../../utils/NotebookListener';
 
 const useStyles = createUseStyles({
   listItemContainer: {
@@ -73,9 +72,10 @@ const useStyles = createUseStyles({
 
 export interface NotebookAttachmentListItemProps {
   attachment: NotebookDIDAttachment;
+  status: ResolveStatus;
 }
 
-const _NotebookAttachmentListItem: React.FC<NotebookAttachmentListItemProps> = ({ attachment, ...props }) => {
+const _NotebookAttachmentListItem: React.FC<NotebookAttachmentListItemProps> = ({ attachment, status, ...props }) => {
   const classes = useStyles();
   const { actions } = props as WithRequestAPIProps;
   const { did } = attachment;
@@ -83,8 +83,6 @@ const _NotebookAttachmentListItem: React.FC<NotebookAttachmentListItemProps> = (
   const activeInstance = useStoreState(UIStore, s => s.activeInstance);
   const fileDetails = useStoreState(UIStore, s => s.fileDetails[did]);
   const containerDetails = useStoreState(UIStore, s => s.containerDetails[did]);
-  const activeNotebookPanel = useStoreState(ExtensionStore, s => s.activeNotebookPanel);
-  const status = useResolveStatusStore(activeNotebookPanel?.id, did);
 
   useEffect(() => {
     if (attachment.type === 'file') {
