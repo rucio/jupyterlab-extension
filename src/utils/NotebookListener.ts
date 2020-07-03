@@ -1,23 +1,18 @@
 import { ILabShell } from '@jupyterlab/application';
 import { INotebookTracker, NotebookPanel } from '@jupyterlab/notebook';
+import { SessionManager, KernelMessage, Kernel } from '@jupyterlab/services';
+import { IKernelConnection } from '@jupyterlab/services/lib/kernel/kernel';
 import { Store, useStoreState } from 'pullstate';
 import { UIStore } from '../stores/UIStore';
 import { NotebookDIDAttachment, FileDIDDetails, ResolveStatus } from '../types';
 import { COMM_NAME_KERNEL, COMM_NAME_FRONTEND, METADATA_KEY } from '../const';
 import { actions } from '../utils/Actions';
-import { SessionManager, KernelMessage, Kernel } from '@jupyterlab/services';
-import { IKernelConnection } from '@jupyterlab/services/lib/kernel/kernel';
 import { InjectNotebookToolbar } from '../InjectNotebookToolbar';
 
 interface NotebookVariableInjection {
   variableName: string;
   path: string | string[];
   did: string;
-}
-
-interface AttachmentResolveIntermediate {
-  attachment: NotebookDIDAttachment;
-  didDetails: FileDIDDetails | FileDIDDetails[];
 }
 
 type StatusMap = { [notebookId: string]: { [did: string]: ResolveStatus } };
@@ -39,7 +34,6 @@ export interface NotebookListenerOptions {
 
 export class NotebookListener {
   options: NotebookListenerOptions;
-  injectedVariableNames: { [kernelConnectionId: string]: string[] } = {}; // TODO migrate to Set, or just use StatusStore
   kernelNotebookMapping: { [kernelConnectionId: string]: string } = {};
 
   constructor(options: NotebookListenerOptions) {
@@ -53,7 +47,10 @@ export class NotebookListener {
     const instanceConfigurationChange = () => {
       console.log('[Listener] Instance config changed!');
 
-      this.injectedVariableNames = {};
+      StatusStore.update(s => {
+        s.status = {};
+      });
+
       notebookTracker.forEach(p => this.reinject(p));
     };
 
@@ -67,81 +64,6 @@ export class NotebookListener {
     );
 
     notebookTracker.widgetAdded.connect(this.onNotebookOpened, this);
-  }
-
-  injectUninjected(notebookPanel: NotebookPanel): void {
-    const attachments = this.getAttachmentsFromMetadata(notebookPanel);
-    const kernel = notebookPanel.sessionContext?.session?.kernel;
-
-    this.injectUninjectedAttachments(kernel, attachments);
-    this.removeNonExistentInjectedVariableNames(kernel?.id, attachments);
-  }
-
-  reinject(notebookPanel: NotebookPanel): void {
-    const attachments = this.getAttachmentsFromMetadata(notebookPanel);
-    const kernel = notebookPanel.sessionContext?.session?.kernel;
-    this.injectAttachments(kernel, attachments);
-  }
-
-  private getAttachmentsFromMetadata(notebook: NotebookPanel): NotebookDIDAttachment[] {
-    const rucioDidAttachments = notebook.model.metadata.get(METADATA_KEY);
-    const attachedDIDs = rucioDidAttachments as ReadonlyArray<any>;
-    return attachedDIDs as NotebookDIDAttachment[];
-  }
-
-  private removeNonExistentInjectedVariableNames(kernelConnectionId: string, attachments: NotebookDIDAttachment[]) {
-    const injectedVariableNames = this.injectedVariableNames[kernelConnectionId];
-
-    if (!!kernelConnectionId && !!injectedVariableNames) {
-      this.injectedVariableNames[kernelConnectionId] = injectedVariableNames.filter(n =>
-        attachments.find(a => a.variableName === n)
-      );
-    }
-  }
-
-  private injectUninjectedAttachments(kernel: Kernel.IKernelConnection, attachments: NotebookDIDAttachment[]) {
-    const kernelConnectionId = kernel?.id;
-    const injectedVariables = this.injectedVariableNames[kernelConnectionId] || [];
-    const uninjectedAttachments = attachments.filter(a => !injectedVariables.includes(a.variableName));
-    this.injectAttachments(kernel, uninjectedAttachments);
-  }
-
-  private injectAttachments(kernel: Kernel.IKernelConnection, attachments: NotebookDIDAttachment[]) {
-    if (!this.isExtensionProperlySetup()) {
-      return;
-    }
-
-    this.resolveAttachments(attachments, kernel.id)
-      .then(injections => {
-        return this.injectVariables(kernel, injections);
-      })
-      .then(() => {
-        attachments.forEach(attachment => this.setResolveStatus(kernel.id, attachment.did, 'READY'));
-      })
-      .catch(e => {
-        console.error(e);
-        attachments.forEach(attachment => this.setResolveStatus(kernel.id, attachment.did, 'FAILED'));
-      });
-  }
-
-  private injectVariables(kernel: Kernel.IKernelConnection, injections: NotebookVariableInjection[]): Promise<any> {
-    if (injections.length === 0) {
-      return;
-    }
-
-    const comm = kernel.createComm(COMM_NAME_KERNEL);
-
-    return comm
-      .open()
-      .done.then(() => comm.send({ action: 'inject', dids: injections as any[] }).done)
-      .then(() => comm.close().done)
-      .then(() => {
-        const kernelConnectionId = kernel.id;
-        this.appendInjectedVariableNames(
-          kernelConnectionId,
-          injections.map(i => i.variableName)
-        );
-      });
   }
 
   private onNotebookOpened(sender: INotebookTracker, panel: NotebookPanel) {
@@ -178,24 +100,27 @@ export class NotebookListener {
   }
 
   private onKernelRestarted(notebook: NotebookPanel, kernelConnection: IKernelConnection) {
-    this.clearInjectedVariableNames(kernelConnection.id);
     this.clearKernelResolverStatus(kernelConnection.id);
   }
 
   private onKernelDetached(notebook: NotebookPanel, kernelConnection: IKernelConnection) {
-    this.clearInjectedVariableNames(kernelConnection.id);
     this.clearKernelResolverStatus(kernelConnection.id);
-    delete this.kernelNotebookMapping[notebook.id];
+    this.deleteKernelNotebookMapping(kernelConnection.id);
   }
 
   private onKernelAttached(notebook: NotebookPanel, kernelConnection: IKernelConnection) {
+    this.setKernelNotebookMapping(kernelConnection.id, notebook.id);
     this.setupKernelReceiverComm(kernelConnection);
-
-    const notebookId = notebook.id;
-    this.kernelNotebookMapping[kernelConnection.id] = notebookId;
 
     const activeNotebookAttachments = this.getAttachmentsFromMetadata(notebook);
     this.injectAttachments(kernelConnection, activeNotebookAttachments);
+  }
+
+  private clearKernelResolverStatus(kernelConnectionId: string) {
+    const notebookId = this.getNotebookIdFromKernelConnectionId(kernelConnectionId);
+    StatusStore.update(s => {
+      s.status[notebookId] = {};
+    });
   }
 
   private setupKernelReceiverComm(kernelConnection: IKernelConnection) {
@@ -216,7 +141,7 @@ export class NotebookListener {
     console.log('Incoming message', data);
     if (data.action === 'request-inject') {
       const { activeInstance } = UIStore.getRawState();
-      const notebookId = this.kernelNotebookMapping[kernelConnection.id];
+      const notebookId = this.getNotebookIdFromKernelConnectionId(kernelConnection.id);
       const { notebookTracker } = this.options;
       const notebook = notebookTracker.find(p => p.id === notebookId);
       const activeNotebookAttachments = this.getAttachmentsFromMetadata(notebook);
@@ -237,67 +162,117 @@ export class NotebookListener {
             injections.forEach(injection => this.setResolveStatus(kernelConnection.id, injection.did, 'FAILED'));
           });
       });
-    } else if (data.action === 'ack-inject') {
-      const kernelConnectionId = kernelConnection.id;
-      const variableNames = data.variable_names as string[];
-      this.appendInjectedVariableNames(kernelConnectionId, variableNames);
     }
   }
 
-  private appendInjectedVariableNames(kernelConnectionId: string, variableNames: string[]) {
-    const injectedVariableNames = this.injectedVariableNames[kernelConnectionId] || [];
-    this.injectedVariableNames[kernelConnectionId] = [...injectedVariableNames, ...variableNames];
+  injectUninjected(notebookPanel: NotebookPanel): void {
+    const attachments = this.getAttachmentsFromMetadata(notebookPanel);
+    const kernel = notebookPanel.sessionContext?.session?.kernel;
+
+    this.injectUninjectedAttachments(kernel, attachments);
+    this.removeNonExistentInjectedAttachments(kernel?.id, attachments);
   }
 
-  private clearInjectedVariableNames(kernelConnectionId: string) {
-    delete this.injectedVariableNames[kernelConnectionId];
+  reinject(notebookPanel: NotebookPanel): void {
+    const attachments = this.getAttachmentsFromMetadata(notebookPanel);
+    const kernel = notebookPanel.sessionContext?.session?.kernel;
+    this.injectAttachments(kernel, attachments);
   }
 
-  private clearKernelResolverStatus(kernelConnectionId: string) {
-    const notebookId = this.kernelNotebookMapping[kernelConnectionId];
+  private getAttachmentsFromMetadata(notebook: NotebookPanel): NotebookDIDAttachment[] {
+    const rucioDidAttachments = notebook.model.metadata.get(METADATA_KEY);
+    const attachedDIDs = rucioDidAttachments as ReadonlyArray<any>;
+    return attachedDIDs as NotebookDIDAttachment[];
+  }
+
+  private injectUninjectedAttachments(kernel: Kernel.IKernelConnection, attachments: NotebookDIDAttachment[]) {
+    const kernelConnectionId = kernel?.id;
+    const notebookId = this.getNotebookIdFromKernelConnectionId(kernelConnectionId);
+    const notebookStatus = StatusStore.getRawState().status[notebookId] || {};
+    const uninjectedAttachments = attachments.filter(a => !notebookStatus[a.did]);
+    this.injectAttachments(kernel, uninjectedAttachments);
+  }
+
+  private removeNonExistentInjectedAttachments(kernelConnectionId: string, attachments: NotebookDIDAttachment[]) {
+    const notebookId = this.getNotebookIdFromKernelConnectionId(kernelConnectionId);
     StatusStore.update(s => {
-      s.status[notebookId] = {};
+      const notebookStatus = s.status[notebookId];
+      const injectedDIDs = Object.keys(notebookStatus);
+      const nonExistentDIDs = injectedDIDs.filter(did => !attachments.find(a => a.did === did));
+      nonExistentDIDs.forEach(nd => delete s.status[notebookId][nd]);
     });
+  }
+
+  private injectAttachments(kernel: Kernel.IKernelConnection, attachments: NotebookDIDAttachment[]) {
+    if (!this.isExtensionProperlySetup()) {
+      return;
+    }
+
+    this.resolveAttachments(attachments, kernel.id)
+      .then(injections => {
+        return this.injectVariables(kernel, injections);
+      })
+      .then(() => {
+        attachments.forEach(attachment => this.setResolveStatus(kernel.id, attachment.did, 'READY'));
+      })
+      .catch(e => {
+        console.error(e);
+        attachments.forEach(attachment => this.setResolveStatus(kernel.id, attachment.did, 'FAILED'));
+      });
+  }
+
+  private injectVariables(kernel: Kernel.IKernelConnection, injections: NotebookVariableInjection[]): Promise<any> {
+    if (injections.length === 0) {
+      return;
+    }
+
+    console.log('Injecting variables', injections);
+
+    const comm = kernel.createComm(COMM_NAME_KERNEL);
+    return comm
+      .open()
+      .done.then(() => comm.send({ action: 'inject', dids: injections as any[] }).done)
+      .then(() => comm.close().done);
   }
 
   private async resolveAttachments(
     attachments: NotebookDIDAttachment[],
     kernelConnectionId?: string
   ): Promise<NotebookVariableInjection[]> {
-    const resolveFunction = (a: NotebookDIDAttachment) => {
-      this.setResolveStatus(kernelConnectionId, a.did, 'RESOLVING');
-      return this.resolveAttachment(a)
-        .then(injection => {
-          this.setResolveStatus(kernelConnectionId, a.did, 'PENDING_INJECTION');
-          return injection;
-        })
-        .catch(e => {
-          console.error(e);
-          this.setResolveStatus(kernelConnectionId, a.did, 'FAILED');
-          return null;
-        });
-    };
-
-    const promises = attachments.map(a => resolveFunction(a));
+    const promises = attachments.map(a => this.resolveAttachment(a, kernelConnectionId));
     return Promise.all(promises);
   }
 
-  private resolveAttachment(attachment: NotebookDIDAttachment): Promise<NotebookVariableInjection> {
-    const retrieveFunction = async () => {
-      if (attachment.type === 'container') {
-        const didDetails = await this.resolveContainerDIDDetails(attachment.did);
-        return this.translateIntermediateToNotebookVariableInjection({ attachment, didDetails });
-      } else {
-        const didDetails = await this.resolveFileDIDDetails(attachment.did);
-        return this.translateIntermediateToNotebookVariableInjection({ attachment, didDetails });
-      }
-    };
+  private async resolveAttachment(
+    attachment: NotebookDIDAttachment,
+    kernelConnectionId?: string
+  ): Promise<NotebookVariableInjection> {
+    const { variableName, type, did } = attachment;
+    this.setResolveStatus(kernelConnectionId, did, 'RESOLVING');
+    try {
+      if (type === 'container') {
+        const didDetails = await this.resolveContainerDIDDetails(did);
+        const path = this.getContainerDIDPaths(didDetails);
 
-    return retrieveFunction();
+        this.setResolveStatus(kernelConnectionId, did, 'PENDING_INJECTION');
+
+        return { variableName, path, did };
+      } else {
+        const didDetails = await this.resolveFileDIDDetails(did);
+        const path = this.getFileDIDPaths(didDetails);
+
+        this.setResolveStatus(kernelConnectionId, did, 'PENDING_INJECTION');
+
+        return { variableName, path, did };
+      }
+    } catch (e) {
+      this.setResolveStatus(kernelConnectionId, did, 'FAILED');
+      throw e;
+    }
   }
 
   private setResolveStatus(kernelConnectionId: string, did: string, status: ResolveStatus) {
-    const notebookId = this.kernelNotebookMapping[kernelConnectionId];
+    const notebookId = this.getNotebookIdFromKernelConnectionId(kernelConnectionId);
     StatusStore.update(s => {
       if (!s.status[notebookId]) {
         s.status[notebookId] = {};
@@ -305,19 +280,6 @@ export class NotebookListener {
 
       s.status[notebookId][did] = status;
     });
-  }
-
-  private translateIntermediateToNotebookVariableInjection(
-    intermediate: AttachmentResolveIntermediate
-  ): NotebookVariableInjection {
-    const { attachment, didDetails } = intermediate;
-    const { variableName, type, did } = attachment;
-    const path =
-      type === 'container'
-        ? this.getContainerDIDPaths(didDetails as FileDIDDetails[])
-        : this.getFileDIDPaths(didDetails as FileDIDDetails);
-
-    return { variableName: variableName, path, did };
   }
 
   private getContainerDIDPaths(didDetails: FileDIDDetails[]): string[] {
@@ -336,6 +298,18 @@ export class NotebookListener {
   private async resolveContainerDIDDetails(did: string): Promise<FileDIDDetails[]> {
     const { activeInstance } = UIStore.getRawState();
     return actions.getContainerDIDDetails(activeInstance.name, did);
+  }
+
+  private getNotebookIdFromKernelConnectionId(kernelConnectionId: string) {
+    return this.kernelNotebookMapping[kernelConnectionId];
+  }
+
+  private setKernelNotebookMapping(kernelConnectionId: string, notebookId: string) {
+    this.kernelNotebookMapping[kernelConnectionId] = notebookId;
+  }
+
+  private deleteKernelNotebookMapping(kernelConnectionId: string) {
+    delete this.kernelNotebookMapping[kernelConnectionId];
   }
 
   private isExtensionProperlySetup() {
