@@ -23,6 +23,10 @@ pip install rucio_jupyterlab
 jupyter lab build
 ```
 
+## Configuration
+
+See [CONFIGURATION.md](CONFIGURATION.md)
+
 ## Troubleshoot
 
 If you are seeing the frontend extension but it is not working, check

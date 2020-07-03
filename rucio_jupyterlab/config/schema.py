@@ -25,14 +25,6 @@ instance_properties = {
         "type": "integer",
         "default": 0
     },
-    "create_replication_rule_enabled": {
-        "type": "boolean",
-        "default": True
-    },
-    "direct_download_enabled": {
-        "type": "boolean",
-        "default": False
-    },
     "cache_expires_at": {
         "type": "integer",
         "default": 0
