@@ -104,3 +104,26 @@ Example: `/eos/rucio`
 This configuration indicates which part of the PFN should be appended to the mount path. Only applicable in Replica mode.
 
 Example: let us say that the PFN of a file is `root://xrd1:1094//rucio/test/49/ad/f1.txt` and the mount path is `/eos/rucio`. A starting index of `1` means that the path starting from the 2nd slash (index 1) in the PFN will be appended to the mount path. The resulting path would be `/eos/rucio/test/49/ad/f1.txt`.
+
+
+## IPython Kernel
+To allow users to access the paths from within the notebook, a kernel extension must be enabled. The kernel resides in module `rucio_jupyterlab.kernels.ipython`.
+
+To enable the extension, use `load_ext` IPython magic:
+
+```py
+%load_ext rucio_jupyterlab.kernels.ipython
+```
+
+Or, if you want to enable it by default, put the following snippet in your Jupyter configuration (could be `~/.jupyter/jupyter_notebook_config.json`).
+
+```json
+{
+    ...,
+    "IPKernelApp": {
+        "extensions": [
+            "rucio_jupyterlab.kernels.ipython"
+        ]
+    }
+}
+```

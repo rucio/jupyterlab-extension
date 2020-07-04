@@ -19,7 +19,7 @@ for the frontend extension.
 Note: You will need NodeJS to install the extension.
 
 ```bash
-pip install rucio_jupyterlab
+pip install rucio-jupyterlab
 jupyter lab build
 ```
 
