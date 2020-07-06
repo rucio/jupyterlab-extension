@@ -38,7 +38,8 @@ const useStyles = createUseStyles({
     flex: 1
   },
   statusReplicating: {
-    color: '#ffa000'
+    color: '#ffa000',
+    flex: 1
   },
   statusContainer: {
     display: 'flex',
@@ -136,7 +137,7 @@ const _ContainerDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
       {containerState === 'AVAILABLE' && <FileAvailable did={did} />}
       {containerState === 'PARTIALLY_AVAILABLE' && <FilePartiallyAvailable onMakeAvailableClicked={makeAvailable} />}
       {containerState === 'NOT_AVAILABLE' && <FileNotAvailable onMakeAvailableClicked={makeAvailable} />}
-      {containerState === 'REPLICATING' && <FileReplicating />}
+      {containerState === 'REPLICATING' && <FileReplicating did={did} />}
       {containerState === 'STUCK' && <FileStuck />}
     </div>
   );
@@ -146,19 +147,17 @@ const FileAvailable: React.FC<{ did: string }> = ({ did }) => {
   const classes = useStyles();
 
   return (
-    <>
-      <div className={classes.statusContainer}>
-        <div className={classes.statusAvailable}>
-          <i className={`${classes.icon} material-icons`}>check_circle</i>
-          <span className={classes.statusText}>All files available</span>
-        </div>
-        <div className={classes.action}>
-          <AddToNotebookPopover did={did} type="container">
-            Add to Notebook
-          </AddToNotebookPopover>
-        </div>
+    <div className={classes.statusContainer}>
+      <div className={classes.statusAvailable}>
+        <i className={`${classes.icon} material-icons`}>check_circle</i>
+        <span className={classes.statusText}>All files available</span>
       </div>
-    </>
+      <div className={classes.action}>
+        <AddToNotebookPopover did={did} type="container">
+          Add to Notebook
+        </AddToNotebookPopover>
+      </div>
+    </div>
   );
 };
 
@@ -196,13 +195,20 @@ const FilePartiallyAvailable: React.FC<{
   );
 };
 
-const FileReplicating: React.FC = () => {
+const FileReplicating: React.FC<{ did: string }> = ({ did }) => {
   const classes = useStyles();
 
   return (
-    <div className={classes.statusReplicating}>
-      <Spinning className={`${classes.icon} material-icons`}>hourglass_top</Spinning>
-      <span className={classes.statusText}>Replicating files...</span>
+    <div className={classes.statusContainer}>
+      <div className={classes.statusReplicating}>
+        <Spinning className={`${classes.icon} material-icons`}>hourglass_top</Spinning>
+        <span className={classes.statusText}>Replicating files...</span>
+      </div>
+      <div className={classes.action}>
+        <AddToNotebookPopover did={did} type="container">
+          Add to Notebook
+        </AddToNotebookPopover>
+      </div>
     </div>
   );
 };

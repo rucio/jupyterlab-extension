@@ -209,7 +209,7 @@ export class NotebookListener {
   }
 
   private injectAttachments(kernel: Kernel.IKernelConnection, attachments: NotebookDIDAttachment[]) {
-    if (!this.isExtensionProperlySetup()) {
+    if (!this.isExtensionProperlySetup() || !attachments) {
       return;
     }
 

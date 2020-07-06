@@ -34,7 +34,8 @@ const useStyles = createUseStyles({
     flex: 1
   },
   statusReplicating: {
-    color: '#ffa000'
+    color: '#ffa000',
+    flex: 1
   },
   statusContainer: {
     display: 'flex',
@@ -143,7 +144,7 @@ const _FileDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
       )}
       {!!fileDetails && fileDetails.status === 'OK' && <FileAvailable did={did} path={fileDetails.path} />}
       {!!fileDetails && fileDetails.status === 'NOT_AVAILABLE' && <FileNotAvailable onMakeAvailableClicked={makeAvailable} />}
-      {!!fileDetails && fileDetails.status === 'REPLICATING' && <FileReplicating />}
+      {!!fileDetails && fileDetails.status === 'REPLICATING' && <FileReplicating did={did} />}
       {!!fileDetails && fileDetails.status === 'STUCK' && <FileStuck />}
     </div>
   );
@@ -190,13 +191,20 @@ const FileNotAvailable: React.FC<{ onMakeAvailableClicked?: { (): void } }> = ({
   );
 };
 
-const FileReplicating: React.FC = () => {
+const FileReplicating: React.FC<{ did: string }> = ({ did }) => {
   const classes = useStyles();
 
   return (
-    <div className={classes.statusReplicating}>
-      <Spinning className={`${classes.icon} material-icons`}>hourglass_top</Spinning>
-      <span className={classes.statusText}>Replicating file...</span>
+    <div className={classes.statusContainer}>
+      <div className={classes.statusReplicating}>
+        <Spinning className={`${classes.icon} material-icons`}>hourglass_top</Spinning>
+        <span className={classes.statusText}>Replicating file...</span>
+      </div>
+      <div className={classes.action}>
+        <AddToNotebookPopover did={did} type="file">
+          Add to Notebook
+        </AddToNotebookPopover>
+      </div>
     </div>
   );
 };
