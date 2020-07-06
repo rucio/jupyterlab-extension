@@ -70,6 +70,9 @@ export class NotebookListener {
     panel.sessionContext.statusChanged.connect((sender, status) => {
       if (status === 'restarting') {
         this.onKernelRestarted(panel, sender.session.kernel);
+        panel.sessionContext.ready.then(() => {
+          this.onKernelAttached(panel, sender.session.kernel);
+        });
       }
     });
     panel.sessionContext.kernelChanged.connect((sender, changed) => {
@@ -227,8 +230,6 @@ export class NotebookListener {
     if (injections.length === 0) {
       return;
     }
-
-    console.log('Injecting variables', injections);
 
     const comm = kernel.createComm(COMM_NAME_KERNEL);
     return comm
