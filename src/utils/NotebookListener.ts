@@ -197,9 +197,11 @@ export class NotebookListener {
     const notebookId = this.getNotebookIdFromKernelConnectionId(kernelConnectionId);
     StatusStore.update(s => {
       const notebookStatus = s.status[notebookId];
-      const injectedDIDs = Object.keys(notebookStatus);
-      const nonExistentDIDs = injectedDIDs.filter(did => !attachments.find(a => a.did === did));
-      nonExistentDIDs.forEach(nd => delete s.status[notebookId][nd]);
+      if (notebookStatus) {
+        const injectedDIDs = Object.keys(notebookStatus);
+        const nonExistentDIDs = injectedDIDs.filter(did => !attachments.find(a => a.did === did));
+        nonExistentDIDs.forEach(nd => delete s.status[notebookId][nd]);
+      }
     });
   }
 
