@@ -61,4 +61,8 @@ def load_ipython_extension(ipython):
     connector = RucioDIDAttachmentConnector(ipython)
     connector.register_comm()
     connector.register_outgoing_comm()
-    connector.send_injection_request()
+
+    def resolve_dids():
+        connector.send_injection_request()
+
+    ipython.push({'resolve_dids': resolve_dids})

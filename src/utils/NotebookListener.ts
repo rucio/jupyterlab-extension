@@ -292,12 +292,12 @@ export class NotebookListener {
 
   private async resolveFileDIDDetails(did: string): Promise<FileDIDDetails> {
     const { activeInstance } = UIStore.getRawState();
-    return actions.getFileDIDDetails(activeInstance.name, did);
+    return actions.getFileDIDDetails(activeInstance.name, did, true);
   }
 
   private async resolveContainerDIDDetails(did: string): Promise<FileDIDDetails[]> {
     const { activeInstance } = UIStore.getRawState();
-    return actions.getContainerDIDDetails(activeInstance.name, did);
+    return actions.getContainerDIDDetails(activeInstance.name, did, true);
   }
 
   private getNotebookIdFromKernelConnectionId(kernelConnectionId: string) {
