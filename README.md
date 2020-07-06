@@ -23,6 +23,8 @@ pip install rucio-jupyterlab
 jupyter lab build
 ```
 
+Restart your JupyterLab instance afterwards to load the server extension.
+
 ## Configuration
 
 See [CONFIGURATION.md](CONFIGURATION.md)

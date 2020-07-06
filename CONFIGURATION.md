@@ -115,15 +115,8 @@ To enable the extension, use `load_ext` IPython magic:
 %load_ext rucio_jupyterlab.kernels.ipython
 ```
 
-Or, if you want to enable it by default, put the following snippet in your Jupyter configuration (could be `~/.jupyter/jupyter_notebook_config.json`).
+Or, if you want to enable it by default, put the following snippet in your IPython configuration (could be `~/.ipython/profile_default/ipython_kernel_config.py`).
 
-```json
-{
-    ...,
-    "IPKernelApp": {
-        "extensions": [
-            "rucio_jupyterlab.kernels.ipython"
-        ]
-    }
-}
+```python
+c.IPKernelApp.extensions = ['rucio_jupyterlab.kernels.ipython']
 ```
