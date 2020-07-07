@@ -3,7 +3,6 @@ import { createUseStyles } from 'react-jss';
 
 import { VDomRenderer } from '@jupyterlab/apputils';
 import { JupyterFrontEnd, ILabShell } from '@jupyterlab/application';
-import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
 import { INotebookTracker } from '@jupyterlab/notebook';
 import { NotebookListener } from './utils/NotebookListener';
@@ -23,8 +22,8 @@ const useStyles = createUseStyles({
   section: {
     flex: 1
   },
-  loading: {
-    padding: '8px 16px 8px 16px'
+  content: {
+    padding: '16px'
   },
   icon: {
     fontSize: '10pt',
@@ -60,7 +59,7 @@ const Panel: React.FC<PanelProps> = ({ instanceConfig }) => {
       <Header />
       {!!configLoaded && <MainPanel />}
       {!configLoaded && (
-        <div className={classes.loading}>
+        <div className={classes.content}>
           <Spinning className={`${classes.icon} material-icons`}>hourglass_top</Spinning>
           <span className={classes.iconText}>Loading...</span>
         </div>
@@ -69,35 +68,42 @@ const Panel: React.FC<PanelProps> = ({ instanceConfig }) => {
   );
 };
 
+const ErrorPanel: React.FC<{ error: string }> = ({ error }) => {
+  const classes = useStyles();
+
+  return <div className={classes.content}>{error}</div>;
+};
+
 export interface SidebarPanelOptions {
   app: JupyterFrontEnd;
-  settingRegistry: ISettingRegistry;
   labShell: ILabShell;
   notebookTracker: INotebookTracker;
-  widgetId: string;
   instanceConfig: InstanceConfig;
 }
 
 const PANEL_CLASS = 'jp-RucioExtensionPanel';
 
 export class SidebarPanel extends VDomRenderer {
+  error?: string;
   app: JupyterFrontEnd;
-  settingRegistry: ISettingRegistry;
   notebookListener: NotebookListener;
   activeNotebookListener: ActiveNotebookListener;
   instanceConfig: InstanceConfig;
 
-  constructor(options: SidebarPanelOptions) {
+  constructor(options?: SidebarPanelOptions, error?: string) {
     super();
     super.addClass(PANEL_CLASS);
-    const { app, settingRegistry, labShell, notebookTracker, widgetId, instanceConfig } = options;
-
-    super.id = widgetId;
     super.title.closable = true;
     super.title.iconClass += 'jp-icon-rucio';
 
+    if (!options || error) {
+      this.error = error || 'Failed to activate extension. Make sure that the extension is configured and installed properly.';
+      return;
+    }
+
+    const { app, labShell, notebookTracker, instanceConfig } = options;
+
     this.app = app;
-    this.settingRegistry = settingRegistry;
     this.instanceConfig = instanceConfig;
 
     this.notebookListener = new NotebookListener({
@@ -115,6 +121,10 @@ export class SidebarPanel extends VDomRenderer {
   }
 
   render(): React.ReactElement {
+    if (this.error) {
+      return <ErrorPanel error={this.error} />;
+    }
+
     return <Panel instanceConfig={this.instanceConfig} />;
   }
 }
