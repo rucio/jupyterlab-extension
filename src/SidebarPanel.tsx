@@ -12,6 +12,7 @@ import { Header } from './components/Header';
 import { MainPanel } from './pages/MainPanel';
 import { Spinning } from './components/Spinning';
 import { UIStore } from './stores/UIStore';
+import { NotebookPollingListener } from './utils/NotebookPollingListener';
 
 const useStyles = createUseStyles({
   panel: {
@@ -88,6 +89,7 @@ export class SidebarPanel extends VDomRenderer {
   app: JupyterFrontEnd;
   notebookListener: NotebookListener;
   activeNotebookListener: ActiveNotebookListener;
+  notebookPollingListener: NotebookPollingListener;
   instanceConfig: InstanceConfig;
 
   constructor(options?: SidebarPanelOptions, error?: string) {
@@ -118,6 +120,8 @@ export class SidebarPanel extends VDomRenderer {
       sessionManager: app.serviceManager.sessions,
       notebookListener: this.notebookListener
     });
+
+    this.notebookPollingListener = new NotebookPollingListener();
   }
 
   render(): React.ReactElement {

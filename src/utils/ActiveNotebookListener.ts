@@ -44,7 +44,6 @@ export class ActiveNotebookListener {
     }
 
     this.setJupyterNotebookFileRucioMetadata(attachments, state);
-    this.removeNonExistentInjectedVariableNames(attachments, state);
 
     if (activeNotebookPanel.sessionContext.session?.kernel) {
       activeNotebookPanel.sessionContext.ready.then(() => {
@@ -62,10 +61,6 @@ export class ActiveNotebookListener {
     if (current !== rucioDidAttachments) {
       metadata.set(METADATA_KEY, rucioDidAttachments as ReadonlyPartialJSONArray);
     }
-  }
-
-  private removeNonExistentInjectedVariableNames(attachments: NotebookDIDAttachment[], state: ExtensionState) {
-    // TODO find a way to do this
   }
 
   private onCurrentTabChanged() {

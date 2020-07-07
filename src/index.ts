@@ -29,7 +29,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     const sidebarPanel = new SidebarPanel(options);
     sidebarPanel.id = EXTENSION_ID + ':panel';
     labShell.add(sidebarPanel, 'left', { rank: 900 });
-    sidebarPanel.activate();
+    labShell.activateById(sidebarPanel.id);
   }
 };
 

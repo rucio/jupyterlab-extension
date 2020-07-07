@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useStoreState } from 'pullstate';
 import { UIStore } from '../../stores/UIStore';
@@ -6,6 +6,7 @@ import { Spinning } from '../Spinning';
 import { withRequestAPI, WithRequestAPIProps } from '../../utils/Actions';
 import { AddToNotebookPopover } from './AddToNotebookPopover';
 import { computeContainerState } from '../../utils/Helpers';
+import { PollingRequesterRef, withPollingManager, WithPollingManagerProps } from '../../utils/DIDPollingManager';
 
 const useStyles = createUseStyles({
   container: {
@@ -61,54 +62,23 @@ const _ContainerDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
   const classes = useStyles();
 
   const { actions } = props as WithRequestAPIProps;
+  const { didPollingManager } = props as WithPollingManagerProps;
 
   const activeInstance = useStoreState(UIStore, s => s.activeInstance);
   const containerAttachedFiles = useStoreState(UIStore, s => s.containerDetails[did]);
 
-  const stillMounted = { value: false };
-  useEffect(() => {
-    stillMounted.value = true;
-    return () => (stillMounted.value = false);
-  }, []);
-
-  const fetchDIDDetails = (poll = false) => {
-    return actions.getContainerDIDDetails(activeInstance.name, did, poll).then(files => {
-      const containerState = computeContainerState(files);
-      if (containerState === 'REPLICATING') {
-        if (stillMounted.value) {
-          enablePolling();
-        }
-      } else {
-        disablePolling();
-      }
-      return files;
-    });
-  };
-
-  let pollInterval: number | undefined = undefined;
-
-  const poll = () => {
-    fetchDIDDetails(true);
-  };
+  const [pollingRequesterRef] = useState(() => new PollingRequesterRef());
 
   const enablePolling = () => {
-    if (pollInterval === undefined) {
-      poll();
-      pollInterval = window.setInterval(() => {
-        poll();
-      }, 10000); // TODO change 10s?
-    }
+    didPollingManager.requestPolling(did, 'container', pollingRequesterRef);
   };
 
   const disablePolling = () => {
-    if (pollInterval !== undefined) {
-      window.clearInterval(pollInterval);
-      pollInterval = undefined;
-    }
+    didPollingManager.disablePolling(did, pollingRequesterRef);
   };
 
   useEffect(() => {
-    fetchDIDDetails();
+    enablePolling();
 
     return () => {
       disablePolling();
@@ -224,4 +194,4 @@ const FileStuck: React.FC = () => {
   );
 };
 
-export const ContainerDIDItemDetails = withRequestAPI(_ContainerDIDItemDetails);
+export const ContainerDIDItemDetails = withPollingManager(withRequestAPI(_ContainerDIDItemDetails));

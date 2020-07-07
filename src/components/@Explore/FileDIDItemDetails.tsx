@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createUseStyles } from 'react-jss';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import { useStoreState } from 'pullstate';
@@ -6,6 +6,7 @@ import { UIStore } from '../../stores/UIStore';
 import { Spinning } from '../Spinning';
 import { withRequestAPI, WithRequestAPIProps } from '../../utils/Actions';
 import { AddToNotebookPopover } from './AddToNotebookPopover';
+import { withPollingManager, WithPollingManagerProps, PollingRequesterRef } from '../../utils/DIDPollingManager';
 
 const useStyles = createUseStyles({
   container: {
@@ -72,55 +73,24 @@ export interface DIDItem {
 
 const _FileDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
   const { actions } = props as WithRequestAPIProps;
+  const { didPollingManager } = props as WithPollingManagerProps;
 
   const classes = useStyles();
   const activeInstance = useStoreState(UIStore, s => s.activeInstance);
   const fileDetails = useStoreState(UIStore, s => s.fileDetails[did]);
 
-  const stillMounted = { value: false };
-  useEffect(() => {
-    stillMounted.value = true;
-    return () => (stillMounted.value = false);
-  }, []);
-
-  const fetchFileDetails = (poll = false) => {
-    return actions.getFileDIDDetails(activeInstance.name, did, poll).then(file => {
-      if (file.status === 'REPLICATING') {
-        if (stillMounted.value) {
-          enablePolling();
-        }
-      } else {
-        disablePolling();
-      }
-
-      return file;
-    });
-  };
-
-  let pollInterval: number | undefined = undefined;
-
-  const poll = () => {
-    fetchFileDetails(true);
-  };
+  const [pollingRequesterRef] = useState(() => new PollingRequesterRef());
 
   const enablePolling = () => {
-    if (pollInterval === undefined) {
-      poll();
-      pollInterval = window.setInterval(() => {
-        poll();
-      }, 10000); // TODO change 10s?
-    }
+    didPollingManager.requestPolling(did, 'file', pollingRequesterRef);
   };
 
   const disablePolling = () => {
-    if (pollInterval !== undefined) {
-      window.clearInterval(pollInterval);
-      pollInterval = undefined;
-    }
+    didPollingManager.disablePolling(did, pollingRequesterRef);
   };
 
   useEffect(() => {
-    fetchFileDetails();
+    enablePolling();
 
     return () => {
       disablePolling();
@@ -220,4 +190,4 @@ const FileStuck: React.FC = () => {
   );
 };
 
-export const FileDIDItemDetails = withRequestAPI(_FileDIDItemDetails);
+export const FileDIDItemDetails = withPollingManager(withRequestAPI(_FileDIDItemDetails));
