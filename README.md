@@ -29,6 +29,35 @@ Restart your JupyterLab instance afterwards to load the server extension.
 
 See [CONFIGURATION.md](CONFIGURATION.md)
 
+## Contributing
+
+If you want to contribute or build the extension from source, see [CONTRIBUTING.md](CONTRIBUTING.md)
+
+## Quick Setup using Docker
+
+This repository comes with a Docker image of [jupyter/scipy-notebook](https://hub.docker.com/r/jupyter/scipy-notebook) installed with the extension.
+
+If you haven't, authenticate to GitHub Package Registry in your Docker installation. Follow the instructions on [this page](https://docs.github.com/en/packages/using-github-packages-with-your-projects-ecosystem/configuring-docker-for-use-with-github-packages).
+
+To run the image, use the following command.
+```bash
+$ docker run -d -p 8888:8888 \
+    -e RUCIO_BASE_URL=<Rucio base URL> \
+    -e RUCIO_DESTINATION_RSE=<destination RSE> \
+    -e RUCIO_DISPLAY_NAME=<instance display name> \
+    -e RUCIO_NAME=<instance name> \
+    -e RUCIO_PATH_BEGINS_AT=<path begins at> \
+    -e RUCIO_RSE_MOUNT_PATH=<mount path> \
+    -v <host folder>:<container folder> \
+    docker.pkg.github.com/didithilmy/rucio-jupyterlab/dev:latest
+```
+
+Follow the [configuration guide](CONFIGURATION.md) for details of the parameters.
+
+
+`<host folder>` is a folder in the host that is mounted to a Rucio Storage Element via FUSE.
+`<container folder>` is a folder accessible from the notebook that is mounted to the host folder.
+
 ## Troubleshoot
 
 If you are seeing the frontend extension but it is not working, check
