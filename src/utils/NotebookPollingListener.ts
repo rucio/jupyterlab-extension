@@ -3,12 +3,16 @@ import { UIStore } from '../stores/UIStore';
 import { PollingRequesterRef, didPollingManager } from './DIDPollingManager';
 import { NotebookDIDAttachment } from '../types';
 import { actions } from './Actions';
+import { NotebookListener } from './NotebookListener';
+import { computeContainerState } from './Helpers';
 
 export class NotebookPollingListener {
+  notebookListener: NotebookListener;
   pollingRef: PollingRequesterRef;
   activePolling: string[] = [];
 
-  constructor() {
+  constructor(notebookListener: NotebookListener) {
+    this.notebookListener = notebookListener;
     this.pollingRef = new PollingRequesterRef();
 
     // Listen to change in attachments
@@ -23,20 +27,30 @@ export class NotebookPollingListener {
     // Listen to change in file status
     UIStore.subscribe(
       s => s.fileDetails,
-      fileDetails => {
+      (fileDetails, state, prevFileDetails) => {
         if (!fileDetails) {
           return;
         }
 
         const listenedFileDetails = Object.keys(fileDetails)
           .filter(did => this.activePolling.includes(did))
-          .map(did => ({ did, file: fileDetails[did] }));
+          .map(did => ({
+            did,
+            file: {
+              current: fileDetails[did],
+              prev: prevFileDetails[did]
+            }
+          }));
 
         listenedFileDetails.forEach(({ did, file }) => {
-          if (file.status === 'REPLICATING') {
+          if (file.current.status === 'REPLICATING') {
             this.enablePolling(did, 'file');
           } else {
             this.disablePolling(did);
+            if (file.current.status === 'OK' && file.prev.status === 'REPLICATING') {
+              const { activeNotebookPanel } = ExtensionStore.getRawState();
+              this.notebookListener.reinjectSpecificDID(activeNotebookPanel, did);
+            }
           }
         });
       }
@@ -45,20 +59,32 @@ export class NotebookPollingListener {
     // Listen to change in container status
     UIStore.subscribe(
       s => s.containerDetails,
-      containerDetails => {
+      (containerDetails, state, prevContainerDetails) => {
         if (!containerDetails) {
           return;
         }
 
         const listenedContainerDetails = Object.keys(containerDetails)
           .filter(did => this.activePolling.includes(did))
-          .map(did => ({ did, file: containerDetails[did] }));
+          .map(did => ({
+            did,
+            file: {
+              current: containerDetails[did],
+              prev: prevContainerDetails[did]
+            }
+          }));
 
         listenedContainerDetails.forEach(({ did, file }) => {
-          if (file.find(d => d.status === 'REPLICATING')) {
+          const currentContainerState = computeContainerState(file.current);
+          if (currentContainerState === 'REPLICATING') {
             this.enablePolling(did, 'container');
           } else {
             this.disablePolling(did);
+            const prevContainerState = computeContainerState(file.prev);
+            if (currentContainerState === 'AVAILABLE' && prevContainerState === 'REPLICATING') {
+              const { activeNotebookPanel } = ExtensionStore.getRawState();
+              this.notebookListener.reinjectSpecificDID(activeNotebookPanel, did);
+            }
           }
         });
       }

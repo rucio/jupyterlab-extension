@@ -41,7 +41,8 @@ class RucioDIDAttachmentConnector:
             variable_name = did.get('variableName')
             path = did.get('path')
             if isinstance(path, (list, tuple)):
-                injected_obj = MultipleItemDID(path, did_available=True)
+                did_available = did.get('didAvailable', True)
+                injected_obj = MultipleItemDID(path, did_available=did_available)
             else:
                 injected_obj = SingleItemDID(path)
 

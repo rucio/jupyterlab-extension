@@ -8,11 +8,13 @@ import { NotebookDIDAttachment, FileDIDDetails, ResolveStatus } from '../types';
 import { COMM_NAME_KERNEL, COMM_NAME_FRONTEND, METADATA_KEY } from '../const';
 import { actions } from '../utils/Actions';
 import { InjectNotebookToolbar } from '../InjectNotebookToolbar';
+import { computeContainerState } from './Helpers';
 
 interface NotebookVariableInjection {
   variableName: string;
   path: string | string[];
   did: string;
+  didAvailable?: boolean;
 }
 
 type StatusMap = { [notebookId: string]: { [did: string]: ResolveStatus } };
@@ -182,6 +184,17 @@ export class NotebookListener {
     this.injectAttachments(kernel, attachments);
   }
 
+  reinjectSpecificDID(notebookPanel: NotebookPanel, did: string): void {
+    console.log('Reinjecting did', did);
+    const attachments = this.getAttachmentsFromMetadata(notebookPanel);
+    const didAttachment = attachments.find(a => a.did === did);
+
+    if (didAttachment) {
+      const kernel = notebookPanel.sessionContext?.session?.kernel;
+      this.injectAttachments(kernel, [didAttachment]);
+    }
+  }
+
   private getAttachmentsFromMetadata(notebook: NotebookPanel): NotebookDIDAttachment[] {
     const rucioDidAttachments = notebook.model.metadata.get(METADATA_KEY);
     const attachedDIDs = rucioDidAttachments as ReadonlyArray<any>;
@@ -259,7 +272,10 @@ export class NotebookListener {
 
         this.setResolveStatus(kernelConnectionId, did, 'PENDING_INJECTION');
 
-        return { variableName, path, did };
+        const containerStatus = computeContainerState(didDetails);
+        const didAvailable = containerStatus === 'AVAILABLE';
+
+        return { variableName, path, did, didAvailable };
       } else {
         const didDetails = await this.resolveFileDIDDetails(did);
         const path = this.getFileDIDPaths(didDetails);
@@ -295,12 +311,12 @@ export class NotebookListener {
 
   private async resolveFileDIDDetails(did: string): Promise<FileDIDDetails> {
     const { activeInstance } = UIStore.getRawState();
-    return actions.getFileDIDDetails(activeInstance.name, did, true);
+    return actions.getFileDIDDetails(activeInstance.name, did);
   }
 
   private async resolveContainerDIDDetails(did: string): Promise<FileDIDDetails[]> {
     const { activeInstance } = UIStore.getRawState();
-    return actions.getContainerDIDDetails(activeInstance.name, did, true);
+    return actions.getContainerDIDDetails(activeInstance.name, did);
   }
 
   private getNotebookIdFromKernelConnectionId(kernelConnectionId: string) {

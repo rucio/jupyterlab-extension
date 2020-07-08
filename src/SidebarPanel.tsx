@@ -121,7 +121,7 @@ export class SidebarPanel extends VDomRenderer {
       notebookListener: this.notebookListener
     });
 
-    this.notebookPollingListener = new NotebookPollingListener();
+    this.notebookPollingListener = new NotebookPollingListener(this.notebookListener);
   }
 
   render(): React.ReactElement {
