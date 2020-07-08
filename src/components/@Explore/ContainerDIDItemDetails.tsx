@@ -167,7 +167,7 @@ const FileNotAvailable: React.FC<{ onMakeAvailableClicked?: { (): void } }> = ({
   return (
     <div className={classes.statusContainer}>
       <div className={classes.statusNotAvailable}>
-        <i className={`${classes.icon} material-icons`}>cancel</i>
+        <i className={`${classes.icon} material-icons`}>lens</i>
         <span className={classes.statusText}>Not available</span>
       </div>
       <div className={classes.action} onClick={onMakeAvailableClicked}>
@@ -185,7 +185,7 @@ const FilePartiallyAvailable: React.FC<{
   return (
     <div className={classes.statusContainer}>
       <div className={classes.statusPartiallyAvailable}>
-        <i className={`${classes.icon} material-icons`}>cancel</i>
+        <i className={`${classes.icon} material-icons`}>lens</i>
         <span className={classes.statusText}>Partially available</span>
       </div>
       <div className={classes.action} onClick={onMakeAvailableClicked}>
