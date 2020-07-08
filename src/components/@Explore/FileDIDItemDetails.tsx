@@ -151,7 +151,7 @@ const FileNotAvailable: React.FC<{ onMakeAvailableClicked?: { (): void } }> = ({
   return (
     <div className={classes.statusContainer}>
       <div className={classes.statusNotAvailable}>
-        <i className={`${classes.icon} material-icons`}>cancel</i>
+        <i className={`${classes.icon} material-icons`}>lens</i>
         <span className={classes.statusText}>Not Available</span>
       </div>
       <div className={classes.action} onClick={onMakeAvailableClicked}>
