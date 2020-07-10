@@ -148,6 +148,7 @@ export const AddToNotebookPopover: React.FC<MyProps> = ({ children, did, type })
   const openPopover = () => {
     setOpen(true);
     setVarName('');
+    setError(undefined);
     setTimeout(() => {
       textFieldRef.current.focus();
     }, 10);
