@@ -9,6 +9,10 @@ from .authenticators import RucioAuthenticationException, authenticate_userpass,
 class RucioAPI:
     rucio_auth_token_cache = dict()
 
+    @staticmethod
+    def clear_auth_token_cache():
+        RucioAPI.rucio_auth_token_cache.clear()
+
     def __init__(self, instance_config, auth_type, auth_config):
         self.instance_config = instance_config
         self.auth_type = auth_type

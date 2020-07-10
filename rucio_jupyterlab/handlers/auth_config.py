@@ -1,6 +1,7 @@
 import json
 import tornado
 from rucio_jupyterlab.db import get_db
+from rucio_jupyterlab.rucio import RucioAPI
 from .base import RucioAPIHandler
 
 
@@ -32,5 +33,7 @@ class AuthConfigHandler(RucioAPIHandler):
 
         db = get_db()  # pylint: disable=invalid-name
         db.set_rucio_auth_credentials(namespace=namespace, auth_type=auth_type, params=params)
+
+        RucioAPI.clear_auth_token_cache()
 
         self.finish(json.dumps({'success': True}))
