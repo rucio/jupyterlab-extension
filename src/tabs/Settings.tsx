@@ -8,9 +8,8 @@ import { withRequestAPI, WithRequestAPIProps } from '../utils/Actions';
 import { authTypeOptions } from '../const';
 import { UserPassAuth } from '../components/@Settings/UserPassAuth';
 import { X509Auth } from '../components/@Settings/X509Auth';
-import { RucioAuthType, RucioAuthCredentials, RucioUserpassAuth, RucioX509Auth } from '../types';
+import { RucioAuthType, RucioUserpassAuth, RucioX509Auth } from '../types';
 import { HorizontalHeading } from '../components/HorizontalHeading';
-import { Spinning } from '../components/Spinning';
 
 const useStyles = createUseStyles({
   content: {
@@ -46,6 +45,9 @@ const useStyles = createUseStyles({
   iconText: {
     verticalAlign: 'middle',
     paddingLeft: '4px'
+  },
+  hidden: {
+    display: 'none'
   }
 });
 
@@ -62,7 +64,8 @@ const _Settings: React.FunctionComponent = props => {
 
   const [selectedInstance, setSelectedInstance] = useState<string>(instanceDefaultValue?.value);
   const [selectedAuthType, setSelectedAuthType] = useState<RucioAuthType>(activeAuthType);
-  const [rucioAuthCredentials, setRucioAuthCredentials] = useState<RucioAuthCredentials>();
+  const [rucioUserpassAuthCredentials, setRucioUserpassAuthCredentials] = useState<RucioUserpassAuth>();
+  const [rucioX509AuthCredentials, setRucioX509AuthCredentials] = useState<RucioX509Auth>();
   const [credentialsLoading, setCredentialsLoading] = useState<boolean>(true);
 
   const instanceOptions = useMemo(() => instances?.map(i => ({ label: i.displayName, value: i.name })), [instances]);
@@ -88,8 +91,11 @@ const _Settings: React.FunctionComponent = props => {
       setActiveInstance(selectedInstance, selectedAuthType);
     }
 
-    if (!!selectedAuthType && !!rucioAuthCredentials) {
-      actions.putAuthConfig(selectedInstance, selectedAuthType, rucioAuthCredentials);
+    if (selectedAuthType) {
+      const rucioAuthCredentials = selectedAuthType === 'userpass' ? rucioUserpassAuthCredentials : rucioX509AuthCredentials;
+      if (rucioAuthCredentials) {
+        actions.putAuthConfig(selectedInstance, selectedAuthType, rucioAuthCredentials);
+      }
     }
   };
 
@@ -99,11 +105,20 @@ const _Settings: React.FunctionComponent = props => {
     }
 
     setCredentialsLoading(true);
-    actions
-      .fetchAuthConfig<any>(selectedInstance, selectedAuthType)
-      .then(c => setRucioAuthCredentials(c))
-      .catch(() => setRucioAuthCredentials(undefined))
-      .finally(() => setCredentialsLoading(false));
+
+    if (selectedAuthType === 'userpass') {
+      actions
+        .fetchAuthConfig<RucioUserpassAuth>(selectedInstance, selectedAuthType)
+        .then(c => setRucioUserpassAuthCredentials(c))
+        .catch(() => setRucioUserpassAuthCredentials(undefined))
+        .finally(() => setCredentialsLoading(false));
+    } else if (selectedAuthType === 'x509') {
+      actions
+        .fetchAuthConfig<RucioX509Auth>(selectedInstance, selectedAuthType)
+        .then(c => setRucioX509AuthCredentials(c))
+        .catch(() => setRucioX509AuthCredentials(undefined))
+        .finally(() => setCredentialsLoading(false));
+    }
   };
 
   useEffect(reloadAuthConfig, [selectedInstance, selectedAuthType]);
@@ -147,34 +162,29 @@ const _Settings: React.FunctionComponent = props => {
           </div>
         </div>
         <div>
-          {selectedAuthType === 'userpass' && !!selectedInstance && (
-            <>
-              <HorizontalHeading title="Username &amp; Password" />
-              {!credentialsLoading && (
-                <UserPassAuth params={rucioAuthCredentials as RucioUserpassAuth} onChange={v => setRucioAuthCredentials(v)} />
-              )}
-              {credentialsLoading && (
-                <div className={classes.container}>
-                  <Spinning className={`${classes.icon} material-icons`}>hourglass_top</Spinning>
-                  <span className={classes.iconText}>Loading...</span>
-                </div>
-              )}
-            </>
+          {!!selectedAuthType && !!selectedInstance && credentialsLoading && (
+            // <div className={classes.container}>
+            //   <Spinning className={`${classes.icon} material-icons`}>hourglass_top</Spinning>
+            //   <span className={classes.iconText}>Loading...</span>
+            // </div>
+            <div></div>
           )}
-          {selectedAuthType === 'x509' && !!selectedInstance && (
-            <>
-              <HorizontalHeading title="X.509 User Certificate" />
-              {!credentialsLoading && (
-                <X509Auth params={rucioAuthCredentials as RucioX509Auth} onChange={v => setRucioAuthCredentials(v)} />
-              )}
-              {credentialsLoading && (
-                <div className={classes.container}>
-                  <Spinning className={`${classes.icon} material-icons`}>hourglass_top</Spinning>
-                  <span className={classes.iconText}>Loading...</span>
-                </div>
-              )}
-            </>
-          )}
+          <div className={selectedInstance && selectedAuthType === 'userpass' ? '' : classes.hidden}>
+            <HorizontalHeading title="Username &amp; Password" />
+            <UserPassAuth
+              loading={credentialsLoading}
+              params={rucioUserpassAuthCredentials}
+              onAuthParamsChange={v => setRucioUserpassAuthCredentials(v)}
+            />
+          </div>
+          <div className={selectedInstance && selectedAuthType === 'x509' ? '' : classes.hidden}>
+            <HorizontalHeading title="X.509 User Certificate" />
+            <X509Auth
+              loading={credentialsLoading}
+              params={rucioX509AuthCredentials}
+              onAuthParamsChange={v => setRucioX509AuthCredentials(v)}
+            />
+          </div>
         </div>
       </div>
       <div className={classes.buttonContainer}>

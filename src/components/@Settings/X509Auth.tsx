@@ -2,6 +2,7 @@ import React from 'react';
 import { createUseStyles } from 'react-jss';
 import { TextField } from '../TextField';
 import { RucioX509Auth } from '../../types';
+import { Spinning } from '../Spinning';
 
 const useStyles = createUseStyles({
   container: {
@@ -14,28 +15,50 @@ const useStyles = createUseStyles({
     margin: '8px 8px 16px 8px',
     color: '#808080',
     fontSize: '9pt'
+  },
+  loadingIcon: {
+    fontSize: '10pt',
+    verticalAlign: 'middle'
+  },
+  loadingContainer: {
+    padding: '0 8px 0 8px',
+    display: 'flex',
+    alignItems: 'center'
   }
 });
 
 interface X509AuthProps {
   params?: RucioX509Auth;
-  onChange: { (val: RucioX509Auth): void };
+  loading?: boolean;
+  onAuthParamsChange: { (val: RucioX509Auth): void };
 }
 
-export const X509Auth: React.FC<X509AuthProps> = ({ params = { certificate: '', key: '', account: '' }, onChange }) => {
+type MyProps = X509AuthProps & React.HTMLAttributes<HTMLDivElement>;
+
+export const X509Auth: React.FC<MyProps> = ({
+  params = { certificate: '', key: '', account: '' },
+  loading,
+  onAuthParamsChange
+}) => {
   const classes = useStyles();
 
   const onCertPathChange = (path: string) => {
-    onChange({ ...params, certificate: path });
+    onAuthParamsChange({ ...params, certificate: path });
   };
 
   const onKeyPathChange = (path: string) => {
-    onChange({ ...params, key: path });
+    onAuthParamsChange({ ...params, key: path });
   };
 
   const onAccountChange = (account?: string) => {
-    onChange({ ...params, account });
+    onAuthParamsChange({ ...params, account });
   };
+
+  const loadingSpinner = (
+    <div className={classes.loadingContainer}>
+      <Spinning className={`${classes.loadingIcon} material-icons`}>hourglass_top</Spinning>
+    </div>
+  );
 
   return (
     <>
@@ -46,6 +69,8 @@ export const X509Auth: React.FC<X509AuthProps> = ({ params = { certificate: '', 
             outlineColor="#d5d5d5"
             value={params.certificate}
             onChange={e => onCertPathChange(e.target.value)}
+            disabled={loading}
+            after={loading ? loadingSpinner : undefined}
           />
         </div>
         <div className={classes.textFieldContainer}>
@@ -54,6 +79,8 @@ export const X509Auth: React.FC<X509AuthProps> = ({ params = { certificate: '', 
             outlineColor="#d5d5d5"
             value={params.key}
             onChange={e => onKeyPathChange(e.target.value)}
+            disabled={loading}
+            after={loading ? loadingSpinner : undefined}
           />
         </div>
         <div className={classes.warning}>
@@ -66,6 +93,8 @@ export const X509Auth: React.FC<X509AuthProps> = ({ params = { certificate: '', 
             outlineColor="#d5d5d5"
             value={params.account}
             onChange={e => onAccountChange(e.target.value)}
+            disabled={loading}
+            after={loading ? loadingSpinner : undefined}
           />
         </div>
       </div>

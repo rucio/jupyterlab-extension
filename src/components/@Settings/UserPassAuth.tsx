@@ -2,6 +2,7 @@ import React from 'react';
 import { createUseStyles } from 'react-jss';
 import { TextField } from '../TextField';
 import { RucioUserpassAuth } from '../../types';
+import { Spinning } from '../Spinning';
 
 const useStyles = createUseStyles({
   container: {
@@ -17,31 +18,50 @@ const useStyles = createUseStyles({
     margin: '8px 8px 16px 8px',
     color: '#808080',
     fontSize: '9pt'
+  },
+  loadingIcon: {
+    fontSize: '10pt',
+    verticalAlign: 'middle'
+  },
+  loadingContainer: {
+    padding: '0 8px 0 8px',
+    display: 'flex',
+    alignItems: 'center'
   }
 });
 
 interface UserPassAuthProps {
   params?: RucioUserpassAuth;
-  onChange: { (val: RucioUserpassAuth): void };
+  loading?: boolean;
+  onAuthParamsChange: { (val: RucioUserpassAuth): void };
 }
 
-export const UserPassAuth: React.FC<UserPassAuthProps> = ({
+type MyProps = UserPassAuthProps & React.HTMLAttributes<HTMLDivElement>;
+
+export const UserPassAuth: React.FC<MyProps> = ({
   params = { username: '', password: '', account: '' },
-  onChange
+  loading,
+  onAuthParamsChange
 }) => {
   const classes = useStyles();
 
   const onUsernameChange = (username: string) => {
-    onChange({ ...params, username });
+    onAuthParamsChange({ ...params, username });
   };
 
   const onPasswordChange = (password: string) => {
-    onChange({ ...params, password });
+    onAuthParamsChange({ ...params, password });
   };
 
   const onAccountChange = (account?: string) => {
-    onChange({ ...params, account });
+    onAuthParamsChange({ ...params, account });
   };
+
+  const loadingSpinner = (
+    <div className={classes.loadingContainer}>
+      <Spinning className={`${classes.loadingIcon} material-icons`}>hourglass_top</Spinning>
+    </div>
+  );
 
   return (
     <>
@@ -53,6 +73,8 @@ export const UserPassAuth: React.FC<UserPassAuthProps> = ({
             outlineColor="#d5d5d5"
             value={params.username}
             onChange={e => onUsernameChange(e.target.value)}
+            disabled={loading}
+            after={loading ? loadingSpinner : undefined}
           />
         </div>
         <div className={classes.textFieldContainer}>
@@ -63,6 +85,8 @@ export const UserPassAuth: React.FC<UserPassAuthProps> = ({
             outlineColor="#d5d5d5"
             value={params.password}
             onChange={e => onPasswordChange(e.target.value)}
+            disabled={loading}
+            after={loading ? loadingSpinner : undefined}
           />
         </div>
         <div className={classes.warning}>Your password will be stored in plain text inside your user directory.</div>
@@ -73,6 +97,8 @@ export const UserPassAuth: React.FC<UserPassAuthProps> = ({
             outlineColor="#d5d5d5"
             value={params.account}
             onChange={e => onAccountChange(e.target.value)}
+            disabled={loading}
+            after={loading ? loadingSpinner : undefined}
           />
         </div>
       </div>
