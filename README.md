@@ -37,8 +37,6 @@ If you want to contribute or build the extension from source, see [CONTRIBUTING.
 
 This repository comes with a Docker image of [jupyter/scipy-notebook](https://hub.docker.com/r/jupyter/scipy-notebook) installed with the extension.
 
-If you haven't, authenticate to GitHub Package Registry in your Docker installation. Follow the instructions on [this page](https://docs.github.com/en/packages/using-github-packages-with-your-projects-ecosystem/configuring-docker-for-use-with-github-packages).
-
 To run the image, use the following command.
 ```bash
 $ docker run -d -p 8888:8888 \
@@ -49,7 +47,7 @@ $ docker run -d -p 8888:8888 \
     -e RUCIO_PATH_BEGINS_AT=<path begins at> \
     -e RUCIO_RSE_MOUNT_PATH=<mount path> \
     -v <host folder>:<container folder> \
-    docker.pkg.github.com/didithilmy/rucio-jupyterlab/dev:latest
+    didithilmy/rucio-jupyterlab:latest
 ```
 
 Follow the [configuration guide](CONFIGURATION.md) for details of the parameters.
