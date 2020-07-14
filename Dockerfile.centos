@@ -1,0 +1,45 @@
+FROM centos:7 AS miniconda3-centos
+LABEL maintainer="Muhammad Aditya Hilmy <mhilmy@hey.com>"
+ENV NB_USER=jovyan
+ENV CONDA_DIR=/opt/conda
+
+RUN yum -y update \
+    && yum -y install curl bzip2 \
+    && curl -sSL https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -o /tmp/miniconda.sh \
+    && bash /tmp/miniconda.sh -bfp /usr/local/ \
+    && rm -rf /tmp/miniconda.sh \
+    && conda install -y python=3 \
+    && conda update conda \
+    && conda clean --all --yes \
+    && rpm -e --nodeps curl bzip2 \
+    && yum clean all
+
+
+
+FROM miniconda3-centos
+
+RUN yum install -y epel-release && yum clean all
+RUN yum install -y gfal2-all gfal2-python3 && yum clean all
+RUN conda install -c conda-forge jupyterlab nodejs && conda clean --all
+
+RUN useradd -ms /bin/bash $NB_USER
+ENV HOME=/home/$NB_USER
+
+COPY . /rucio-jupyterlab
+WORKDIR /rucio-jupyterlab
+
+RUN chown -R $NB_USER /usr/local/etc/jupyter \
+    && chown -R $NB_USER /usr/local/share/jupyter \
+    && chown $NB_USER /rucio-jupyterlab
+
+USER $NB_USER
+RUN pip install .
+RUN jupyter serverextension enable --py rucio_jupyterlab --sys-prefix
+RUN jlpm install
+RUN jlpm build
+RUN jupyter labextension link .
+
+WORKDIR $HOME
+
+EXPOSE 8888
+CMD ["/rucio-jupyterlab/docker/configure.sh", "jupyter", "lab", "--ip=0.0.0.0", "--port=8888"]
