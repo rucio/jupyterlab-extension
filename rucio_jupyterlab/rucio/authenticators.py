@@ -1,3 +1,4 @@
+import traceback
 import requests
 from .utils import parse_timestamp
 
@@ -19,6 +20,7 @@ def authenticate_userpass(base_url, username, password, account=None, app_id=Non
 
         return (auth_token, expires)
     except:
+        traceback.print_exc()
         raise RucioAuthenticationException()
 
 
@@ -37,4 +39,5 @@ def authenticate_x509(base_url, cert_path, key_path=None, account=None, app_id=N
 
         return (auth_token, expires)
     except:
+        traceback.print_exc()
         raise RucioAuthenticationException()

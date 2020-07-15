@@ -18,6 +18,7 @@ class RucioAPI:
         self.auth_type = auth_type
         self.auth_config = auth_config
         self.base_url = instance_config.get('rucio_base_url')
+        self.auth_url = instance_config.get('rucio_auth_url', self.base_url)
         self.rucio_ca_cert = instance_config.get('rucio_ca_cert', False)    # TODO default should be True
 
     def get_files(self, scope, name):
@@ -115,14 +116,14 @@ class RucioAPI:
             account = auth_config.get('account')
             app_id = self.instance_config.get('app_id')
 
-            return authenticate_userpass(base_url=self.base_url, username=username, password=password, account=account, app_id=app_id, rucio_ca_cert=self.rucio_ca_cert)
+            return authenticate_userpass(base_url=self.auth_url, username=username, password=password, account=account, app_id=app_id, rucio_ca_cert=self.rucio_ca_cert)
         elif auth_type == 'x509':
             cert_path = auth_config.get('certificate')
             key_path = auth_config.get('key')
             account = auth_config.get('account')
             app_id = self.instance_config.get('app_id')
 
-            return authenticate_x509(base_url=self.base_url, cert_path=cert_path, key_path=key_path, account=account, app_id=app_id, rucio_ca_cert=self.rucio_ca_cert)
+            return authenticate_x509(base_url=self.auth_url, cert_path=cert_path, key_path=key_path, account=account, app_id=app_id, rucio_ca_cert=self.rucio_ca_cert)
 
         return None
 
