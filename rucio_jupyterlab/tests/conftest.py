@@ -19,8 +19,8 @@ def rucio():
         "destination_rse": "SWAN-EOS",
         "rse_mount_path": "/eos/user/rucio",
         "path_begins_at": 4,
-        "create_replication_rule_enabled": True,
-        "direct_download_enabled": True
+        "mode": "replica",
+        "rucio_ca_cert": "/rucio.crt"
     }
 
     mock_auth_type = 'userpass'

@@ -8,6 +8,13 @@ instance_properties = {
     "rucio_base_url": {
         "type": "string"
     },
+    "rucio_ca_cert": {
+        "type": "string"
+    },
+    "mode": {
+        "type": "string",
+        "enum": ["replica", "download"]
+    },
     "app_id": {
         "type": "string"
     },
@@ -36,9 +43,7 @@ instance = {
     "required": [
         "name",
         "display_name",
-        "rucio_base_url",
-        "destination_rse",
-        "rse_mount_path"
+        "rucio_base_url"
     ],
     "additionalProperties": True,
     "properties": instance_properties

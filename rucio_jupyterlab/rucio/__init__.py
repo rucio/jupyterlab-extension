@@ -18,12 +18,12 @@ class RucioAPI:
         self.auth_type = auth_type
         self.auth_config = auth_config
         self.base_url = instance_config.get('rucio_base_url')
+        self.rucio_ca_cert = instance_config.get('rucio_ca_cert', False)    # TODO default should be True
 
     def get_files(self, scope, name):
         token = self._get_auth_token()
         headers = {'X-Rucio-Auth-Token': token}
-        response = requests.get(url=f'{self.base_url}/dids/{scope}/{name}/files',
-                                headers=headers, verify=False)    # TODO verify=True
+        response = requests.get(url=f'{self.base_url}/dids/{scope}/{name}/files', headers=headers, verify=self.rucio_ca_cert)
 
         if response.text == '':
             return []
@@ -35,8 +35,7 @@ class RucioAPI:
     def get_rules(self, scope, name):
         token = self._get_auth_token()
         headers = {'X-Rucio-Auth-Token': token}
-        response = requests.get(url=f'{self.base_url}/dids/{scope}/{name}/rules',
-                                headers=headers, verify=False)    # TODO verify=True
+        response = requests.get(url=f'{self.base_url}/dids/{scope}/{name}/rules', headers=headers, verify=self.rucio_ca_cert)
 
         if response.text == '':
             return []
@@ -49,14 +48,13 @@ class RucioAPI:
         token = self._get_auth_token()
         headers = {'X-Rucio-Auth-Token': token}
         response = requests.get(
-            url=f'{self.base_url}/rules/{rule_id}', headers=headers, verify=False)    # TODO verify=True
+            url=f'{self.base_url}/rules/{rule_id}', headers=headers, verify=self.rucio_ca_cert)
         return response.json()
 
     def get_replicas(self, scope, name):
         token = self._get_auth_token()
         headers = {'X-Rucio-Auth-Token': token}
-        response = requests.get(url=f'{self.base_url}/replicas/{scope}/{name}',
-                                headers=headers, verify=False)    # TODO verify=True
+        response = requests.get(url=f'{self.base_url}/replicas/{scope}/{name}', headers=headers, verify=self.rucio_ca_cert)
 
         if response.text == '':
             return []
@@ -80,8 +78,7 @@ class RucioAPI:
         token = self._get_auth_token()
         headers = {'X-Rucio-Auth-Token': token}
 
-        response = requests.post(
-            url=f'{self.base_url}/rules/', headers=headers, json=data, verify=False)
+        response = requests.post(url=f'{self.base_url}/rules/', headers=headers, json=data, verify=self.rucio_ca_cert)
         return response.json()
 
     def _get_auth_token(self):
@@ -118,14 +115,14 @@ class RucioAPI:
             account = auth_config.get('account')
             app_id = self.instance_config.get('app_id')
 
-            return authenticate_userpass(base_url=self.base_url, username=username, password=password, account=account, app_id=app_id)
+            return authenticate_userpass(base_url=self.base_url, username=username, password=password, account=account, app_id=app_id, rucio_ca_cert=self.rucio_ca_cert)
         elif auth_type == 'x509':
             cert_path = auth_config.get('certificate')
             key_path = auth_config.get('key')
             account = auth_config.get('account')
             app_id = self.instance_config.get('app_id')
 
-            return authenticate_x509(base_url=self.base_url, cert_path=cert_path, key_path=key_path, account=account, app_id=app_id)
+            return authenticate_x509(base_url=self.base_url, cert_path=cert_path, key_path=key_path, account=account, app_id=app_id, rucio_ca_cert=self.rucio_ca_cert)
 
         return None
 
