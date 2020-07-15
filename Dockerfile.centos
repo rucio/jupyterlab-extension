@@ -22,7 +22,6 @@ RUN yum install -y epel-release && yum clean all
 RUN conda install -c conda-forge jupyterlab nodejs && conda clean --all
 RUN yum install -y python3-devel gcc gfal2-all gfal2-python3 && yum clean all
 
-COPY docker/requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 
 # RUN useradd -ms /bin/bash $NB_USER
