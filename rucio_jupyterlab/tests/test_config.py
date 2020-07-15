@@ -164,7 +164,6 @@ def test_config_init__remote_config__schema_invalid(requests_mock):
     mock_config = Struct(instances=mock_instances)
 
     remote_config = {
-        "rucio_base_url": "https://rucio",
         "rse_mount_path": "/eos/user/rucio",
         "path_begins_at": 1
     }
