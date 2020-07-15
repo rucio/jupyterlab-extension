@@ -5,11 +5,10 @@ import rucio_jupyterlab.utils as utils
 from .base import RucioAPIHandler
 
 
-class FileBrowserHandler(RucioAPIHandler):
-    @tornado.web.authenticated
-    def get(self):
+class FileBrowserHandlerImpl:
+    @staticmethod
+    def list_contents(path):
         home = os.path.expanduser('~')
-        path = self.get_query_argument('path', default='')
         path = os.path.expanduser(path)
 
         if not path:
@@ -18,9 +17,7 @@ class FileBrowserHandler(RucioAPIHandler):
             path = os.path.join(home, path)
 
         if not os.path.exists(path):
-            self.set_status(404)
-            self.finish(json.dumps({'success': False}))
-            return
+            return None
 
         items = os.listdir(path)
 
@@ -30,10 +27,19 @@ class FileBrowserHandler(RucioAPIHandler):
             return dict(type=item_type, name=item, path=full_path)
 
         items = utils.map(items, items_mapper)
+        items = utils.filter(items, lambda x, _: x['name'][0] != '.')
+        return items
 
-        def items_filter(item, _):
-            return item['name'][0] != '.'
 
-        items = utils.filter(items, items_filter)
+class FileBrowserHandler(RucioAPIHandler):
+    @tornado.web.authenticated
+    def get(self):
+        path = self.get_query_argument('path', default='')
+        items = FileBrowserHandlerImpl.list_contents(path)
+
+        if not items:
+            self.set_status(404)
+            self.finish(json.dumps({'success': False}))
+            return
 
         self.finish(json.dumps(items))
