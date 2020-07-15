@@ -165,15 +165,8 @@ def test_config_init__remote_config__schema_invalid(requests_mock):
 
     remote_config = {
         "rucio_base_url": "https://rucio",
-        "auth": {
-            "type": "userpass",
-            "username": "swan",
-            "password": "swan"
-        },
         "rse_mount_path": "/eos/user/rucio",
-        "path_begins_at": 1,
-        "create_replication_rule_enabled": True,
-        "direct_download_enabled": True
+        "path_begins_at": 1
     }
 
     requests_mock.get("http://localhost/rucio.json", json=remote_config)
