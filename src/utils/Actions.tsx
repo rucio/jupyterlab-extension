@@ -2,7 +2,7 @@ import React from 'react';
 import qs from 'querystring';
 import { requestAPI } from './ApiRequest';
 import { UIStore } from '../stores/UIStore';
-import { FileDIDDetails, AttachedFile, RucioAuthType, RucioAuthCredentials, InstanceConfig } from '../types';
+import { FileDIDDetails, AttachedFile, RucioAuthType, RucioAuthCredentials, InstanceConfig, DirectoryItem } from '../types';
 
 export class Actions {
   async fetchInstancesConfig(): Promise<InstanceConfig> {
@@ -114,6 +114,10 @@ export class Actions {
     };
 
     return requestAPI('did/make-available?namespace=' + encodeURIComponent(namespace), init);
+  }
+
+  async listDirectory(path: string): Promise<DirectoryItem[]> {
+    return requestAPI<DirectoryItem[]>('file-browser?path=' + encodeURIComponent(path));
   }
 }
 
