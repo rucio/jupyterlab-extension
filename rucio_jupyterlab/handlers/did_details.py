@@ -2,6 +2,7 @@ import json
 import tornado
 from rucio_jupyterlab.rucio.authenticators import RucioAuthenticationException
 from rucio_jupyterlab.mode_handlers.replica import ReplicaModeHandler
+from rucio_jupyterlab.mode_handlers.download import DownloadModeHandler
 from .base import RucioAPIHandler
 
 
@@ -18,9 +19,13 @@ class DIDDetailsHandler(RucioAPIHandler):
         did = self.get_query_argument('did')
         scope, name = did.split(':')
 
-        rucio = self.rucio.for_instance(namespace)
-
-        handler = ReplicaModeHandler(namespace, rucio)
+        rucio_instance = self.rucio.for_instance(namespace)
+        mode = rucio_instance.instance_config.get('mode', 'replica')
+        
+        if mode == 'replica':
+            handler = ReplicaModeHandler(namespace, rucio_instance)
+        elif mode == 'download':
+            handler = DownloadModeHandler(namespace, rucio_instance)
 
         try:
             output = handler.get_did_details(scope, name, poll)

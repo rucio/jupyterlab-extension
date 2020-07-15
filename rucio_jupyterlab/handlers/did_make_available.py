@@ -2,6 +2,7 @@ import json
 import tornado
 from rucio_jupyterlab.rucio.authenticators import RucioAuthenticationException
 from rucio_jupyterlab.mode_handlers.replica import ReplicaModeHandler
+from rucio_jupyterlab.mode_handlers.download import DownloadModeHandler
 from .base import RucioAPIHandler
 
 
@@ -19,7 +20,7 @@ class DIDMakeAvailableHandler(RucioAPIHandler):
         if mode == 'replica':
             handler = ReplicaModeHandler(namespace, rucio_instance)
         elif mode == 'download':
-            handler = None  # TODO implement
+            handler = DownloadModeHandler(namespace, rucio_instance)
 
         try:
             output = handler.make_available(scope, name)

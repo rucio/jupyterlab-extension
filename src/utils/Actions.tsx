@@ -76,16 +76,9 @@ export class Actions {
     }
 
     const didDetails = await this.fetchDIDDetails(namespace, did, poll);
-    const fileDIDMap = didDetails
-      .filter(d => d.status === 'OK')
-      .reduce((acc: { [did: string]: FileDIDDetails }, curr) => {
-        acc[curr.did] = curr;
-        return acc;
-      }, {});
 
     UIStore.update(s => {
       s.containerDetails[did] = didDetails;
-      s.fileDetails = { ...s.fileDetails, ...fileDIDMap };
     });
 
     return didDetails;
