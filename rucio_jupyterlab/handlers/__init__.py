@@ -6,6 +6,7 @@ from .auth_config import AuthConfigHandler
 from .did_browser import DIDBrowserHandler
 from .did_details import DIDDetailsHandler
 from .did_make_available import DIDMakeAvailableHandler
+from .file_browser import FileBrowserHandler
 
 
 def setup_handlers(web_app):  # pragma: no cover
@@ -24,7 +25,7 @@ def setup_handlers(web_app):  # pragma: no cover
         (url_path_join(base_path, 'auth'), AuthConfigHandler, handler_params),
         (url_path_join(base_path, 'files'), DIDBrowserHandler, handler_params),
         (url_path_join(base_path, 'did'), DIDDetailsHandler, handler_params),
-        (url_path_join(base_path, 'did', 'make-available'),
-         DIDMakeAvailableHandler, handler_params),
+        (url_path_join(base_path, 'did', 'make-available'), DIDMakeAvailableHandler, handler_params),
+        (url_path_join(base_path, 'file-browser'), FileBrowserHandler, handler_params),
     ]
     web_app.add_handlers(host_pattern, handlers)
