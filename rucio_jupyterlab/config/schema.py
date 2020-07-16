@@ -49,7 +49,14 @@ instance = {
         "rucio_base_url"
     ],
     "additionalProperties": True,
-    "properties": instance_properties
+    "properties": instance_properties,
+    "if": {"properties": {"mode": {"const": "replica"}}},
+    "then": {
+        "required": ["destination_rse", "rse_mount_path"]
+    },
+    "else": {
+        "required": ["rucio_ca_cert"]
+    }
 }
 
 remote_instance = {

@@ -21,19 +21,19 @@ The extension can be configured locally or remotely.
 In your Jupyter configuration (could be `~/.jupyter/jupyter_notebook_config.json`), add the following snippet:
 ```json
 {
-    ...,
     "RucioConfig": {
         "instances": [
             {
                 "name": "experiment.cern.ch",
                 "display_name": "Experiment",
                 "rucio_base_url": "https://rucio",
+                "rucio_auth_url": "https://rucio",
+                "rucio_ca_cert": "/path/to/rucio_ca.pem",
                 "destination_rse": "SWAN-EOS",
                 "rse_mount_path": "/eos/rucio",
                 "path_begins_at": 4,
                 "mode": "replica"
-            },
-            ...
+            }
         ]
     }
 }
@@ -43,15 +43,13 @@ In your Jupyter configuration (could be `~/.jupyter/jupyter_notebook_config.json
 To use remote configuration, use the following snippet:
 ```json
 {
-    ...,
     "RucioConfig": {
         "instances": [
             {
                 "name": "experiment.cern.ch",
                 "display_name": "Experiment",
                 "$url": "https://url-to-rucio-configuration/config.json"
-            },
-            ...
+            }
         ]
     }
 }
@@ -62,6 +60,8 @@ In the JSON file pointed by the value in `$url`, use the following snippet:
 {
     "rucio_base_url": "https://rucio",
     "destination_rse": "SWAN-EOS",
+    "rucio_auth_url": "https://rucio",
+    "rucio_ca_cert": "/path/to/rucio_ca.pem",
     "rse_mount_path": "/eos/rucio",
     "path_begins_at": 4,
     "mode": "replica"
@@ -90,18 +90,33 @@ Base URL for the Rucio instance accessible from the JupyterLab server, **without
 
 Example: `https://rucio`
 
+#### Rucio Auth URL - `rucio_auth_url`
+Base URL for the Rucio instance handling authentication (if separate) accessible from the JupyterLab server, **without trailing slash**.
+
+Example: `https://rucio-auth`
+
+#### Rucio CA Certificate File Path - `rucio_ca_cert`
+Path to Rucio server certificate file, accessible via filesystem mount. Optional in Replica mode, mandatory in Download mode.
+
+Example: `/opt/rucio/rucio_ca.pem`
+
+#### App ID - `app_id`
+Rucio App ID. Optional.
+
+Example: `swan`
+
 #### Destination RSE - `destination_rse`
-The name of the Rucio Storage Element that is mounted to the JupyterLab server. Only applicable in Replica mode.
+The name of the Rucio Storage Element that is mounted to the JupyterLab server. Mandatory, only applicable in Replica mode.
 
 Example: `SWAN-EOS`
 
 #### RSE Mount Path - `rse_mount_path`
-The base path in which the RSE is mounted to the server. Only applicable in Replica mode.
+The base path in which the RSE is mounted to the server. Mandatory, only applicable in Replica mode.
 
 Example: `/eos/rucio`
 
 #### File Path Starting Index - `path_begins_at`
-This configuration indicates which part of the PFN should be appended to the mount path. Only applicable in Replica mode.
+This configuration indicates which part of the PFN should be appended to the mount path. Only applicable in Replica mode. Defaults to `0`.
 
 Example: let us say that the PFN of a file is `root://xrd1:1094//rucio/test/49/ad/f1.txt` and the mount path is `/eos/rucio`. A starting index of `1` means that the path starting from the 2nd slash (index 1) in the PFN will be appended to the mount path. The resulting path would be `/eos/rucio/test/49/ad/f1.txt`.
 
