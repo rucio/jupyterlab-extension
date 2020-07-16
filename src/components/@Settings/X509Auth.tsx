@@ -82,9 +82,9 @@ export const X509Auth: React.FC<MyProps> = ({
           />
         </div>
         <div className={classes.textFieldContainer}>
-          <div className={classes.label}>Key file path (optional)</div>
+          <div className={classes.label}>Key file path</div>
           <TextField
-            placeholder="Path to key file (optional)"
+            placeholder="Path to key file"
             outlineColor="#d5d5d5"
             value={params.key}
             onChange={e => onKeyPathChange(e.target.value)}
@@ -97,9 +97,9 @@ export const X509Auth: React.FC<MyProps> = ({
           supported.
         </div>
         <div className={classes.textFieldContainer}>
-          <div className={classes.label}>Account (optional)</div>
+          <div className={classes.label}>Account</div>
           <TextField
-            placeholder="Account (optional)"
+            placeholder="Account"
             outlineColor="#d5d5d5"
             value={params.account}
             onChange={e => onAccountChange(e.target.value)}

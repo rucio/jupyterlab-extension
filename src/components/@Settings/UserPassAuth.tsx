@@ -91,9 +91,9 @@ export const UserPassAuth: React.FC<MyProps> = ({
         </div>
         <div className={classes.warning}>Your password will be stored in plain text inside your user directory.</div>
         <div className={classes.textFieldContainer}>
-          <div className={classes.label}>Account (optional)</div>
+          <div className={classes.label}>Account</div>
           <TextField
-            placeholder="Account (optional)"
+            placeholder="Account"
             outlineColor="#d5d5d5"
             value={params.account}
             onChange={e => onAccountChange(e.target.value)}
