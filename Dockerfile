@@ -13,10 +13,11 @@ RUN apt update \
 COPY . /rucio-jupyterlab
 RUN fix-permissions /rucio-jupyterlab
 WORKDIR /rucio-jupyterlab
+RUN sed -i -e 's/\r$/\n/' /rucio-jupyterlab/docker/configure.sh
 
 USER $NB_UID
 
-RUN pip install .
+RUN pip install -e .
 RUN jupyter serverextension enable --py rucio_jupyterlab --sys-prefix
 RUN jlpm
 RUN jlpm build
