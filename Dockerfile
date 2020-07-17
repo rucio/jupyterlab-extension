@@ -3,11 +3,7 @@ LABEL maintainer="Muhammad Aditya Hilmy <mhilmy@hey.com>"
 
 USER root
 
-RUN apt update \
-    && apt install -y gfal2 \
-    && apt clean \
-    && conda update conda \
-    && conda install -y -c conda-forge python-gfal2 \
+RUN conda install -y -c conda-forge python-gfal2 \
     && conda clean --all --yes 
 
 COPY . /rucio-jupyterlab
