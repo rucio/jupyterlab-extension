@@ -36,3 +36,21 @@ def test_did_downloader_write_lockfile__should_write_pid(mocker):
         DIDDownloader.write_lockfile('/path')
         mock_file.assert_called_with(os.path.join('/path', '.lockfile'), 'w')
         mock_file.return_value.write.assert_called_once_with('123')
+
+
+def test_did_downloader_write_temp_config_file__should_make_correct_directory(mocker):
+    mock_config = {
+        'rucio_host': 'https://rucio',
+        'auth_host': 'https://rucio-auth',
+        'auth_type': 'userpass',
+        'username': 'ruciouser',
+        'password': 'ruciopass',
+        'account': 'root',
+        'ca_cert': '/opt/certs/rucio.pem'
+    }
+
+    mocker.patch.object(os, 'makedirs', return_value=None)
+    with patch("builtins.open", mock_open()) as mock_file:
+        DIDDownloader.write_temp_config_file('/path', mock_config)
+        mock_file.assert_called_with(os.path.join('/path', 'etc', 'rucio.cfg'), 'w')
+        os.makedirs.assert_called_once_with(os.path.join('/path', 'etc'), exist_ok=True)
