@@ -169,8 +169,7 @@ class DIDDownloader:
         client = Client()
         download_client = DownloadClient(client=client, logger=download_logger)
 
-        results = download_client.download_dids(
-            [{'did': did, 'base_dir': dest_path}])
+        results = download_client.download_dids([{'did': did, 'base_dir': dest_path}])
 
         return results
 
@@ -188,7 +187,7 @@ class DIDDownloader:
 
     @staticmethod
     def get_dest_folder(namespace, did):
-        did_folder_name = str(base64.b32encode(did.encode("utf-8")), 'utf-8').lower()
+        did_folder_name = str(base64.b32encode(did.encode('utf-8')), 'utf-8').lower().replace('=', '0')
         dest_path = os.path.expanduser(os.path.join('~', 'rucio', namespace, 'downloads', did_folder_name))
         return dest_path
 
