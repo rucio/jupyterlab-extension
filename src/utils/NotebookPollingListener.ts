@@ -22,7 +22,7 @@ export class NotebookPollingListener {
       attachments => {
         this.removeUnfocusedDIDs(attachments);
         this.processNewAttachments(attachments);
-        this.activeNotebookAttachmentDIDs = attachments?.map(a => a.did);
+        this.activeNotebookAttachmentDIDs = attachments?.map(a => a.did) || [];
       }
     );
 
@@ -51,7 +51,7 @@ export class NotebookPollingListener {
             if (this.activePolling.includes(did)) {
               this.disablePolling(did);
             }
-            if (file.current.status === 'OK' && file.prev.status === 'REPLICATING') {
+            if (file.current.status === 'OK' && file.prev?.status === 'REPLICATING') {
               const { activeNotebookPanel } = ExtensionStore.getRawState();
               this.notebookListener.reinjectSpecificDID(activeNotebookPanel, did);
             }
