@@ -97,7 +97,6 @@ const _FilePickerPopover: React.FC<MyProps> = ({ children, onFilePicked, ...prop
 
   const loadDirectoryItem = () => {
     const pathString = path.join('/');
-    console.log('Items cache', itemsCache);
     if (itemsCache[pathString]) {
       setDirectoryItems(itemsCache[pathString]);
     } else {
@@ -111,6 +110,7 @@ const _FilePickerPopover: React.FC<MyProps> = ({ children, onFilePicked, ...prop
           setItemsCache(newItemsCache);
           setDirectoryItems(items);
         })
+        .catch(() => setDirectoryItems([]))
         .finally(() => {
           setLoading(false);
         });

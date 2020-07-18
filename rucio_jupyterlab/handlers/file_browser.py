@@ -37,7 +37,7 @@ class FileBrowserHandler(RucioAPIHandler):
         path = self.get_query_argument('path', default='')
         items = FileBrowserHandlerImpl.list_contents(path)
 
-        if not items:
+        if items is None:
             self.set_status(404)
             self.finish(json.dumps({'success': False}))
             return

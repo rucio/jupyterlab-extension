@@ -102,7 +102,7 @@ def test_list_contents__is_file_false__should_type_dir(mocker):
     assert types == ['dir', 'dir'], "Not removing dotfiles"
 
 
-def test_get_handler(mocker):
+def test_get_handler__non_empty__should_return_non_empty(mocker):
     mock_self = MockHandler()
     mocker.patch.object(mock_self, 'get_query_argument', return_value='path')
 
@@ -116,6 +116,46 @@ def test_get_handler(mocker):
     def finish_side_effect(output):
         finish_json = json.loads(output)
         assert finish_json == [{'type': 'dir', 'name': 'path', 'path': '/path'}], "Invalid finish response"
+
+    mocker.patch.object(mock_self, 'finish', side_effect=finish_side_effect)
+    FileBrowserHandler.get(mock_self)
+    mock_self.get_query_argument.assert_called_once_with('path', default='')  # pylint: disable=no-member
+
+
+def test_get_handler__empty__should_return_empty(mocker):
+    mock_self = MockHandler()
+    mocker.patch.object(mock_self, 'get_query_argument', return_value='path')
+
+    class MockFileBrowserHandlerImpl(FileBrowserHandlerImpl):
+        @staticmethod
+        def list_contents(path):
+            return []
+
+    mocker.patch('rucio_jupyterlab.handlers.file_browser.FileBrowserHandlerImpl', MockFileBrowserHandlerImpl)
+
+    def finish_side_effect(output):
+        finish_json = json.loads(output)
+        assert finish_json == [], "Invalid finish response"
+
+    mocker.patch.object(mock_self, 'finish', side_effect=finish_side_effect)
+    FileBrowserHandler.get(mock_self)
+    mock_self.get_query_argument.assert_called_once_with('path', default='')  # pylint: disable=no-member
+
+
+def test_get_handler__not_exists__should_return_error(mocker):
+    mock_self = MockHandler()
+    mocker.patch.object(mock_self, 'get_query_argument', return_value='path')
+
+    class MockFileBrowserHandlerImpl(FileBrowserHandlerImpl):
+        @staticmethod
+        def list_contents(path):
+            return None
+
+    mocker.patch('rucio_jupyterlab.handlers.file_browser.FileBrowserHandlerImpl', MockFileBrowserHandlerImpl)
+
+    def finish_side_effect(output):
+        finish_json = json.loads(output)
+        assert finish_json == {'success': False}, "Invalid finish response"
 
     mocker.patch.object(mock_self, 'finish', side_effect=finish_side_effect)
     FileBrowserHandler.get(mock_self)
