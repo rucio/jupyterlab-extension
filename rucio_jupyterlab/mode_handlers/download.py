@@ -40,33 +40,35 @@ class DownloadModeHandler:
 
     def get_did_details(self, scope, name, force_fetch=False):
         did = scope + ':' + name
-        attached_files = self._get_attached_files(scope, name)
+        attached_files = self._get_attached_files(scope, name, force_fetch)
 
+        dest_dir_exists = self._dest_dir_exists(did)
         is_downloading = self._is_downloading(did)
         paths = self._get_file_paths(did)
 
         def result_mapper(file, _):
-            path = None
-            status = DownloadModeHandler.STATUS_NOT_AVAILABLE
+            if not dest_dir_exists:
+                return dict(status=DownloadModeHandler.STATUS_NOT_AVAILABLE, did=file.did, path=None, size=file.size)
 
             if is_downloading:
-                status = DownloadModeHandler.STATUS_REPLICATING
-            elif paths:
-                path = paths.get(file.did)
-                if os.path.isfile(path):
-                    status = DownloadModeHandler.STATUS_OK
-                else:
-                    path = None
-                    status = DownloadModeHandler.STATUS_STUCK
+                return dict(status=DownloadModeHandler.STATUS_REPLICATING, did=file.did, path=None, size=file.size)
 
-            return dict(status=status, did=file.did, path=path, size=file.size)
+            if not paths:
+                return dict(status=DownloadModeHandler.STATUS_STUCK, did=file.did, path=None, size=file.size)
+
+            path = paths.get(file.did)
+
+            if not os.path.isfile(path):
+                return dict(status=DownloadModeHandler.STATUS_STUCK, did=file.did, path=None, size=file.size)
+
+            return dict(status=DownloadModeHandler.STATUS_OK, did=file.did, path=path, size=file.size)
 
         results = utils.map(attached_files, result_mapper)
         return results
 
-    def _get_attached_files(self, scope, name):
+    def _get_attached_files(self, scope, name, force_fetch=False):
         did = scope + ':' + name
-        attached_files = self.db.get_attached_files(self.namespace, did)
+        attached_files = self.db.get_attached_files(self.namespace, did) if not force_fetch else None
         if not attached_files:
             rucio_attached_files = self.rucio.get_files(scope, name)
 
@@ -108,6 +110,10 @@ class DownloadModeHandler:
         dest_path = DIDDownloader.get_dest_folder(self.namespace, did)
         return DIDDownloader.is_downloading(dest_path)
 
+    def _dest_dir_exists(self, did):
+        dest_path = DIDDownloader.get_dest_folder(self.namespace, did)
+        return os.path.isdir(dest_path)
+
     def _did_path_exists(self, did):
         dest_path = DIDDownloader.get_dest_folder(self.namespace, did)
         return os.path.isdir(dest_path)
@@ -119,8 +125,8 @@ class DownloadModeHandler:
         if not os.path.isfile(donefile_path):
             return None
 
-        with open(donefile_path, 'r') as f:
-            content = f.read()
+        with open(donefile_path, 'r') as donefile:
+            content = donefile.read()
             data = json.loads(content)
             paths = data.get('paths')
             return paths
@@ -157,8 +163,8 @@ class DIDDownloader:
         if not os.path.isfile(lockfile_path):
             return False
 
-        with open(lockfile_path, 'r') as f:
-            pid = int(f.read())
+        with open(lockfile_path, 'r') as lockfile:
+            pid = int(lockfile.read())
             return psutil.pid_exists(pid)
 
     @staticmethod
@@ -194,9 +200,9 @@ class DIDDownloader:
     @staticmethod
     def write_lockfile(dest_folder):
         file_path = os.path.join(dest_folder, '.lockfile')
-        with open(file_path, 'w') as f:
+        with open(file_path, 'w') as lockfile:
             content = str(os.getpid())
-            f.write(content)
+            lockfile.write(content)
 
     @staticmethod
     def delete_lockfile(dest_folder):
@@ -219,5 +225,5 @@ class DIDDownloader:
             'paths': paths
         })
 
-        with open(file_path, 'w') as f:
-            f.write(content)
+        with open(file_path, 'w') as donefile:
+            donefile.write(content)
