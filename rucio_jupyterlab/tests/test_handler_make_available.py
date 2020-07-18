@@ -1,4 +1,3 @@
-import pytest
 from rucio_jupyterlab.handlers.did_make_available import DIDMakeAvailableHandler
 from rucio_jupyterlab.mode_handlers.replica import ReplicaModeHandler
 from rucio_jupyterlab.mode_handlers.download import DownloadModeHandler

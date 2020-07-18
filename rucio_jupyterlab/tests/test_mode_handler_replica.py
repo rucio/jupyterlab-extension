@@ -122,8 +122,14 @@ mock_rucio_rule_status_replicating = [
 ]
 
 
-def create_mock_db_get_file_replica(exist=[], missing=[]):
+def create_mock_db_get_file_replica(exist=None, missing=None):
     mock_replica_i = 0
+
+    if not exist:
+        exist = []
+
+    if not missing:
+        missing = []
 
     def mock_db_get_file_replica(namespace, did):
         nonlocal mock_replica_i

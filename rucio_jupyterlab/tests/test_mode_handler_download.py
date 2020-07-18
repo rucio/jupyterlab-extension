@@ -53,4 +53,4 @@ def test_did_downloader_write_temp_config_file__should_make_correct_directory(mo
     with patch("builtins.open", mock_open()) as mock_file:
         DIDDownloader.write_temp_config_file('/path', mock_config)
         mock_file.assert_called_with(os.path.join('/path', 'etc', 'rucio.cfg'), 'w')
-        os.makedirs.assert_called_once_with(os.path.join('/path', 'etc'), exist_ok=True)
+        os.makedirs.assert_called_once_with(os.path.join('/path', 'etc'), exist_ok=True)    # pylint: disable=no-member

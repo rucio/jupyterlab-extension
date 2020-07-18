@@ -21,7 +21,7 @@ class DIDDetailsHandler(RucioAPIHandler):
 
         rucio_instance = self.rucio.for_instance(namespace)
         mode = rucio_instance.instance_config.get('mode', 'replica')
-        
+
         if mode == 'replica':
             handler = ReplicaModeHandler(namespace, rucio_instance)
         elif mode == 'download':
