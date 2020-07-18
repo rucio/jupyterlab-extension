@@ -46,7 +46,8 @@ instance = {
     "required": [
         "name",
         "display_name",
-        "rucio_base_url"
+        "rucio_base_url",
+        "mode"
     ],
     "additionalProperties": True,
     "properties": instance_properties,
