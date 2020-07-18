@@ -351,7 +351,7 @@ describe('makeFileAvailable', () => {
             expect.stringMatching(/(\b(did\/make-available|namespace=atlas)\b.*){2,}/),
             expect.objectContaining({
                 method: 'POST',
-                body: JSON.stringify({ method: 'replica', did: 'scope:name' })
+                body: JSON.stringify({ did: 'scope:name' })
             })
         )
 
@@ -376,7 +376,7 @@ describe('makeContainerAvailable', () => {
             expect.stringMatching(/(\b(did\/make-available|namespace=atlas)\b.*){2,}/),
             expect.objectContaining({
                 method: 'POST',
-                body: JSON.stringify({ method: 'replica', did: 'scope:name' })
+                body: JSON.stringify({ did: 'scope:name' })
             })
         )
 

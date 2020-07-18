@@ -110,7 +110,7 @@ export class Actions {
 
     const init = {
       method: 'POST',
-      body: JSON.stringify({ method: 'replica', did })
+      body: JSON.stringify({ did })
     };
 
     return requestAPI('did/make-available?namespace=' + encodeURIComponent(namespace), init);
