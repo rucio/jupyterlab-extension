@@ -4,23 +4,16 @@ from rucio_jupyterlab.config import Config
 from .mocks.mock_db import Struct
 
 
-def test_config_init__local_config__schema_valid():
+def test_config_init__local_config__replica_mode__schema_valid():
     mock_instances = [
         {
             "name": "atlas",
             "display_name": "ATLAS",
             "rucio_base_url": "https://rucio",
-            "auth": {
-                "type": "userpass",
-                "username": "swan",
-                "password": "swan",
-                "account": "swan"
-            },
+            "mode": "replica",
             "destination_rse": "SWAN-EOS",
             "rse_mount_path": "/eos/user/rucio",
-            "path_begins_at": 4,
-            "create_replication_rule_enabled": True,
-            "direct_download_enabled": True
+            "path_begins_at": 4
         }
     ]
 
@@ -30,22 +23,46 @@ def test_config_init__local_config__schema_valid():
     assert config.get_instance_config('atlas') == mock_instances[0], "Invalid instances"
 
 
-def test_config_init__local_config__schema_invalid():
+def test_config_init__local_config__replica_mode__schema_invalid():
     mock_instances = [
         {
             "display_name": "ATLAS",
             "rucio_base_url": "https://rucio",
-            "auth": {
-                "type": "userpass",
-                "username": "swan",
-                "password": "swan",
-                "account": "swan"
-            },
-            "destination_rse": "SWAN-EOS",
+            "mode": "replica",
             "rse_mount_path": "/eos/user/rucio",
-            "path_begins_at": 4,
-            "create_replication_rule_enabled": True,
-            "direct_download_enabled": True
+            "path_begins_at": 4
+        }
+    ]
+
+    mock_config = Struct(instances=mock_instances)
+
+    with pytest.raises(ValidationError):
+        Config(mock_config)
+
+
+def test_config_init__local_config__download_mode__schema_valid():
+    mock_instances = [
+        {
+            "name": "atlas",
+            "display_name": "ATLAS",
+            "rucio_base_url": "https://rucio",
+            "mode": "download",
+            "rucio_ca_cert": '/opt/rucio.pem'
+        }
+    ]
+
+    mock_config = Struct(instances=mock_instances)
+    config = Config(mock_config)
+
+    assert config.get_instance_config('atlas') == mock_instances[0], "Invalid instances"
+
+
+def test_config_init__local_config__download_mode__schema_invalid():
+    mock_instances = [
+        {
+            "display_name": "ATLAS",
+            "rucio_base_url": "https://rucio",
+            "mode": "download"
         }
     ]
 
@@ -60,6 +77,7 @@ def test_config_init__remote_config__schema_valid__no_overlapping_item(requests_
         {
             "name": "cms",
             "display_name": "CMS",
+            "mode": "replica",
             "$url": "http://localhost/rucio.json"
         }
     ]
@@ -68,16 +86,9 @@ def test_config_init__remote_config__schema_valid__no_overlapping_item(requests_
 
     remote_config = {
         "rucio_base_url": "https://rucio",
-        "auth": {
-            "type": "userpass",
-            "username": "swan",
-            "password": "swan"
-        },
         "destination_rse": "SWAN-EOS",
         "rse_mount_path": "/eos/user/rucio",
-        "path_begins_at": 1,
-        "create_replication_rule_enabled": True,
-        "direct_download_enabled": True
+        "path_begins_at": 1
     }
 
     requests_mock.get("http://localhost/rucio.json", json=remote_config)
@@ -86,18 +97,12 @@ def test_config_init__remote_config__schema_valid__no_overlapping_item(requests_
     expected_config = {
         "name": "cms",
         "display_name": "CMS",
+        "mode": "replica",
         "$url": "http://localhost/rucio.json",
         "rucio_base_url": "https://rucio",
-        "auth": {
-            "type": "userpass",
-            "username": "swan",
-            "password": "swan"
-        },
         "destination_rse": "SWAN-EOS",
         "rse_mount_path": "/eos/user/rucio",
-        "path_begins_at": 1,
-        "create_replication_rule_enabled": True,
-        "direct_download_enabled": True
+        "path_begins_at": 1
     }
 
     assert config.get_instance_config('cms') == expected_config, "Invalid remote config format"
@@ -108,6 +113,7 @@ def test_config_init__remote_config__schema_valid__overlapping_item(requests_moc
         {
             "name": "cms",
             "display_name": "CMS-Local",
+            "mode": "replica",
             "$url": "http://localhost/rucio.json"
         }
     ]
@@ -117,16 +123,9 @@ def test_config_init__remote_config__schema_valid__overlapping_item(requests_moc
     remote_config = {
         "display_name": "CMS-Remote",
         "rucio_base_url": "https://rucio",
-        "auth": {
-            "type": "userpass",
-            "username": "swan",
-            "password": "swan"
-        },
         "destination_rse": "SWAN-EOS",
         "rse_mount_path": "/eos/user/rucio",
-        "path_begins_at": 1,
-        "create_replication_rule_enabled": True,
-        "direct_download_enabled": True
+        "path_begins_at": 1
     }
 
     requests_mock.get("http://localhost/rucio.json", json=remote_config)
@@ -135,18 +134,12 @@ def test_config_init__remote_config__schema_valid__overlapping_item(requests_moc
     expected_config = {
         "name": "cms",
         "display_name": "CMS-Local",
+        "mode": "replica",
         "$url": "http://localhost/rucio.json",
         "rucio_base_url": "https://rucio",
-        "auth": {
-            "type": "userpass",
-            "username": "swan",
-            "password": "swan"
-        },
         "destination_rse": "SWAN-EOS",
         "rse_mount_path": "/eos/user/rucio",
-        "path_begins_at": 1,
-        "create_replication_rule_enabled": True,
-        "direct_download_enabled": True
+        "path_begins_at": 1
     }
 
     assert config.get_instance_config('cms') == expected_config, "Invalid remote config format"
@@ -157,6 +150,7 @@ def test_config_init__remote_config__schema_invalid(requests_mock):
         {
             "name": "cms",
             "display_name": "CMS",
+            "mode": "replica",
             "$url": "http://localhost/rucio.json"
         }
     ]
@@ -179,34 +173,20 @@ def test_list_instances():
         {
             "name": "atlas",
             "display_name": "ATLAS",
+            "mode": "replica",
             "rucio_base_url": "https://rucio",
-            "auth": {
-                "type": "userpass",
-                "username": "swan",
-                "password": "swan",
-                "account": "swan"
-            },
             "destination_rse": "SWAN-EOS",
             "rse_mount_path": "/eos/user/rucio",
-            "path_begins_at": 4,
-            "create_replication_rule_enabled": True,
-            "direct_download_enabled": True
+            "path_begins_at": 4
         },
         {
             "name": "cms",
             "display_name": "CMS",
+            "mode": "replica",
             "rucio_base_url": "https://rucio-cms",
-            "auth": {
-                "type": "userpass",
-                "username": "swan",
-                "password": "swan",
-                "account": "swan"
-            },
             "destination_rse": "SWAN-EOS",
             "rse_mount_path": "/eos/user/rucio",
-            "path_begins_at": 4,
-            "create_replication_rule_enabled": True,
-            "direct_download_enabled": True
+            "path_begins_at": 4
         }
     ]
 
