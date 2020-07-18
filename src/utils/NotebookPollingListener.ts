@@ -10,6 +10,7 @@ export class NotebookPollingListener {
   notebookListener: NotebookListener;
   pollingRef: PollingRequesterRef;
   activePolling: string[] = [];
+  activeNotebookAttachmentDIDs: string[] = [];
 
   constructor(notebookListener: NotebookListener) {
     this.notebookListener = notebookListener;
@@ -21,6 +22,7 @@ export class NotebookPollingListener {
       attachments => {
         this.removeUnfocusedDIDs(attachments);
         this.processNewAttachments(attachments);
+        this.activeNotebookAttachmentDIDs = attachments?.map(a => a.did);
       }
     );
 
@@ -33,7 +35,7 @@ export class NotebookPollingListener {
         }
 
         const listenedFileDetails = Object.keys(fileDetails)
-          .filter(did => this.activePolling.includes(did))
+          .filter(did => this.activeNotebookAttachmentDIDs.includes(did))
           .map(did => ({
             did,
             file: {
@@ -46,7 +48,9 @@ export class NotebookPollingListener {
           if (file.current.status === 'REPLICATING') {
             this.enablePolling(did, 'file');
           } else {
-            this.disablePolling(did);
+            if (this.activePolling.includes(did)) {
+              this.disablePolling(did);
+            }
             if (file.current.status === 'OK' && file.prev.status === 'REPLICATING') {
               const { activeNotebookPanel } = ExtensionStore.getRawState();
               this.notebookListener.reinjectSpecificDID(activeNotebookPanel, did);
@@ -65,7 +69,7 @@ export class NotebookPollingListener {
         }
 
         const listenedContainerDetails = Object.keys(containerDetails)
-          .filter(did => this.activePolling.includes(did))
+          .filter(did => this.activeNotebookAttachmentDIDs.includes(did))
           .map(did => ({
             did,
             file: {
@@ -79,7 +83,9 @@ export class NotebookPollingListener {
           if (currentContainerState === 'REPLICATING') {
             this.enablePolling(did, 'container');
           } else {
-            this.disablePolling(did);
+            if (this.activePolling.includes(did)) {
+              this.disablePolling(did);
+            }
             const prevContainerState = computeContainerState(file.prev);
             if (currentContainerState === 'AVAILABLE' && prevContainerState === 'REPLICATING') {
               const { activeNotebookPanel } = ExtensionStore.getRawState();
