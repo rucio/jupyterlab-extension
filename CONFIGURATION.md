@@ -11,8 +11,10 @@ In this mode, the files are transferred by Rucio to a storage mounted to the Jup
     - It's recommended that quotas be disabled, since the extension does not care if the replication fails because of quota error.
 
 ### Download Mode
-In this mode, the extension downloads the files to the user directory. This is used when your JupyterLab installation does not use a storage as an RSE.
-**TODO do this**
+In this mode, the extension downloads the files to the user directory. This is used when your JupyterLab installation does not use a storage as an RSE. To use the extension in this mode, you need to have the following set up:
+- A JupyterLab version 2 installation.
+- At least one Rucio instance.
+- Rucio Storage Elements (RSE) that are accessible from the notebook server, with no authentication scheme.
 
 ## Configuration
 The extension can be configured locally or remotely.

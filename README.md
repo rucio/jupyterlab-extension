@@ -38,9 +38,15 @@ If you want to contribute or build the extension from source, see [CONTRIBUTING.
 This repository comes with a Docker image of [jupyter/scipy-notebook](https://hub.docker.com/r/jupyter/scipy-notebook) installed with the extension.
 
 To run the image, use the following command.
+
+
+#### Replica Mode
+
 ```bash
 $ docker run -d -p 8888:8888 \
+    -e RUCIO_MODE=replica \
     -e RUCIO_BASE_URL=<Rucio base URL> \
+    -e RUCIO_AUTH_URL=<Rucio auth URL (if any)> \
     -e RUCIO_DESTINATION_RSE=<destination RSE> \
     -e RUCIO_DISPLAY_NAME=<instance display name> \
     -e RUCIO_NAME=<instance name> \
@@ -50,11 +56,26 @@ $ docker run -d -p 8888:8888 \
     didithilmy/rucio-jupyterlab:latest
 ```
 
-Follow the [configuration guide](CONFIGURATION.md) for details of the parameters.
-
-
 `<host folder>` is a folder in the host that is mounted to a Rucio Storage Element via FUSE.
 `<container folder>` is a folder accessible from the notebook that is mounted to the host folder.
+
+
+#### Download Mode
+
+```bash
+$ docker run -d -p 8888:8888 \
+    -e RUCIO_MODE=download \
+    -e RUCIO_BASE_URL=<Rucio base URL> \
+    -e RUCIO_AUTH_URL=<Rucio auth URL (if any)> \
+    -e RUCIO_DISPLAY_NAME=<instance display name> \
+    -e RUCIO_NAME=<instance name> \
+    -e RUCIO_CA_CERT=/certs/rucio_ca.pem \
+    -v <path to Rucio CA PEM file>:/certs/rucio_ca.pem \
+    didithilmy/rucio-jupyterlab:latest
+```
+
+Follow the [configuration guide](CONFIGURATION.md) for details of the parameters.
+
 
 ## Troubleshoot
 
