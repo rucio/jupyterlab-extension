@@ -67,6 +67,11 @@ const useStyles = createUseStyles({
     '&:hover': {
       color: '#dd2c00'
     }
+  },
+  action: {
+    fontSize: '9pt',
+    color: '#2196F3',
+    cursor: 'pointer'
   }
 });
 
@@ -102,6 +107,25 @@ const _NotebookAttachmentListItem: React.FC<NotebookAttachmentListItemProps> = (
     return containerDetails ? computeContainerState(containerDetails) : undefined;
   }, [containerDetails]);
 
+  const shouldDisplayMakeAvailableButton = (() => {
+    if (fileDetails) {
+      return fileDetails.status === 'STUCK' || fileDetails.status === 'NOT_AVAILABLE';
+    } else if (containerState) {
+      return containerState === 'STUCK' || containerState === 'NOT_AVAILABLE' || containerState === 'PARTIALLY_AVAILABLE';
+    }
+
+    return false;
+  })();
+
+  const makeAvailable = () => {
+    const { did, type } = attachment;
+    if (type === 'file') {
+      actions.makeFileAvailable(activeInstance.name, did);
+    } else {
+      actions.makeContainerAvailable(activeInstance.name, did);
+    }
+  };
+
   return (
     <div className={classes.listItemContainer}>
       <div className={classes.listItemIconContainer}>
@@ -112,6 +136,11 @@ const _NotebookAttachmentListItem: React.FC<NotebookAttachmentListItemProps> = (
       <div className={classes.listItemContent}>
         <div className={classes.did}>{attachment.did}</div>
         <div className={classes.variableName}>{attachment.variableName}</div>
+        {shouldDisplayMakeAvailableButton && (
+          <div className={classes.action} onClick={makeAvailable}>
+            Make Available
+          </div>
+        )}
       </div>
       <div className={classes.actionContainer}>
         <div className={classes.clearButton} onClick={deleteAttachment}>
