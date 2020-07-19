@@ -19,8 +19,17 @@ for the frontend extension.
 Note: You will need NodeJS to install the extension.
 
 ```bash
-pip install rucio-jupyterlab
-jupyter lab build
+$ pip install rucio-jupyterlab
+$ jupyter lab build
+```
+
+If you are going to run the extension in Download mode, you will also need to install `gfal2`, which is available in EPEL or conda-forge.
+
+```bash
+$ conda install -c conda-forge python-gfal2
+# OR
+$ yum install epel-release
+$ yum install gfal2-all gfal2-python
 ```
 
 Restart your JupyterLab instance afterwards to load the server extension.
