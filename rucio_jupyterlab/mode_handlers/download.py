@@ -193,7 +193,7 @@ class DIDDownloader:
 
     @staticmethod
     def get_dest_folder(namespace, did):
-        did_folder_name = str(base64.b32encode(did.encode('utf-8')), 'utf-8').lower().replace('=', '0')
+        did_folder_name = str(base64.b32encode(did.encode('utf-8')), 'utf-8').lower().replace('=', '')
         dest_path = os.path.expanduser(os.path.join('~', 'rucio', namespace, 'downloads', did_folder_name))
         return dest_path
 
