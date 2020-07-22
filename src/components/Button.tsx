@@ -48,10 +48,10 @@ const useStyles = createUseStyles({
 
 type MyProps = ButtonProps & React.ButtonHTMLAttributes<HTMLButtonElement>;
 
-export const Button: React.FC<MyProps> = ({ children, block, onClick, ...props }) => {
+export const Button: React.FC<MyProps> = ({ children, block, onClick, className, ...props }) => {
   const classes = useStyles(props);
 
-  const btnClasses = [classes.button];
+  const btnClasses = [classes.button, className];
   if (block) {
     btnClasses.push(classes.block);
   }

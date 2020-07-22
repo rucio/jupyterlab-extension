@@ -48,6 +48,13 @@ const useStyles = createUseStyles({
   },
   hidden: {
     display: 'none'
+  },
+  buttonSavedAcknowledgement: {
+    background: '#689f38',
+    color: '#ffffff',
+    '&:hover': {
+      background: '#689f38'
+    }
   }
 });
 
@@ -67,6 +74,8 @@ const _Settings: React.FunctionComponent = props => {
   const [rucioUserpassAuthCredentials, setRucioUserpassAuthCredentials] = useState<RucioUserpassAuth>();
   const [rucioX509AuthCredentials, setRucioX509AuthCredentials] = useState<RucioX509Auth>();
   const [credentialsLoading, setCredentialsLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [showSaved, setShowSaved] = useState<boolean>(false);
 
   const instanceOptions = useMemo(() => instances?.map(i => ({ label: i.displayName, value: i.name })), [instances]);
 
@@ -83,20 +92,31 @@ const _Settings: React.FunctionComponent = props => {
       }
     });
 
-    actions.postActiveInstance(instanceName, authType).catch(e => console.log(e));
+    return actions.postActiveInstance(instanceName, authType).catch(e => console.log(e));
   };
 
   const saveSettings = () => {
+    const promises = [];
     if (selectedInstance && selectedAuthType) {
-      setActiveInstance(selectedInstance, selectedAuthType);
+      const setActiveInstancePromise = setActiveInstance(selectedInstance, selectedAuthType);
+      promises.push(setActiveInstancePromise);
     }
 
     if (selectedAuthType) {
       const rucioAuthCredentials = selectedAuthType === 'userpass' ? rucioUserpassAuthCredentials : rucioX509AuthCredentials;
       if (rucioAuthCredentials) {
-        actions.putAuthConfig(selectedInstance, selectedAuthType, rucioAuthCredentials);
+        const setPutAuthConfigPromise = actions.putAuthConfig(selectedInstance, selectedAuthType, rucioAuthCredentials);
+        promises.push(setPutAuthConfigPromise);
       }
     }
+
+    setLoading(true);
+    Promise.all(promises)
+      .then(() => {
+        setShowSaved(true);
+        setTimeout(() => setShowSaved(false), 3000);
+      })
+      .finally(() => setLoading(false));
   };
 
   const reloadAuthConfig = () => {
@@ -162,13 +182,6 @@ const _Settings: React.FunctionComponent = props => {
           </div>
         </div>
         <div>
-          {!!selectedAuthType && !!selectedInstance && credentialsLoading && (
-            // <div className={classes.container}>
-            //   <Spinning className={`${classes.icon} material-icons`}>hourglass_top</Spinning>
-            //   <span className={classes.iconText}>Loading...</span>
-            // </div>
-            <div></div>
-          )}
           <div className={selectedInstance && selectedAuthType === 'userpass' ? '' : classes.hidden}>
             <HorizontalHeading title="Username &amp; Password" />
             <UserPassAuth
@@ -188,8 +201,17 @@ const _Settings: React.FunctionComponent = props => {
         </div>
       </div>
       <div className={classes.buttonContainer}>
-        <Button block onClick={saveSettings} disabled={!settingsComplete}>
-          Save Settings
+        <Button
+          block
+          onClick={saveSettings}
+          disabled={!settingsComplete || loading}
+          outlineColor={!loading && showSaved ? '#689f38' : undefined}
+          color={!loading && showSaved ? '#FFFFFF' : undefined}
+          className={!loading && showSaved ? classes.buttonSavedAcknowledgement : undefined}
+        >
+          {!loading && !showSaved && <>Save Settings</>}
+          {loading && <>Saving...</>}
+          {!loading && showSaved && <>Saved!</>}
         </Button>
       </div>
     </div>

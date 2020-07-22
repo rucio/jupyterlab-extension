@@ -29,8 +29,9 @@ const useStyles = createUseStyles({
     display: 'flex',
     alignItems: 'center'
   },
-  clickable: {
-    cursor: 'pointer'
+  action: {
+    cursor: 'pointer',
+    color: '#2196F3'
   }
 });
 
@@ -118,7 +119,7 @@ const SelectFileButtonTrailer: React.FC<{ onFilePicked: { (path: string): void }
   return (
     <div className={classes.iconContainer}>
       <FilePickerPopover onFilePicked={onFilePicked}>
-        <span className={`${classes.icon} ${classes.clickable} material-icons`}>folder</span>
+        <span className={`${classes.icon} ${classes.action} material-icons`}>folder</span>
       </FilePickerPopover>
     </div>
   );
