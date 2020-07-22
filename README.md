@@ -54,6 +54,7 @@ To run the image, use the following command.
 ```bash
 $ docker run -d -p 8888:8888 \
     -e RUCIO_MODE=replica \
+    -e RUCIO_WILDCARD_ENABLED=<true = 1, false = 0> \
     -e RUCIO_BASE_URL=<Rucio base URL> \
     -e RUCIO_AUTH_URL=<Rucio auth URL (if any)> \
     -e RUCIO_DESTINATION_RSE=<destination RSE> \
@@ -74,6 +75,7 @@ $ docker run -d -p 8888:8888 \
 ```bash
 $ docker run -d -p 8888:8888 \
     -e RUCIO_MODE=download \
+    -e RUCIO_WILDCARD_ENABLED=<true = 1, false = 0> \
     -e RUCIO_BASE_URL=<Rucio base URL> \
     -e RUCIO_AUTH_URL=<Rucio auth URL (if any)> \
     -e RUCIO_DISPLAY_NAME=<instance display name> \

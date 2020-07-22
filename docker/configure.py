@@ -27,7 +27,8 @@ def write_jupyterlab_config():
         "destination_rse": os.getenv('RUCIO_DESTINATION_RSE'),
         "rse_mount_path": os.getenv('RUCIO_RSE_MOUNT_PATH'),
         "path_begins_at": int(os.getenv('RUCIO_PATH_BEGINS_AT', '0')),
-        "mode": os.getenv('RUCIO_MODE', 'replica')
+        "mode": os.getenv('RUCIO_MODE', 'replica'),
+        "wildcard_enabled": os.getenv('RUCIO_WILDCARD_ENABLED', '0') == '1'
     }
 
     instance_config = {k: v for k, v in instance_config.items() if v is not None}
