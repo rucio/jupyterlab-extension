@@ -165,7 +165,7 @@ describe('getFileDIDDetails', () => {
             fileDetails: {
                 'scope:name1': mockFileDetails
             },
-            containerDetails: {}
+            collectionDetails: {}
         });
 
         const mockRequestAPI = requestAPI as jest.MockedFunction<typeof requestAPI>;
@@ -191,7 +191,7 @@ describe('getFileDIDDetails', () => {
         mockGetRawState.mockClear();
         mockGetRawState.mockReturnValue({
             fileDetails: {},
-            containerDetails: {}
+            collectionDetails: {}
         });
 
         const mockRequestAPI = requestAPI as jest.MockedFunction<typeof requestAPI>;
@@ -223,7 +223,7 @@ describe('getFileDIDDetails', () => {
             fileDetails: {
                 'scope:name1': { ...mockFileDetails, status: 'NOT_AVAILABLE', path: undefined }
             },
-            containerDetails: {}
+            collectionDetails: {}
         });
 
         const mockRequestAPI = requestAPI as jest.MockedFunction<typeof requestAPI>;
@@ -242,8 +242,8 @@ describe('getFileDIDDetails', () => {
     })
 })
 
-describe('getContainerDIDDetails', () => {
-    test('polling disabled, container DID exists in store, should not fetch', async () => {
+describe('getCollectionDIDDetails', () => {
+    test('polling disabled, collection DID exists in store, should not fetch', async () => {
         const mockFileDetails: FileDIDDetails = {
             status: 'OK',
             did: 'scope:name1',
@@ -255,7 +255,7 @@ describe('getContainerDIDDetails', () => {
         mockGetRawState.mockClear();
         mockGetRawState.mockReturnValue({
             fileDetails: {},
-            containerDetails: {
+            collectionDetails: {
                 'scope:name': [mockFileDetails]
             }
         });
@@ -265,13 +265,13 @@ describe('getContainerDIDDetails', () => {
         mockRequestAPI.mockReturnValue(Promise.resolve([]));
 
         const actions = new Actions();
-        const fileDIDDetails = await actions.getContainerDIDDetails('atlas', 'scope:name');
+        const fileDIDDetails = await actions.getCollectionDIDDetails('atlas', 'scope:name');
 
         expect(fileDIDDetails).toEqual([mockFileDetails]);
         expect(mockRequestAPI).toBeCalledTimes(0);
     })
 
-    test('polling disabled, container DID not exists in store, should fetch', async () => {
+    test('polling disabled, collection DID not exists in store, should fetch', async () => {
         const mockFileDetails: FileDIDDetails = {
             status: 'OK',
             did: 'scope:name1',
@@ -283,7 +283,7 @@ describe('getContainerDIDDetails', () => {
         mockGetRawState.mockClear();
         mockGetRawState.mockReturnValue({
             fileDetails: {},
-            containerDetails: {}
+            collectionDetails: {}
         });
 
         const mockRequestAPI = requestAPI as jest.MockedFunction<typeof requestAPI>;
@@ -294,14 +294,14 @@ describe('getContainerDIDDetails', () => {
         mockUpdateState.mockClear();
 
         const actions = new Actions();
-        const fileDIDDetails = await actions.getContainerDIDDetails('atlas', 'scope:name');
+        const fileDIDDetails = await actions.getCollectionDIDDetails('atlas', 'scope:name');
 
         expect(fileDIDDetails).toEqual([mockFileDetails]);
         expect(mockRequestAPI).toBeCalled();
         expect(mockUpdateState).toBeCalled();
     })
 
-    test('polling enabled, container DID exists in store, should fetch', async () => {
+    test('polling enabled, collection DID exists in store, should fetch', async () => {
         const mockFileDetails: FileDIDDetails = {
             status: 'OK',
             did: 'scope:name1',
@@ -313,7 +313,7 @@ describe('getContainerDIDDetails', () => {
         mockGetRawState.mockClear();
         mockGetRawState.mockReturnValue({
             fileDetails: {},
-            containerDetails: {
+            collectionDetails: {
                 'scope:name': [{ ...mockFileDetails, status: 'NOT_AVAILABLE', path: undefined }]
             }
         });
@@ -326,7 +326,7 @@ describe('getContainerDIDDetails', () => {
         mockUpdateState.mockClear();
 
         const actions = new Actions();
-        const fileDIDDetails = await actions.getContainerDIDDetails('atlas', 'scope:name', true);
+        const fileDIDDetails = await actions.getCollectionDIDDetails('atlas', 'scope:name', true);
 
         expect(fileDIDDetails).toEqual([mockFileDetails]);
         expect(mockRequestAPI).toBeCalled();
@@ -359,7 +359,7 @@ describe('makeFileAvailable', () => {
     })
 })
 
-describe('makeContainerAvailable', () => {
+describe('makeCollectionAvailable', () => {
     test('should call /did/make-available endpoint with method POST', async () => {
         const mockRequestAPI = requestAPI as jest.MockedFunction<typeof requestAPI>;
 
@@ -370,7 +370,7 @@ describe('makeContainerAvailable', () => {
         mockUpdateState.mockClear();
 
         const actions = new Actions();
-        await actions.makeContainerAvailable('atlas', 'scope:name');
+        await actions.makeCollectionAvailable('atlas', 'scope:name');
 
         expect(mockRequestAPI).toBeCalledWith(
             expect.stringMatching(/(\b(did\/make-available|namespace=atlas)\b.*){2,}/),

@@ -1,4 +1,4 @@
-import { computeContainerState, toHumanReadableSize, checkVariableNameValid } from '../src/utils/Helpers';
+import { computeCollectionState, toHumanReadableSize, checkVariableNameValid } from '../src/utils/Helpers';
 import { FileDIDDetails } from '../src/types';
 
 describe('toHumanReadableSize', () => {
@@ -23,18 +23,18 @@ describe('toHumanReadableSize', () => {
     })
 })
 
-describe('computeContainerState', () => {
+describe('computeCollectionState', () => {
     test('empty files should return AVAILABLE', () => {
         const mockFiles: FileDIDDetails[] = [];
     
-        const computedState = computeContainerState(mockFiles);
+        const computedState = computeCollectionState(mockFiles);
         expect(computedState).toBe('AVAILABLE');
     })
     
     test('null files should return false', () => {
         const mockFiles: FileDIDDetails[] = undefined;
     
-        const computedState = computeContainerState(mockFiles);
+        const computedState = computeCollectionState(mockFiles);
         expect(computedState).toBeFalsy();
     })
     
@@ -45,7 +45,7 @@ describe('computeContainerState', () => {
             { status: 'OK', did: 'scope:name3', path: '/eos/rucio/1233', size: 123 }
         ];
     
-        const computedState = computeContainerState(mockFiles);
+        const computedState = computeCollectionState(mockFiles);
         expect(computedState).toBe('AVAILABLE');
     })
     
@@ -56,7 +56,7 @@ describe('computeContainerState', () => {
             { status: 'OK', did: 'scope:name3', path: '/eos/rucio/1233', size: 123 }
         ];
     
-        const computedState = computeContainerState(mockFiles);
+        const computedState = computeCollectionState(mockFiles);
         expect(computedState).toBe('PARTIALLY_AVAILABLE');
     })
     
@@ -67,7 +67,7 @@ describe('computeContainerState', () => {
             { status: 'OK', did: 'scope:name3', path: '/eos/rucio/1233', size: 123 }
         ];
     
-        const computedState = computeContainerState(mockFiles);
+        const computedState = computeCollectionState(mockFiles);
         expect(computedState).toBe('REPLICATING');
     })
     
@@ -78,7 +78,7 @@ describe('computeContainerState', () => {
             { status: 'OK', did: 'scope:name3', path: '/eos/rucio/1233', size: 123 }
         ];
     
-        const computedState = computeContainerState(mockFiles);
+        const computedState = computeCollectionState(mockFiles);
         expect(computedState).toBe('STUCK');
     })
     
@@ -89,7 +89,7 @@ describe('computeContainerState', () => {
             { status: 'NOT_AVAILABLE', did: 'scope:name3', path: '/eos/rucio/1233', size: 123 }
         ];
     
-        const computedState = computeContainerState(mockFiles);
+        const computedState = computeCollectionState(mockFiles);
         expect(computedState).toBe('NOT_AVAILABLE');
     })
 })

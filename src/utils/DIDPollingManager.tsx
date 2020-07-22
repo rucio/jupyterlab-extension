@@ -69,7 +69,7 @@ class DIDPollingManager {
         });
         break;
       case 'collection':
-        actions.getContainerDIDDetails(activeInstance.name, did, true).then(didDetails => {
+        actions.getCollectionDIDDetails(activeInstance.name, did, true).then(didDetails => {
           if (!didDetails.find(d => d.status === 'REPLICATING')) {
             delete this.pollingRequesterMap[did];
           }

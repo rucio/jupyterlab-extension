@@ -8,7 +8,7 @@ import { NotebookDIDAttachment, FileDIDDetails, ResolveStatus } from '../types';
 import { COMM_NAME_KERNEL, COMM_NAME_FRONTEND, METADATA_KEY } from '../const';
 import { actions } from '../utils/Actions';
 import { InjectNotebookToolbar } from '../InjectNotebookToolbar';
-import { computeContainerState } from './Helpers';
+import { computeCollectionState } from './Helpers';
 
 interface NotebookVariableInjection {
   variableName: string;
@@ -267,13 +267,13 @@ export class NotebookListener {
     this.setResolveStatus(kernelConnectionId, did, 'RESOLVING');
     try {
       if (type === 'collection') {
-        const didDetails = await this.resolveContainerDIDDetails(did);
-        const path = this.getContainerDIDPaths(didDetails);
+        const didDetails = await this.resolveCollectionDIDDetails(did);
+        const path = this.getCollectionDIDPaths(didDetails);
 
         this.setResolveStatus(kernelConnectionId, did, 'PENDING_INJECTION');
 
-        const containerStatus = computeContainerState(didDetails);
-        const didAvailable = containerStatus === 'AVAILABLE';
+        const collectionStatus = computeCollectionState(didDetails);
+        const didAvailable = collectionStatus === 'AVAILABLE';
 
         return { variableName, path, did, didAvailable };
       } else {
@@ -301,7 +301,7 @@ export class NotebookListener {
     });
   }
 
-  private getContainerDIDPaths(didDetails: FileDIDDetails[]): string[] {
+  private getCollectionDIDPaths(didDetails: FileDIDDetails[]): string[] {
     return didDetails.map(d => d.path).filter(p => !!p);
   }
 
@@ -314,9 +314,9 @@ export class NotebookListener {
     return actions.getFileDIDDetails(activeInstance.name, did);
   }
 
-  private async resolveContainerDIDDetails(did: string): Promise<FileDIDDetails[]> {
+  private async resolveCollectionDIDDetails(did: string): Promise<FileDIDDetails[]> {
     const { activeInstance } = UIStore.getRawState();
-    return actions.getContainerDIDDetails(activeInstance.name, did);
+    return actions.getCollectionDIDDetails(activeInstance.name, did);
   }
 
   private getNotebookIdFromKernelConnectionId(kernelConnectionId: string) {

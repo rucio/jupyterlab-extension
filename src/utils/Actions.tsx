@@ -83,16 +83,16 @@ export class Actions {
     return didDetails[0];
   }
 
-  async getContainerDIDDetails(namespace: string, did: string, poll = false): Promise<FileDIDDetails[]> {
-    const containerDetails = UIStore.getRawState().containerDetails[did];
-    if (!poll && !!containerDetails) {
-      return containerDetails;
+  async getCollectionDIDDetails(namespace: string, did: string, poll = false): Promise<FileDIDDetails[]> {
+    const collectionDetails = UIStore.getRawState().collectionDetails[did];
+    if (!poll && !!collectionDetails) {
+      return collectionDetails;
     }
 
     const didDetails = await this.fetchDIDDetails(namespace, did, poll);
 
     UIStore.update(s => {
-      s.containerDetails[did] = didDetails;
+      s.collectionDetails[did] = didDetails;
     });
 
     return didDetails;
@@ -112,14 +112,14 @@ export class Actions {
     return requestAPI('did/make-available?namespace=' + encodeURIComponent(namespace), init);
   }
 
-  async makeContainerAvailable(namespace: string, did: string): Promise<void> {
-    const containerAttachedFiles = UIStore.getRawState().containerDetails[did];
-    const updatedContainerAttachedFiles: FileDIDDetails[] = containerAttachedFiles.map(f => ({
+  async makeCollectionAvailable(namespace: string, did: string): Promise<void> {
+    const collectionAttachedFiles = UIStore.getRawState().collectionDetails[did];
+    const updatedCollectionAttachedFiles: FileDIDDetails[] = collectionAttachedFiles.map(f => ({
       ...f,
       status: f.status === 'OK' ? 'OK' : 'REPLICATING'
     }));
     UIStore.update(s => {
-      s.containerDetails[did] = updatedContainerAttachedFiles;
+      s.collectionDetails[did] = updatedCollectionAttachedFiles;
     });
 
     const init = {

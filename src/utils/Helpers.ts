@@ -1,6 +1,6 @@
-import { FileDIDDetails, ContainerStatus } from '../types';
+import { FileDIDDetails, CollectionStatus } from '../types';
 
-export const computeContainerState = (files: FileDIDDetails[]): ContainerStatus | false => {
+export const computeCollectionState = (files: FileDIDDetails[]): CollectionStatus | false => {
   if (!files) {
     return false;
   }

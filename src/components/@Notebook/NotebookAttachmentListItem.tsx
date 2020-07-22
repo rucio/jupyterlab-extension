@@ -1,11 +1,11 @@
 import React, { useEffect, useMemo } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useStoreState } from 'pullstate';
-import { NotebookDIDAttachment, FileStatus, ContainerStatus, ResolveStatus } from '../../types';
+import { NotebookDIDAttachment, FileStatus, CollectionStatus, ResolveStatus } from '../../types';
 import { Spinning } from '../Spinning';
 import { WithRequestAPIProps, withRequestAPI } from '../../utils/Actions';
 import { UIStore } from '../../stores/UIStore';
-import { computeContainerState } from '../../utils/Helpers';
+import { computeCollectionState } from '../../utils/Helpers';
 import { ExtensionStore } from '../../stores/ExtensionStore';
 
 const useStyles = createUseStyles({
@@ -87,13 +87,13 @@ const _NotebookAttachmentListItem: React.FC<NotebookAttachmentListItemProps> = (
 
   const activeInstance = useStoreState(UIStore, s => s.activeInstance);
   const fileDetails = useStoreState(UIStore, s => s.fileDetails[did]);
-  const containerDetails = useStoreState(UIStore, s => s.containerDetails[did]);
+  const collectionDetails = useStoreState(UIStore, s => s.collectionDetails[did]);
 
   useEffect(() => {
     if (attachment.type === 'file') {
       actions.getFileDIDDetails(activeInstance.name, did);
     } else {
-      actions.getContainerDIDDetails(activeInstance.name, did);
+      actions.getCollectionDIDDetails(activeInstance.name, did);
     }
   }, []);
 
@@ -103,15 +103,15 @@ const _NotebookAttachmentListItem: React.FC<NotebookAttachmentListItemProps> = (
     });
   };
 
-  const containerState = useMemo(() => {
-    return containerDetails ? computeContainerState(containerDetails) : undefined;
-  }, [containerDetails]);
+  const collectionState = useMemo(() => {
+    return collectionDetails ? computeCollectionState(collectionDetails) : undefined;
+  }, [collectionDetails]);
 
   const shouldDisplayMakeAvailableButton = (() => {
     if (fileDetails) {
       return fileDetails.status === 'STUCK' || fileDetails.status === 'NOT_AVAILABLE';
-    } else if (containerState) {
-      return containerState === 'STUCK' || containerState === 'NOT_AVAILABLE' || containerState === 'PARTIALLY_AVAILABLE';
+    } else if (collectionState) {
+      return collectionState === 'STUCK' || collectionState === 'NOT_AVAILABLE' || collectionState === 'PARTIALLY_AVAILABLE';
     }
 
     return false;
@@ -122,16 +122,16 @@ const _NotebookAttachmentListItem: React.FC<NotebookAttachmentListItemProps> = (
     if (type === 'file') {
       actions.makeFileAvailable(activeInstance.name, did);
     } else {
-      actions.makeContainerAvailable(activeInstance.name, did);
+      actions.makeCollectionAvailable(activeInstance.name, did);
     }
   };
 
   return (
     <div className={classes.listItemContainer}>
       <div className={classes.listItemIconContainer}>
-        {!fileDetails && !containerDetails && <ResolverStatusIcon status={status} />}
+        {!fileDetails && !collectionDetails && <ResolverStatusIcon status={status} />}
         {!!fileDetails && <FileStatusIcon status={fileDetails.status} resolverStatus={status} />}
-        {!!containerState && <ContainerStatusIcon status={containerState} resolverStatus={status} />}
+        {!!collectionState && <CollectionStatusIcon status={collectionState} resolverStatus={status} />}
       </div>
       <div className={classes.listItemContent}>
         <div className={classes.did}>{attachment.did}</div>
@@ -182,7 +182,7 @@ const FileStatusIcon: React.FC<{ status: FileStatus; resolverStatus: ResolveStat
   }
 };
 
-const ContainerStatusIcon: React.FC<{ status: ContainerStatus; resolverStatus: ResolveStatus }> = ({
+const CollectionStatusIcon: React.FC<{ status: CollectionStatus; resolverStatus: ResolveStatus }> = ({
   status,
   resolverStatus
 }) => {

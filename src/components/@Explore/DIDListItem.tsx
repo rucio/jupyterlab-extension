@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { createUseStyles } from 'react-jss';
 import { FileDIDItemDetails } from './FileDIDItemDetails';
-import { ContainerDIDItemDetails } from './ContainerDIDItemDetails';
+import { CollectionDIDItemDetails } from './CollectionDIDItemDetails';
 import { toHumanReadableSize } from '../../utils/Helpers';
 import { ListAttachedFilesPopover } from './ListAttachedFilesPopover';
 
@@ -107,7 +107,7 @@ export const DIDListItem: React.FC<DIDItem> = ({ did, size, type, onClick, expan
         )}
       </div>
       {!!open && type === 'file' && <FileDIDItemDetails did={did} />}
-      {!!open && (type === 'container' || type === 'dataset') && <ContainerDIDItemDetails did={did} />}
+      {!!open && (type === 'container' || type === 'dataset') && <CollectionDIDItemDetails did={did} />}
     </div>
   );
 };

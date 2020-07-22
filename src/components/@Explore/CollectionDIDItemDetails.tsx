@@ -5,7 +5,7 @@ import { UIStore } from '../../stores/UIStore';
 import { Spinning } from '../Spinning';
 import { withRequestAPI, WithRequestAPIProps } from '../../utils/Actions';
 import { AddToNotebookPopover } from './AddToNotebookPopover';
-import { computeContainerState } from '../../utils/Helpers';
+import { computeCollectionState } from '../../utils/Helpers';
 import { PollingRequesterRef, withPollingManager, WithPollingManagerProps } from '../../utils/DIDPollingManager';
 
 const useStyles = createUseStyles({
@@ -58,14 +58,14 @@ export interface DIDItem {
   did: string;
 }
 
-const _ContainerDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
+const _CollectionDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
   const classes = useStyles();
 
   const { actions } = props as WithRequestAPIProps;
   const { didPollingManager } = props as WithPollingManagerProps;
 
   const activeInstance = useStoreState(UIStore, s => s.activeInstance);
-  const containerAttachedFiles = useStoreState(UIStore, s => s.containerDetails[did]);
+  const collectionAttachedFiles = useStoreState(UIStore, s => s.collectionDetails[did]);
 
   const [pollingRequesterRef] = useState(() => new PollingRequesterRef());
 
@@ -87,28 +87,28 @@ const _ContainerDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
 
   const makeAvailable = () => {
     actions
-      .makeContainerAvailable(activeInstance.name, did)
+      .makeCollectionAvailable(activeInstance.name, did)
       .then(() => enablePolling())
       .catch(e => console.log(e)); // TODO handle error
   };
 
-  const containerState = useMemo(() => {
-    return containerAttachedFiles ? computeContainerState(containerAttachedFiles) : undefined;
-  }, [containerAttachedFiles]);
+  const collectionState = useMemo(() => {
+    return collectionAttachedFiles ? computeCollectionState(collectionAttachedFiles) : undefined;
+  }, [collectionAttachedFiles]);
 
   return (
     <div className={classes.container}>
-      {!containerAttachedFiles && (
+      {!collectionAttachedFiles && (
         <div className={classes.loading}>
           <Spinning className={`${classes.icon} material-icons`}>hourglass_top</Spinning>
           <span className={classes.statusText}>Loading...</span>
         </div>
       )}
-      {containerState === 'AVAILABLE' && <FileAvailable did={did} />}
-      {containerState === 'PARTIALLY_AVAILABLE' && <FilePartiallyAvailable onMakeAvailableClicked={makeAvailable} />}
-      {containerState === 'NOT_AVAILABLE' && <FileNotAvailable onMakeAvailableClicked={makeAvailable} />}
-      {containerState === 'REPLICATING' && <FileReplicating did={did} />}
-      {containerState === 'STUCK' && <FileStuck onMakeAvailableClicked={makeAvailable} />}
+      {collectionState === 'AVAILABLE' && <FileAvailable did={did} />}
+      {collectionState === 'PARTIALLY_AVAILABLE' && <FilePartiallyAvailable onMakeAvailableClicked={makeAvailable} />}
+      {collectionState === 'NOT_AVAILABLE' && <FileNotAvailable onMakeAvailableClicked={makeAvailable} />}
+      {collectionState === 'REPLICATING' && <FileReplicating did={did} />}
+      {collectionState === 'STUCK' && <FileStuck onMakeAvailableClicked={makeAvailable} />}
     </div>
   );
 };
@@ -199,4 +199,4 @@ const FileStuck: React.FC<{ onMakeAvailableClicked?: { (): void } }> = ({ onMake
   );
 };
 
-export const ContainerDIDItemDetails = withPollingManager(withRequestAPI(_ContainerDIDItemDetails));
+export const CollectionDIDItemDetails = withPollingManager(withRequestAPI(_CollectionDIDItemDetails));

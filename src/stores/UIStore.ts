@@ -7,12 +7,12 @@ export interface UIState {
   instances?: Instance[];
   authConfig?: { [instance: string]: RucioAuthCredentials };
   fileDetails: { [did: string]: FileDIDDetails };
-  containerDetails: { [did: string]: FileDIDDetails[] };
+  collectionDetails: { [did: string]: FileDIDDetails[] };
 }
 
 export const initialState: UIState = {
   fileDetails: {},
-  containerDetails: {}
+  collectionDetails: {}
 };
 
 export const UIStore = new Store(initialState);
@@ -20,6 +20,6 @@ export const UIStore = new Store(initialState);
 export const resetRucioCaches = (): void => {
   UIStore.update(s => {
     s.fileDetails = {};
-    s.containerDetails = {};
+    s.collectionDetails = {};
   });
 };

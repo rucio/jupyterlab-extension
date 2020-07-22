@@ -4,7 +4,7 @@ import { PollingRequesterRef, didPollingManager } from './DIDPollingManager';
 import { NotebookDIDAttachment } from '../types';
 import { actions } from './Actions';
 import { NotebookListener } from './NotebookListener';
-import { computeContainerState } from './Helpers';
+import { computeCollectionState } from './Helpers';
 
 export class NotebookPollingListener {
   notebookListener: NotebookListener;
@@ -60,34 +60,34 @@ export class NotebookPollingListener {
       }
     );
 
-    // Listen to change in container status
+    // Listen to change in collection status
     UIStore.subscribe(
-      s => s.containerDetails,
-      (containerDetails, state, prevContainerDetails) => {
-        if (!containerDetails) {
+      s => s.collectionDetails,
+      (collectionDetails, state, prevCollectionDetails) => {
+        if (!collectionDetails) {
           return;
         }
 
-        const listenedContainerDetails = Object.keys(containerDetails)
+        const listenedCollectionDetails = Object.keys(collectionDetails)
           .filter(did => this.activeNotebookAttachmentDIDs.includes(did))
           .map(did => ({
             did,
             file: {
-              current: containerDetails[did],
-              prev: prevContainerDetails[did]
+              current: collectionDetails[did],
+              prev: prevCollectionDetails[did]
             }
           }));
 
-        listenedContainerDetails.forEach(({ did, file }) => {
-          const currentContainerState = computeContainerState(file.current);
-          if (currentContainerState === 'REPLICATING') {
+        listenedCollectionDetails.forEach(({ did, file }) => {
+          const currentCollectionState = computeCollectionState(file.current);
+          if (currentCollectionState === 'REPLICATING') {
             this.enablePolling(did, 'collection');
           } else {
             if (this.activePolling.includes(did)) {
               this.disablePolling(did);
             }
-            const prevContainerState = computeContainerState(file.prev);
-            if (currentContainerState === 'AVAILABLE' && prevContainerState === 'REPLICATING') {
+            const prevCollectionState = computeCollectionState(file.prev);
+            if (currentCollectionState === 'AVAILABLE' && prevCollectionState === 'REPLICATING') {
               const { activeNotebookPanel } = ExtensionStore.getRawState();
               this.notebookListener.reinjectSpecificDID(activeNotebookPanel, did);
             }
@@ -120,7 +120,7 @@ export class NotebookPollingListener {
       const didDetails = await actions.getFileDIDDetails(activeInstance.name, attachment.did);
       return didDetails.status === 'REPLICATING';
     } else {
-      const didDetails = await actions.getContainerDIDDetails(activeInstance.name, attachment.did);
+      const didDetails = await actions.getCollectionDIDDetails(activeInstance.name, attachment.did);
       return didDetails.find(d => d.status === 'REPLICATING');
     }
   }
