@@ -80,6 +80,7 @@ export const InlineDropdown: React.FC<MyProps> = ({ options, value, onItemSelect
     <span className={classes.dropdown} onClick={() => setOpen(!open)} ref={clickTargetRef}>
       <span className={classes.dropdownTitle} {...props}>
         {currentOption ? currentOption.title : '(select)'}
+        &nbsp;
         <span className={`${classes.icon} material-icons`}>arrow_drop_down</span>
       </span>
       <div className={open ? classes.dropdownActive : classes.dropdownContent}>

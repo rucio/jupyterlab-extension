@@ -2,7 +2,16 @@ import React from 'react';
 import qs from 'querystring';
 import { requestAPI } from './ApiRequest';
 import { UIStore } from '../stores/UIStore';
-import { FileDIDDetails, AttachedFile, RucioAuthType, RucioAuthCredentials, InstanceConfig, DirectoryItem } from '../types';
+import {
+  FileDIDDetails,
+  AttachedFile,
+  RucioAuthType,
+  RucioAuthCredentials,
+  InstanceConfig,
+  DirectoryItem,
+  DIDSearchType,
+  DIDSearchResult
+} from '../types';
 
 export class Actions {
   async fetchInstancesConfig(): Promise<InstanceConfig> {
@@ -37,6 +46,11 @@ export class Actions {
     };
 
     return requestAPI('auth', init);
+  }
+
+  async searchDID(namespace: string, did: string, type: DIDSearchType): Promise<DIDSearchResult[]> {
+    const query = { namespace, did, type };
+    return requestAPI<DIDSearchResult[]>(`did-search?${qs.encode(query)}`);
   }
 
   async fetchAttachedFileDIDs(namespace: string, did: string): Promise<AttachedFile[]> {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useStoreState } from 'pullstate';
 import { UIStore } from '../stores/UIStore';
@@ -7,11 +7,16 @@ import { HorizontalHeading } from '../components/HorizontalHeading';
 import { DIDListItem } from '../components/@Explore/DIDListItem';
 import { Spinning } from '../components/Spinning';
 import { withRequestAPI, WithRequestAPIProps } from '../utils/Actions';
-import { AttachedFile } from '../types';
+import { DIDSearchType, DIDSearchResult } from '../types';
+import { InlineDropdown } from '../components/InlineDropdown';
 
 const useStyles = createUseStyles({
   searchContainer: {
     padding: '8px'
+  },
+  filterContainer: {
+    padding: '0 16px 0 16px',
+    fontSize: '9pt'
   },
   resultsContainer: {},
   searchButton: {
@@ -44,27 +49,41 @@ const useStyles = createUseStyles({
   }
 });
 
+const searchByOptions = [
+  { title: 'Datasets or Containers', value: 'collection' },
+  { title: 'Datasets', value: 'dataset' },
+  { title: 'Containers', value: 'container' },
+  { title: 'Files', value: 'file' },
+  { title: 'All', value: 'all' }
+];
+
 const _Explore: React.FunctionComponent = props => {
   const classes = useStyles();
 
   const { actions } = props as WithRequestAPIProps;
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResult, setSearchResult] = useState<AttachedFile[]>();
+  const [searchType, setSearchType] = useState<DIDSearchType>('collection');
+  const [searchResult, setSearchResult] = useState<DIDSearchResult[]>();
   const [error, setError] = useState<string>();
   const [lastQuery, setLastQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const activeInstance = useStoreState(UIStore, s => s.activeInstance);
 
-  const isDIDContainer = !!searchResult && searchResult.length > 0 && !searchResult.find(r => r.did === lastQuery);
-
   const doSearch = () => {
+    setLastQuery(searchQuery);
+  };
+
+  useEffect(() => {
+    if (!lastQuery) {
+      return;
+    }
+
     setLoading(true);
     setSearchResult(undefined);
-    setLastQuery(searchQuery);
     setError(undefined);
     actions
-      .fetchAttachedFileDIDs(activeInstance.name, searchQuery)
+      .searchDID(activeInstance.name, searchQuery, searchType)
       .then(result => setSearchResult(result))
       .catch(e => {
         setSearchResult([]);
@@ -73,10 +92,10 @@ const _Explore: React.FunctionComponent = props => {
         }
       })
       .finally(() => setLoading(false));
-  };
+  }, [lastQuery, searchType]);
 
   const searchButton = (
-    <div className={classes.searchButton} onClick={doSearch}>
+    <div className={classes.searchButton} onClick={() => setLastQuery(searchQuery)}>
       <i className={`${classes.searchIcon} material-icons`}>search</i>
     </div>
   );
@@ -99,6 +118,16 @@ const _Explore: React.FunctionComponent = props => {
           onKeyPress={handleKeyPress}
         />
       </div>
+      <div className={classes.filterContainer}>
+        Search
+        <InlineDropdown
+          className={classes.dropdown}
+          options={searchByOptions}
+          value={searchType}
+          onItemSelected={setSearchType}
+          optionWidth="180px"
+        />
+      </div>
       {loading && (
         <div className={classes.loading}>
           <Spinning className={`${classes.icon} material-icons`}>hourglass_top</Spinning>
@@ -109,9 +138,8 @@ const _Explore: React.FunctionComponent = props => {
         <>
           <HorizontalHeading title="Search Results" />
           <div className={classes.resultsContainer}>
-            {isDIDContainer && <DIDListItem type="container" did={lastQuery} key={lastQuery} />}
-            {searchResult.map(file => (
-              <DIDListItem type="file" did={file.did} size={file.size} key={file.did} />
+            {searchResult.map(did => (
+              <DIDListItem type={did.type} did={did.did} size={did.size} key={did.did} />
             ))}
           </div>
           {((!!searchResult && searchResult.length === 0) || !!error) && (

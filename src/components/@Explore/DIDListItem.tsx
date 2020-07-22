@@ -58,7 +58,7 @@ const useStyles = createUseStyles({
 export interface DIDItem {
   did: string;
   size?: number;
-  type: 'container' | 'file';
+  type: 'dataset' | 'container' | 'file';
   onClick?: { (): boolean | undefined };
   expand?: boolean;
 }
@@ -83,12 +83,13 @@ export const DIDListItem: React.FC<DIDItem> = ({ did, size, type, onClick, expan
         <div className={classes.iconContainer}>
           {type === 'file' && <i className={`${classes.fileIcon} material-icons`}>attachment</i>}
           {type === 'container' && <i className={`${classes.containerIcon} material-icons`}>folder</i>}
+          {type === 'dataset' && <i className={`${classes.datasetIcon} material-icons`}>folder_open</i>}
         </div>
         <div className={classes.textContainer}>{did}</div>
         {!!size && <div className={classes.sizeContainer}>{toHumanReadableSize(size)}</div>}
       </div>
       {!!open && type === 'file' && <FileDIDItemDetails did={did} />}
-      {!!open && type === 'container' && <ContainerDIDItemDetails did={did} />}
+      {!!open && (type === 'container' || type === 'dataset') && <ContainerDIDItemDetails did={did} />}
     </div>
   );
 };

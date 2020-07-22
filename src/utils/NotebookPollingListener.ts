@@ -81,7 +81,7 @@ export class NotebookPollingListener {
         listenedContainerDetails.forEach(({ did, file }) => {
           const currentContainerState = computeContainerState(file.current);
           if (currentContainerState === 'REPLICATING') {
-            this.enablePolling(did, 'container');
+            this.enablePolling(did, 'collection');
           } else {
             if (this.activePolling.includes(did)) {
               this.disablePolling(did);
@@ -125,7 +125,7 @@ export class NotebookPollingListener {
     }
   }
 
-  private enablePolling(did: string, type: 'file' | 'container') {
+  private enablePolling(did: string, type: 'file' | 'collection') {
     didPollingManager.requestPolling(did, type, this.pollingRef, false);
     this.activePolling.push(did);
   }

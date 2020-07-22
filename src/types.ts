@@ -42,7 +42,7 @@ export interface FileDIDDetails {
 export interface NotebookDIDAttachment {
   did: string;
   variableName: string;
-  type: 'container' | 'file';
+  type: 'collection' | 'file';
 }
 
 export interface DirectoryItem {
@@ -54,3 +54,11 @@ export interface DirectoryItem {
 export type FileStatus = 'OK' | 'REPLICATING' | 'NOT_AVAILABLE' | 'STUCK';
 export type ContainerStatus = 'NOT_AVAILABLE' | 'AVAILABLE' | 'PARTIALLY_AVAILABLE' | 'REPLICATING' | 'STUCK';
 export type ResolveStatus = 'NOT_RESOLVED' | 'RESOLVING' | 'PENDING_INJECTION' | 'READY' | 'FAILED';
+
+export type DIDSearchType = 'collection' | 'dataset' | 'container' | 'file' | 'all';
+
+export interface DIDSearchResult {
+  did: string;
+  type: 'dataset' | 'container' | 'file';
+  size?: number;
+}

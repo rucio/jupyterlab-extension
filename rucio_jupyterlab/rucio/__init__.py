@@ -21,6 +21,18 @@ class RucioAPI:
         self.auth_url = instance_config.get('rucio_auth_url', self.base_url)
         self.rucio_ca_cert = instance_config.get('rucio_ca_cert', False)    # TODO default should be True
 
+    def search_did(self, scope, name, search_type='collection'):
+        token = self._get_auth_token()
+        headers = {'X-Rucio-Auth-Token': token}
+        response = requests.get(url=f'{self.base_url}/dids/{scope}/dids/search?type={search_type}&long=1&name={name}', headers=headers, verify=self.rucio_ca_cert)
+
+        if response.text == '':
+            return []
+
+        lines = response.text.rstrip('\n').splitlines()
+        results = [json.loads(l) for l in lines]
+        return results
+
     def get_files(self, scope, name):
         token = self._get_auth_token()
         headers = {'X-Rucio-Auth-Token': token}

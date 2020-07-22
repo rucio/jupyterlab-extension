@@ -3,7 +3,7 @@ import { UIStore } from '../stores/UIStore';
 import { actions } from './Actions';
 
 export class PollingRequesterRef {}
-type DIDType = 'file' | 'container';
+type DIDType = 'file' | 'collection';
 class DIDPollingManager {
   pollingRequesterMap: { [did: string]: { type: DIDType; refs: PollingRequesterRef[] } } = {};
 
@@ -68,7 +68,7 @@ class DIDPollingManager {
           }
         });
         break;
-      case 'container':
+      case 'collection':
         actions.getContainerDIDDetails(activeInstance.name, did, true).then(didDetails => {
           if (!didDetails.find(d => d.status === 'REPLICATING')) {
             delete this.pollingRequesterMap[did];

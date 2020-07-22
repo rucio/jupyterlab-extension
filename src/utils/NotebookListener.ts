@@ -266,7 +266,7 @@ export class NotebookListener {
     const { variableName, type, did } = attachment;
     this.setResolveStatus(kernelConnectionId, did, 'RESOLVING');
     try {
-      if (type === 'container') {
+      if (type === 'collection') {
         const didDetails = await this.resolveContainerDIDDetails(did);
         const path = this.getContainerDIDPaths(didDetails);
 

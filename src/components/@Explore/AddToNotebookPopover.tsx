@@ -38,7 +38,7 @@ const useStyles = createUseStyles({
 
 interface AddToNotebookPopoverProps {
   did: string;
-  type: 'container' | 'file';
+  type: 'collection' | 'file';
 }
 
 type MyProps = React.HTMLAttributes<HTMLDivElement> & AddToNotebookPopoverProps;

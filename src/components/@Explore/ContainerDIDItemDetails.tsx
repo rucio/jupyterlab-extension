@@ -70,7 +70,7 @@ const _ContainerDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
   const [pollingRequesterRef] = useState(() => new PollingRequesterRef());
 
   const enablePolling = () => {
-    didPollingManager.requestPolling(did, 'container', pollingRequesterRef);
+    didPollingManager.requestPolling(did, 'collection', pollingRequesterRef);
   };
 
   const disablePolling = () => {
@@ -123,7 +123,7 @@ const FileAvailable: React.FC<{ did: string }> = ({ did }) => {
         <span className={classes.statusText}>All files available</span>
       </div>
       <div className={classes.action}>
-        <AddToNotebookPopover did={did} type="container">
+        <AddToNotebookPopover did={did} type="collection">
           Add to Notebook
         </AddToNotebookPopover>
       </div>
@@ -175,7 +175,7 @@ const FileReplicating: React.FC<{ did: string }> = ({ did }) => {
         <span className={classes.statusText}>Replicating files...</span>
       </div>
       <div className={classes.action}>
-        <AddToNotebookPopover did={did} type="container">
+        <AddToNotebookPopover did={did} type="collection">
           Add to Notebook
         </AddToNotebookPopover>
       </div>
