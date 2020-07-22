@@ -2,6 +2,36 @@ import json
 from .conftest import MOCK_BASE_URL, MOCK_ACCOUNT, MOCK_AUTH_TOKEN
 
 
+def test_search_did_non_empty_result(rucio, mocker, requests_mock):
+    mocker.patch('rucio_jupyterlab.rucio.authenticate_userpass', return_value=(MOCK_AUTH_TOKEN, 1368440583))
+    scope, name = "scope", "name"
+
+    request_headers = {'X-Rucio-Auth-Token': MOCK_AUTH_TOKEN}
+    mock_response_json = [
+        {'scope': 'scope1', 'name': 'name1', 'type': 'container', 'bytes': None},
+        {'scope': 'scope2', 'name': 'name2', 'type': 'dataset', 'bytes': None},
+        {'scope': 'scope3', 'name': 'name3', 'type': 'file', 'bytes': 123}
+    ]
+    mock_response = '\n'.join([json.dumps(x) for x in mock_response_json])
+
+    requests_mock.get(f"{MOCK_BASE_URL}/dids/{scope}/dids/search?type=all&long=1&name={name}", request_headers=request_headers, text=mock_response)
+    response = rucio.search_did(scope, name, 'all')
+
+    assert response == mock_response_json, "Invalid response"
+
+
+def test_search_did_empty_result(rucio, mocker, requests_mock):
+    mocker.patch('rucio_jupyterlab.rucio.authenticate_userpass', return_value=(MOCK_AUTH_TOKEN, 1368440583))
+    scope, name = "scope", "name"
+
+    request_headers = {'X-Rucio-Auth-Token': MOCK_AUTH_TOKEN}
+
+    requests_mock.get(f"{MOCK_BASE_URL}/dids/{scope}/dids/search?type=all&long=1&name={name}", request_headers=request_headers, text='')
+    response = rucio.search_did(scope, name, 'all')
+
+    assert response == [], "Invalid response"
+
+
 def test_get_files_non_empty_result(rucio, mocker, requests_mock):
     mocker.patch('rucio_jupyterlab.rucio.authenticate_userpass', return_value=(MOCK_AUTH_TOKEN, 1368440583))
     scope, name = "scope", "name"
