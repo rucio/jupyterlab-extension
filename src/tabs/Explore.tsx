@@ -74,6 +74,22 @@ const _Explore: React.FunctionComponent = props => {
     setLastQuery(searchQuery);
   };
 
+  const itemsSortFunction = (a: DIDSearchResult, b: DIDSearchResult): number => {
+    if (a.type === b.type) {
+      return a.did.toLowerCase() < b.did.toLowerCase() ? -1 : 1;
+    }
+
+    if (a.type === 'container' && b.type === 'dataset') {
+      return -1;
+    }
+
+    if ((a.type === 'container' || a.type === 'dataset') && b.type === 'file') {
+      return -1;
+    }
+
+    return 0;
+  };
+
   useEffect(() => {
     if (!lastQuery) {
       return;
@@ -84,11 +100,21 @@ const _Explore: React.FunctionComponent = props => {
     setError(undefined);
     actions
       .searchDID(activeInstance.name, searchQuery, searchType)
+      .then(items => items.sort(itemsSortFunction))
       .then(result => setSearchResult(result))
       .catch(e => {
         setSearchResult([]);
         if (e.response.status === 401) {
           setError('Authentication error. Perhaps you set an invalid credential?');
+          return;
+        }
+
+        if (e.response.status === 400) {
+          const body = e.response.json();
+          if (body.error === 'wildcard_disabled') {
+            setError('Wildcard search is disabled.');
+            return;
+          }
         }
       })
       .finally(() => setLoading(false));

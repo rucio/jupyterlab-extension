@@ -3,6 +3,7 @@ import { createUseStyles } from 'react-jss';
 import { FileDIDItemDetails } from './FileDIDItemDetails';
 import { ContainerDIDItemDetails } from './ContainerDIDItemDetails';
 import { toHumanReadableSize } from '../../utils/Helpers';
+import { ListAttachedFilesPopover } from './ListAttachedFilesPopover';
 
 const useStyles = createUseStyles({
   listItemContainer: {
@@ -36,7 +37,8 @@ const useStyles = createUseStyles({
     marginRight: '8px'
   },
   icon: {
-    fontSize: '16px'
+    fontSize: '16px',
+    verticalAlign: 'middle'
   },
   fileIcon: {
     extend: 'icon',
@@ -52,6 +54,11 @@ const useStyles = createUseStyles({
   },
   sizeContainer: {
     color: '#808080'
+  },
+  listFilesIcon: {
+    extend: 'icon',
+    color: '#2196F3',
+    cursor: 'pointer'
   }
 });
 
@@ -77,6 +84,10 @@ export const DIDListItem: React.FC<DIDItem> = ({ did, size, type, onClick, expan
     setOpen(!open);
   };
 
+  const handleViewFilesClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    e.stopPropagation();
+  };
+
   return (
     <div className={classes.listItemContainer}>
       <div className={open ? classes.listItemExpanded : classes.listItemCollapsed} onClick={handleItemClick}>
@@ -87,6 +98,13 @@ export const DIDListItem: React.FC<DIDItem> = ({ did, size, type, onClick, expan
         </div>
         <div className={classes.textContainer}>{did}</div>
         {!!size && <div className={classes.sizeContainer}>{toHumanReadableSize(size)}</div>}
+        {(type === 'container' || type === 'dataset') && (
+          <div onClick={handleViewFilesClick}>
+            <ListAttachedFilesPopover did={did}>
+              <i className={`${classes.listFilesIcon} material-icons`}>visibility</i>
+            </ListAttachedFilesPopover>
+          </div>
+        )}
       </div>
       {!!open && type === 'file' && <FileDIDItemDetails did={did} />}
       {!!open && (type === 'container' || type === 'dataset') && <ContainerDIDItemDetails did={did} />}
