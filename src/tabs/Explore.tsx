@@ -110,11 +110,7 @@ const _Explore: React.FunctionComponent = props => {
         }
 
         if (e.response.status === 400) {
-          const body = e.response.json();
-          if (body.error === 'wildcard_disabled') {
-            setError('Wildcard search is disabled.');
-            return;
-          }
+          setError('Wildcard search is disabled.');
         }
       })
       .finally(() => setLoading(false));

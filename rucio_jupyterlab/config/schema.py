@@ -38,6 +38,10 @@ instance_properties = {
     "cache_expires_at": {
         "type": "integer",
         "default": 0
+    },
+    "wildcard_enabled": {
+        "type": "boolean",
+        "default": False
     }
 }
 
