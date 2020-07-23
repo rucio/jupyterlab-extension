@@ -20,6 +20,10 @@ const useStyles = createUseStyles({
     paddingRight: '8px'
   },
   listItemContent: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'stretch',
+    overflow: 'hidden',
     flex: 1
   },
   did: {
@@ -27,6 +31,7 @@ const useStyles = createUseStyles({
     overflow: 'hidden'
   },
   variableName: {
+    overflowWrap: 'break-word',
     color: '#808080'
   },
   statusIcon: {

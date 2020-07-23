@@ -22,6 +22,8 @@ const useStyles = createUseStyles({
     flexDirection: 'row'
   },
   headingText: {
+    textOverflow: 'ellipsis',
+    overflow: 'hidden',
     flex: 1
   },
   content: {
