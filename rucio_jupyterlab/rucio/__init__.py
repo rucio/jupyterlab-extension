@@ -1,6 +1,7 @@
 import logging
 import time
 import json
+from urllib.parse import urlencode, quote
 import requests
 from rucio_jupyterlab.db import get_db
 from .authenticators import RucioAuthenticationException, authenticate_userpass, authenticate_x509
@@ -24,7 +25,15 @@ class RucioAPI:
     def search_did(self, scope, name, search_type='collection'):
         token = self._get_auth_token()
         headers = {'X-Rucio-Auth-Token': token}
-        response = requests.get(url=f'{self.base_url}/dids/{scope}/dids/search?type={search_type}&long=1&name={name}', headers=headers, verify=self.rucio_ca_cert)
+
+        scope = quote(scope)
+        urlencoded_params = urlencode({
+            'type': search_type,
+            'long': '1',
+            'name': name
+        })
+        
+        response = requests.get(url=f'{self.base_url}/dids/{scope}/dids/search?{urlencoded_params}', headers=headers, verify=self.rucio_ca_cert)
 
         if response.text == '':
             return []
@@ -36,6 +45,10 @@ class RucioAPI:
     def get_files(self, scope, name):
         token = self._get_auth_token()
         headers = {'X-Rucio-Auth-Token': token}
+
+        scope = quote(scope)
+        name = quote(name)
+
         response = requests.get(url=f'{self.base_url}/dids/{scope}/{name}/files', headers=headers, verify=self.rucio_ca_cert)
 
         if response.text == '':
@@ -48,6 +61,10 @@ class RucioAPI:
     def get_rules(self, scope, name):
         token = self._get_auth_token()
         headers = {'X-Rucio-Auth-Token': token}
+
+        scope = quote(scope)
+        name = quote(name)
+
         response = requests.get(url=f'{self.base_url}/dids/{scope}/{name}/rules', headers=headers, verify=self.rucio_ca_cert)
 
         if response.text == '':
@@ -60,13 +77,17 @@ class RucioAPI:
     def get_rule_details(self, rule_id):
         token = self._get_auth_token()
         headers = {'X-Rucio-Auth-Token': token}
-        response = requests.get(
-            url=f'{self.base_url}/rules/{rule_id}', headers=headers, verify=self.rucio_ca_cert)
+        rule_id = quote(rule_id)
+        response = requests.get(url=f'{self.base_url}/rules/{rule_id}', headers=headers, verify=self.rucio_ca_cert)
         return response.json()
 
     def get_replicas(self, scope, name):
         token = self._get_auth_token()
         headers = {'X-Rucio-Auth-Token': token}
+        
+        scope = quote(scope)
+        name = quote(name)
+        
         response = requests.get(url=f'{self.base_url}/replicas/{scope}/{name}', headers=headers, verify=self.rucio_ca_cert)
 
         if response.text == '':
