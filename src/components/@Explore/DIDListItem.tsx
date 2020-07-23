@@ -97,7 +97,7 @@ export const DIDListItem: React.FC<DIDItem> = ({ did, size, type, onClick, expan
           {type === 'dataset' && <i className={`${classes.datasetIcon} material-icons`}>folder_open</i>}
         </div>
         <div className={classes.textContainer}>{did}</div>
-        {!!size && <div className={classes.sizeContainer}>{toHumanReadableSize(size)}</div>}
+        {type === 'file' && !!size && <div className={classes.sizeContainer}>{toHumanReadableSize(size)}</div>}
         {(type === 'container' || type === 'dataset') && (
           <div onClick={handleViewFilesClick}>
             <ListAttachedFilesPopover did={did}>
