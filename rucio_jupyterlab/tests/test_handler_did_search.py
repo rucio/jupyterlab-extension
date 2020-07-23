@@ -71,6 +71,22 @@ def test_search_did__with_wildcard__wildcard_disabled__should_raise_exception(mo
         rucio.search_did.assert_called_once_with('scope', 'name', 'all')
 
 
+def test_search_did__with_percent_wildcard__wildcard_disabled__should_raise_exception(mocker, rucio):
+    rucio.instance_config['wildcard_enabled'] = False
+
+    mocker.patch.object(rucio, 'search_did', return_value=[
+        {'scope': 'scope', 'name': 'name1', 'bytes': None, 'did_type': 'CONTAINER'},
+        {'scope': 'scope', 'name': 'name2', 'bytes': None, 'did_type': 'DATASET'},
+        {'scope': 'scope', 'name': 'name3', 'bytes': 123, 'did_type': 'FILE'}
+    ])
+
+    handler = DIDSearchHandlerImpl(MOCK_ACTIVE_INSTANCE, rucio)
+
+    with pytest.raises(WildcardDisallowedException):
+        handler.search_did('scope', 'name%', 'all')
+        rucio.search_did.assert_called_once_with('scope', 'name', 'all')
+
+
 def test_get_handler__inputs_correct__should_not_error(mocker, rucio):
     mock_self = MockHandler()
 

@@ -17,7 +17,7 @@ class DIDSearchHandlerImpl:
     def search_did(self, scope, name, search_type):
         wildcard_enabled = self.rucio.instance_config.get('wildcard_enabled', False)
 
-        if '*' in name and not wildcard_enabled:
+        if ('*' in name or '%' in name) and not wildcard_enabled:
             raise WildcardDisallowedException()
 
         dids = self.rucio.search_did(scope, name, search_type)
