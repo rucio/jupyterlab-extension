@@ -1,6 +1,5 @@
 import os
 import json
-from unittest.mock import call
 import rucio_jupyterlab.utils as utils
 from rucio_jupyterlab.handlers.file_browser import FileBrowserHandler, FileBrowserHandlerImpl
 from .mocks.mock_handler import MockHandler
