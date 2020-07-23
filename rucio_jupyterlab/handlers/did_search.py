@@ -5,8 +5,12 @@ from rucio_jupyterlab.rucio.authenticators import RucioAuthenticationException
 import rucio_jupyterlab.utils as utils
 from .base import RucioAPIHandler
 
+ROW_LIMIT = 100
+
+
 class WildcardDisallowedException(BaseException):
     pass
+
 
 class DIDSearchHandlerImpl:
     def __init__(self, namespace, rucio):
@@ -14,13 +18,13 @@ class DIDSearchHandlerImpl:
         self.rucio = rucio
         self.db = get_db()  # pylint: disable=invalid-name
 
-    def search_did(self, scope, name, search_type):
+    def search_did(self, scope, name, search_type, limit):
         wildcard_enabled = self.rucio.instance_config.get('wildcard_enabled', False)
 
         if ('*' in name or '%' in name) and not wildcard_enabled:
             raise WildcardDisallowedException()
 
-        dids = self.rucio.search_did(scope, name, search_type)
+        dids = self.rucio.search_did(scope, name, search_type, limit)
 
         def mapper(entry, _):
             return {
@@ -45,7 +49,7 @@ class DIDSearchHandler(RucioAPIHandler):
         handler = DIDSearchHandlerImpl(namespace, rucio)
 
         try:
-            dids = handler.search_did(scope, name, search_type)
+            dids = handler.search_did(scope, name, search_type, ROW_LIMIT)
             self.finish(json.dumps(dids))
         except RucioAuthenticationException:
             self.set_status(401)

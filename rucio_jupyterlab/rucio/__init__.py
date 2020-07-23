@@ -22,7 +22,7 @@ class RucioAPI:
         self.auth_url = instance_config.get('rucio_auth_url', self.base_url)
         self.rucio_ca_cert = instance_config.get('rucio_ca_cert', False)    # TODO default should be True
 
-    def search_did(self, scope, name, search_type='collection'):
+    def search_did(self, scope, name, search_type='collection', limit=None):
         token = self._get_auth_token()
         headers = {'X-Rucio-Auth-Token': token}
 
@@ -32,7 +32,7 @@ class RucioAPI:
             'long': '1',
             'name': name
         })
-        
+
         response = requests.get(url=f'{self.base_url}/dids/{scope}/dids/search?{urlencoded_params}', headers=headers, verify=self.rucio_ca_cert)
 
         if response.text == '':
@@ -40,6 +40,11 @@ class RucioAPI:
 
         lines = response.text.rstrip('\n').splitlines()
         results = [json.loads(l) for l in lines]
+
+        # Apply limit, TODO: use endpoint parameter once Rucio PR #3872 is merged and released.
+        if limit is not None:
+            results = results[:limit]
+
         return results
 
     def get_files(self, scope, name):
@@ -84,10 +89,10 @@ class RucioAPI:
     def get_replicas(self, scope, name):
         token = self._get_auth_token()
         headers = {'X-Rucio-Auth-Token': token}
-        
+
         scope = quote(scope)
         name = quote(name)
-        
+
         response = requests.get(url=f'{self.base_url}/replicas/{scope}/{name}', headers=headers, verify=self.rucio_ca_cert)
 
         if response.text == '':
