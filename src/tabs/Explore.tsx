@@ -87,7 +87,7 @@ const _Explore: React.FunctionComponent = props => {
       return -1;
     }
 
-    return 0;
+    return 1;
   };
 
   useEffect(() => {
