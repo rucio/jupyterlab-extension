@@ -52,7 +52,8 @@ const useStyles = createUseStyles({
   textContainer: {
     flex: 1,
     textOverflow: 'ellipsis',
-    overflow: 'hidden'
+    overflow: 'hidden',
+    whiteSpace: 'nowrap'
   },
   iconContainer: {
     lineHeight: 0,

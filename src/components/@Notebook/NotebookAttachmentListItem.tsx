@@ -28,7 +28,8 @@ const useStyles = createUseStyles({
   },
   did: {
     textOverflow: 'ellipsis',
-    overflow: 'hidden'
+    overflow: 'hidden',
+    whiteSpace: 'nowrap'
   },
   variableName: {
     overflowWrap: 'break-word',

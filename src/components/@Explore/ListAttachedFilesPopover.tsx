@@ -26,6 +26,7 @@ const useStyles = createUseStyles({
   headingText: {
     textOverflow: 'ellipsis',
     overflow: 'hidden',
+    whiteSpace: 'nowrap',
     flex: 1
   },
   content: {
@@ -68,6 +69,7 @@ const useStyles = createUseStyles({
     flex: 1,
     textOverflow: 'ellipsis',
     overflow: 'hidden',
+    whiteSpace: 'nowrap',
     cursor: 'pointer',
     '&:hover': {
       color: '#2196F3'
