@@ -197,6 +197,9 @@ const _Explore: React.FunctionComponent = props => {
       {!!searchResult && (
         <>
           <HorizontalHeading title="Search Results" />
+          {((!!searchResult && searchResult.length === 0) || !!error) && (
+            <div className={classes.loading}>{error || 'No results found'}</div>
+          )}
           <div className={classes.resultsContainer}>
             <AutoSizer disableWidth>
               {({ height }) => (
@@ -212,9 +215,6 @@ const _Explore: React.FunctionComponent = props => {
               )}
             </AutoSizer>
           </div>
-          {((!!searchResult && searchResult.length === 0) || !!error) && (
-            <div className={classes.loading}>{error || 'No results found'}</div>
-          )}
         </>
       )}
     </div>
