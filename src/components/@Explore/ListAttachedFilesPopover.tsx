@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Popover from 'react-popover';
+import CopyToClipboard from 'react-copy-to-clipboard';
 import { createUseStyles } from 'react-jss';
+import { FixedSizeList } from 'react-window';
 import { useStoreState } from 'pullstate';
 import { UIStore } from '../../stores/UIStore';
 import { AttachedFile } from '../../types';
 import { actions } from '../../utils/Actions';
-import { DIDListItem } from './DIDListItem';
 import { Spinning } from '../Spinning';
+import { toHumanReadableSize } from '../../utils/Helpers';
 
 const useStyles = createUseStyles({
   main: {
@@ -36,7 +38,8 @@ const useStyles = createUseStyles({
     }
   },
   loading: {
-    padding: '8px'
+    padding: '8px',
+    boxSizing: 'border-box'
   },
   icon: {
     fontSize: '16px',
@@ -50,6 +53,47 @@ const useStyles = createUseStyles({
   headingCloseButton: {
     extend: 'icon',
     cursor: 'pointer'
+  },
+  listItem: {
+    display: 'flex',
+    padding: '8px',
+    borderBottom: '1px solid #E0E0E0',
+    flexDirection: 'row',
+    fontSize: '9pt',
+    alignItems: 'center',
+    boxSizing: 'border-box',
+    overflow: 'hidden'
+  },
+  textContainer: {
+    flex: 1,
+    textOverflow: 'ellipsis',
+    overflow: 'hidden',
+    cursor: 'pointer',
+    '&:hover': {
+      color: '#2196F3'
+    },
+    '& .copy': {
+      display: 'none',
+      fontSize: '12px'
+    },
+    '&:hover .copy': {
+      display: 'inline'
+    }
+  },
+  iconContainer: {
+    lineHeight: 0,
+    marginRight: '8px'
+  },
+  sizeContainer: {
+    color: '#808080'
+  },
+  fileIcon: {
+    extend: 'icon',
+    color: '#66B100'
+  },
+  loadingIcon: {
+    fontSize: '9pt',
+    verticalAlign: 'middle'
   }
 });
 
@@ -80,6 +124,11 @@ export const ListAttachedFilesPopover: React.FC<MyProps> = ({ children, did }) =
     };
   }, []);
 
+  const Row = ({ index, style }: any) => {
+    const file = files[index];
+    return <ListItem style={style} did={file.did} size={file.size} />;
+  };
+
   const popoverBody = (
     <div className={classes.main}>
       <div className={classes.heading}>
@@ -93,13 +142,13 @@ export const ListAttachedFilesPopover: React.FC<MyProps> = ({ children, did }) =
       <div className={classes.content}>
         {loading && (
           <div className={classes.loading}>
-            <Spinning className={`${classes.icon} material-icons`}>hourglass_top</Spinning>
+            <Spinning className={`${classes.loadingIcon} material-icons`}>hourglass_top</Spinning>
             <span className={classes.iconText}>Loading...</span>
           </div>
         )}
-        {files.map(file => (
-          <DIDListItem type="file" did={file.did} key={file.did} />
-        ))}
+        <FixedSizeList height={Math.min(250, 32 * files.length)} itemCount={files.length} itemSize={32} width="100%">
+          {Row}
+        </FixedSizeList>
       </div>
     </div>
   );
@@ -129,5 +178,23 @@ export const ListAttachedFilesPopover: React.FC<MyProps> = ({ children, did }) =
     >
       <div onClick={openPopover}>{children}</div>
     </Popover>
+  );
+};
+
+const ListItem: React.FC<{ did: string; size: number; style: any }> = ({ did, size, style }) => {
+  const classes = useStyles();
+
+  return (
+    <div className={classes.listItem} style={style}>
+      <div className={classes.iconContainer}>
+        <i className={`${classes.fileIcon} material-icons`}>attachment</i>
+      </div>
+      <CopyToClipboard text={did}>
+        <div className={classes.textContainer}>
+          {did} <i className="material-icons copy">file_copy</i>
+        </div>
+      </CopyToClipboard>
+      {!!size && <div className={classes.sizeContainer}>{toHumanReadableSize(size)}</div>}
+    </div>
   );
 };
