@@ -10,42 +10,49 @@ import { PollingRequesterRef, withPollingManager, WithPollingManagerProps } from
 
 const useStyles = createUseStyles({
   container: {
-    padding: '0 16px 8px 16px',
-    backgroundColor: '#F8F8F8'
+    padding: '4px 16px 4px 16px',
+    backgroundColor: '#F8F8F8',
+    boxSizing: 'border-box',
+    height: '32px',
+    alignItems: 'center'
   },
   icon: {
     fontSize: '10pt',
     verticalAlign: 'middle'
   },
   loading: {
-    color: '#808080',
-    alignItems: 'center'
+    color: '#808080'
   },
   statusText: {
     fontSize: '9pt',
     verticalAlign: 'middle',
-    paddingLeft: '4px'
-  },
-  statusAvailable: {
-    color: '#5a9216',
-    flex: 1
-  },
-  statusPartiallyAvailable: {
-    color: '#ffa000',
-    flex: 1
-  },
-  statusNotAvailable: {
-    color: '#dd2c00',
-    flex: 1
-  },
-  statusReplicating: {
-    color: '#ffa000',
-    flex: 1
+    paddingLeft: '4px',
+    flex: 1,
+    textOverflow: 'ellipsis',
+    overflow: 'hidden',
+    whiteSpace: 'nowrap'
   },
   statusContainer: {
     display: 'flex',
     flexDirection: 'row',
-    alignItems: 'center'
+    alignItems: 'center',
+    flex: 1
+  },
+  statusAvailable: {
+    extend: 'statusContainer',
+    color: '#5a9216'
+  },
+  statusPartiallyAvailable: {
+    extend: 'statusContainer',
+    color: '#ffa000'
+  },
+  statusNotAvailable: {
+    extend: 'statusContainer',
+    color: '#dd2c00'
+  },
+  statusReplicating: {
+    extend: 'statusContainer',
+    color: '#ffa000'
   },
   action: {
     fontSize: '9pt',
@@ -117,11 +124,9 @@ const FileAvailable: React.FC<{ did: string }> = ({ did }) => {
   const classes = useStyles();
 
   return (
-    <div className={classes.statusContainer}>
-      <div className={classes.statusAvailable}>
-        <i className={`${classes.icon} material-icons`}>check_circle</i>
-        <span className={classes.statusText}>All files available</span>
-      </div>
+    <div className={classes.statusAvailable}>
+      <i className={`${classes.icon} material-icons`}>check_circle</i>
+      <div className={classes.statusText}>All files available</div>
       <div className={classes.action}>
         <AddToNotebookPopover did={did} type="collection">
           Add to Notebook
@@ -135,11 +140,9 @@ const FileNotAvailable: React.FC<{ onMakeAvailableClicked?: { (): void } }> = ({
   const classes = useStyles();
 
   return (
-    <div className={classes.statusContainer}>
-      <div className={classes.statusNotAvailable}>
-        <i className={`${classes.icon} material-icons`}>lens</i>
-        <span className={classes.statusText}>Not available</span>
-      </div>
+    <div className={classes.statusNotAvailable}>
+      <i className={`${classes.icon} material-icons`}>lens</i>
+      <div className={classes.statusText}>Not available</div>
       <div className={classes.action} onClick={onMakeAvailableClicked}>
         Make Available
       </div>
@@ -153,11 +156,9 @@ const FilePartiallyAvailable: React.FC<{
   const classes = useStyles();
 
   return (
-    <div className={classes.statusContainer}>
-      <div className={classes.statusPartiallyAvailable}>
-        <i className={`${classes.icon} material-icons`}>lens</i>
-        <span className={classes.statusText}>Partially available</span>
-      </div>
+    <div className={classes.statusPartiallyAvailable}>
+      <i className={`${classes.icon} material-icons`}>lens</i>
+      <div className={classes.statusText}>Partially available</div>
       <div className={classes.action} onClick={onMakeAvailableClicked}>
         Make Available
       </div>
@@ -169,11 +170,9 @@ const FileReplicating: React.FC<{ did: string }> = ({ did }) => {
   const classes = useStyles();
 
   return (
-    <div className={classes.statusContainer}>
-      <div className={classes.statusReplicating}>
-        <Spinning className={`${classes.icon} material-icons`}>hourglass_top</Spinning>
-        <span className={classes.statusText}>Replicating files...</span>
-      </div>
+    <div className={classes.statusReplicating}>
+      <Spinning className={`${classes.icon} material-icons`}>hourglass_top</Spinning>
+      <div className={classes.statusText}>Replicating files...</div>
       <div className={classes.action}>
         <AddToNotebookPopover did={did} type="collection">
           Add to Notebook
@@ -187,11 +186,9 @@ const FileStuck: React.FC<{ onMakeAvailableClicked?: { (): void } }> = ({ onMake
   const classes = useStyles();
 
   return (
-    <div className={classes.statusContainer}>
-      <div className={classes.statusNotAvailable}>
-        <i className={`${classes.icon} material-icons`}>error</i>
-        <span className={classes.statusText}>Something went wrong</span>
-      </div>
+    <div className={classes.statusNotAvailable}>
+      <i className={`${classes.icon} material-icons`}>error</i>
+      <div className={classes.statusText}>Something went wrong</div>
       <div className={classes.action} onClick={onMakeAvailableClicked}>
         Make Available
       </div>

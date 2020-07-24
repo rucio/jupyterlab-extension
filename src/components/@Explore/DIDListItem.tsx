@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { createUseStyles } from 'react-jss';
 import { FileDIDItemDetails } from './FileDIDItemDetails';
 import { CollectionDIDItemDetails } from './CollectionDIDItemDetails';
@@ -7,13 +7,15 @@ import { ListAttachedFilesPopover } from './ListAttachedFilesPopover';
 
 const useStyles = createUseStyles({
   listItemContainer: {
-    borderBottom: '1px solid #E0E0E0'
+    borderBottom: '1px solid #E0E0E0',
+    overflow: 'hidden',
+    boxSizing: 'border-box'
   },
   listItem: {
     display: 'flex',
     flexDirection: 'row',
     fontSize: '9pt',
-    alignItems: 'stretch',
+    alignItems: 'center',
     padding: '8px 16px 8px 16px',
     cursor: 'pointer'
   },
@@ -66,31 +68,21 @@ export interface DIDItem {
   did: string;
   size?: number;
   type: 'dataset' | 'container' | 'file';
-  onClick?: { (): boolean | undefined };
+  onClick?: { (): any };
   expand?: boolean;
+  style?: any;
 }
 
-export const DIDListItem: React.FC<DIDItem> = ({ did, size, type, onClick, expand }) => {
+export const DIDListItem: React.FC<DIDItem> = ({ did, size, type, onClick, expand, style }) => {
   const classes = useStyles();
-  const [open, setOpen] = useState(expand);
-
-  const handleItemClick = () => {
-    if (onClick) {
-      if (!onClick()) {
-        return;
-      }
-    }
-
-    setOpen(!open);
-  };
 
   const handleViewFilesClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     e.stopPropagation();
   };
 
   return (
-    <div className={classes.listItemContainer}>
-      <div className={open ? classes.listItemExpanded : classes.listItemCollapsed} onClick={handleItemClick}>
+    <div className={classes.listItemContainer} style={style}>
+      <div className={expand ? classes.listItemExpanded : classes.listItemCollapsed} onClick={onClick}>
         <div className={classes.iconContainer}>
           {type === 'file' && <i className={`${classes.fileIcon} material-icons`}>attachment</i>}
           {type === 'container' && <i className={`${classes.containerIcon} material-icons`}>folder</i>}
@@ -106,8 +98,8 @@ export const DIDListItem: React.FC<DIDItem> = ({ did, size, type, onClick, expan
           </div>
         )}
       </div>
-      {!!open && type === 'file' && <FileDIDItemDetails did={did} />}
-      {!!open && (type === 'container' || type === 'dataset') && <CollectionDIDItemDetails did={did} />}
+      {!!expand && type === 'file' && <FileDIDItemDetails did={did} />}
+      {!!expand && (type === 'container' || type === 'dataset') && <CollectionDIDItemDetails did={did} />}
     </div>
   );
 };

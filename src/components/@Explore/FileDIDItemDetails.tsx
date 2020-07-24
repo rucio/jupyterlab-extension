@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { createUseStyles } from 'react-jss';
-import CopyToClipboard from 'react-copy-to-clipboard';
 import { useStoreState } from 'pullstate';
 import { UIStore } from '../../stores/UIStore';
 import { Spinning } from '../Spinning';
@@ -10,55 +9,45 @@ import { withPollingManager, WithPollingManagerProps, PollingRequesterRef } from
 
 const useStyles = createUseStyles({
   container: {
-    padding: '0 16px 8px 16px',
-    backgroundColor: '#F8F8F8'
+    padding: '4px 16px 4px 16px',
+    backgroundColor: '#F8F8F8',
+    boxSizing: 'border-box',
+    height: '32px',
+    alignItems: 'center'
   },
   icon: {
     fontSize: '10pt',
     verticalAlign: 'middle'
   },
   loading: {
-    color: '#808080',
-    alignItems: 'center'
+    color: '#808080'
   },
   statusText: {
     fontSize: '9pt',
     verticalAlign: 'middle',
-    paddingLeft: '4px'
-  },
-  statusAvailable: {
-    color: '#5a9216',
-    flex: 1
-  },
-  statusNotAvailable: {
-    color: '#dd2c00',
-    flex: 1
-  },
-  statusReplicating: {
-    color: '#ffa000',
-    flex: 1
+    paddingLeft: '4px',
+    flex: 1,
+    textOverflow: 'ellipsis',
+    overflow: 'hidden',
+    whiteSpace: 'nowrap'
   },
   statusContainer: {
     display: 'flex',
     flexDirection: 'row',
-    alignItems: 'center'
+    alignItems: 'center',
+    flex: 1
   },
-  path: {
-    fontSize: '9pt',
-    padding: 0,
-    margin: '8px 0 8px 0',
-    overflowWrap: 'break-word',
-    cursor: 'pointer',
-    '&:hover': {
-      color: '#2196F3'
-    },
-    '& .copy': {
-      display: 'none',
-      fontSize: '12px'
-    },
-    '&:hover .copy': {
-      display: 'inline'
-    }
+  statusAvailable: {
+    extend: 'statusContainer',
+    color: '#5a9216'
+  },
+  statusNotAvailable: {
+    extend: 'statusContainer',
+    color: '#dd2c00'
+  },
+  statusReplicating: {
+    extend: 'statusContainer',
+    color: '#ffa000'
   },
   action: {
     fontSize: '9pt',
@@ -124,24 +113,15 @@ const FileAvailable: React.FC<{ did: string; path: string }> = ({ did, path }) =
   const classes = useStyles();
 
   return (
-    <>
-      <div className={classes.statusContainer}>
-        <div className={classes.statusAvailable}>
-          <i className={`${classes.icon} material-icons`}>check_circle</i>
-          <span className={classes.statusText}>Available</span>
-        </div>
-        <div className={classes.action}>
-          <AddToNotebookPopover did={did} type="file">
-            Add to Notebook
-          </AddToNotebookPopover>
-        </div>
+    <div className={classes.statusAvailable}>
+      <i className={`${classes.icon} material-icons`}>check_circle</i>
+      <div className={classes.statusText}>Available</div>
+      <div className={classes.action}>
+        <AddToNotebookPopover did={did} type="file">
+          Add to Notebook
+        </AddToNotebookPopover>
       </div>
-      <CopyToClipboard text={path}>
-        <div className={classes.path}>
-          {path} <i className="material-icons copy">file_copy</i>
-        </div>
-      </CopyToClipboard>
-    </>
+    </div>
   );
 };
 
@@ -149,11 +129,9 @@ const FileNotAvailable: React.FC<{ onMakeAvailableClicked?: { (): void } }> = ({
   const classes = useStyles();
 
   return (
-    <div className={classes.statusContainer}>
-      <div className={classes.statusNotAvailable}>
-        <i className={`${classes.icon} material-icons`}>lens</i>
-        <span className={classes.statusText}>Not Available</span>
-      </div>
+    <div className={classes.statusNotAvailable}>
+      <i className={`${classes.icon} material-icons`}>lens</i>
+      <div className={classes.statusText}>Not Available</div>
       <div className={classes.action} onClick={onMakeAvailableClicked}>
         Make Available
       </div>
@@ -165,11 +143,9 @@ const FileReplicating: React.FC<{ did: string }> = ({ did }) => {
   const classes = useStyles();
 
   return (
-    <div className={classes.statusContainer}>
-      <div className={classes.statusReplicating}>
-        <Spinning className={`${classes.icon} material-icons`}>hourglass_top</Spinning>
-        <span className={classes.statusText}>Replicating file...</span>
-      </div>
+    <div className={classes.statusReplicating}>
+      <Spinning className={`${classes.icon} material-icons`}>hourglass_top</Spinning>
+      <div className={classes.statusText}>Replicating file...</div>
       <div className={classes.action}>
         <AddToNotebookPopover did={did} type="file">
           Add to Notebook
@@ -183,11 +159,9 @@ const FileStuck: React.FC<{ onMakeAvailableClicked?: { (): void } }> = ({ onMake
   const classes = useStyles();
 
   return (
-    <div className={classes.statusContainer}>
-      <div className={classes.statusNotAvailable}>
-        <i className={`${classes.icon} material-icons`}>error</i>
-        <span className={classes.statusText}>Something went wrong</span>
-      </div>
+    <div className={classes.statusNotAvailable}>
+      <i className={`${classes.icon} material-icons`}>error</i>
+      <div className={classes.statusText}>Something went wrong</div>
       <div className={classes.action} onClick={onMakeAvailableClicked}>
         Make Available
       </div>

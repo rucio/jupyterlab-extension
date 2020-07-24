@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createUseStyles } from 'react-jss';
+import { VariableSizeList } from 'react-window';
+import AutoSizer from 'react-virtualized-auto-sizer';
 import { useStoreState } from 'pullstate';
 import { UIStore } from '../stores/UIStore';
 import { TextField } from '../components/TextField';
@@ -11,6 +13,12 @@ import { DIDSearchType, DIDSearchResult } from '../types';
 import { InlineDropdown } from '../components/InlineDropdown';
 
 const useStyles = createUseStyles({
+  mainContainer: {
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden'
+  },
   searchContainer: {
     padding: '8px'
   },
@@ -18,7 +26,9 @@ const useStyles = createUseStyles({
     padding: '0 16px 0 16px',
     fontSize: '9pt'
   },
-  resultsContainer: {},
+  resultsContainer: {
+    flex: 1
+  },
   searchButton: {
     alignItems: 'center',
     padding: '4px',
@@ -65,6 +75,7 @@ const _Explore: React.FunctionComponent = props => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchType, setSearchType] = useState<DIDSearchType>('collection');
   const [searchResult, setSearchResult] = useState<DIDSearchResult[]>();
+  const [didExpanded, setDidExpanded] = useState<{ [index: number]: boolean }>({});
   const [error, setError] = useState<string>();
   const [lastQuery, setLastQuery] = useState('');
   const [loading, setLoading] = useState(false);
@@ -97,6 +108,7 @@ const _Explore: React.FunctionComponent = props => {
 
     setLoading(true);
     setSearchResult(undefined);
+    setDidExpanded({});
     setError(undefined);
     actions
       .searchDID(activeInstance.name, searchQuery, searchType)
@@ -128,8 +140,34 @@ const _Explore: React.FunctionComponent = props => {
     }
   };
 
+  const listRef = useRef<VariableSizeList>();
+
+  const toggleExpand = (index: number) => {
+    listRef.current.resetAfterIndex(index);
+    didExpanded[index] = !didExpanded[index];
+    setDidExpanded(didExpanded);
+  };
+
+  const getItemHeight = (i: number) => (didExpanded[i] === true ? 64 : 32);
+
+  const Row = ({ index, style }: any) => {
+    const item = searchResult[index];
+    const expanded = !!didExpanded[index];
+    return (
+      <DIDListItem
+        style={style}
+        type={item.type}
+        did={item.did}
+        size={item.size}
+        key={item.did}
+        expand={expanded}
+        onClick={() => toggleExpand(index)}
+      />
+    );
+  };
+
   return (
-    <div>
+    <div className={classes.mainContainer}>
       <div className={classes.searchContainer}>
         <TextField
           outlineColor="#E0E0E0"
@@ -160,9 +198,19 @@ const _Explore: React.FunctionComponent = props => {
         <>
           <HorizontalHeading title="Search Results" />
           <div className={classes.resultsContainer}>
-            {searchResult.map(did => (
-              <DIDListItem type={did.type} did={did.did} size={did.size} key={did.did} />
-            ))}
+            <AutoSizer disableWidth>
+              {({ height }) => (
+                <VariableSizeList
+                  ref={listRef}
+                  height={height}
+                  itemCount={searchResult.length}
+                  itemSize={getItemHeight}
+                  width="100%"
+                >
+                  {Row}
+                </VariableSizeList>
+              )}
+            </AutoSizer>
           </div>
           {((!!searchResult && searchResult.length === 0) || !!error) && (
             <div className={classes.loading}>{error || 'No results found'}</div>
