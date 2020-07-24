@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { createUseStyles } from 'react-jss';
+import { FixedSizeList } from 'react-window';
+import AutoSizer from 'react-virtualized-auto-sizer';
 import Popover from 'react-popover';
 import { withRequestAPI, WithRequestAPIProps } from '../../utils/Actions';
 import { DirectoryItem } from '../../types';
@@ -41,7 +43,8 @@ const useStyles = createUseStyles({
     flexDirection: 'row',
     fontSize: '9pt',
     cursor: 'pointer',
-    alignItems: 'stretch',
+    alignItems: 'center',
+    boxSizing: 'border-box',
     '&:hover': {
       backgroundColor: '#eeeeee'
     }
@@ -153,6 +156,11 @@ const _FilePickerPopover: React.FC<MyProps> = ({ children, onFilePicked, ...prop
     }
   };
 
+  const Row = ({ index, style }: any) => {
+    const item = directoryItems[index];
+    return <ListItem style={style} directoryItem={item} key={item.path} onClick={() => onItemClick(item)} />;
+  };
+
   const popoverBody = (
     <div className={classes.main}>
       <div className={classes.heading}>
@@ -172,9 +180,13 @@ const _FilePickerPopover: React.FC<MyProps> = ({ children, onFilePicked, ...prop
         <span className={classes.folderName}>{path ? path[path.length - 1] : ''}</span>
       </div>
       <div className={`${classes.content} ${loading ? 'loading' : ''}`}>
-        {directoryItems.map(item => (
-          <ListItem directoryItem={item} key={item.path} onClick={() => onItemClick(item)} />
-        ))}
+        <AutoSizer>
+          {({ height, width }) => (
+            <FixedSizeList height={height} itemCount={directoryItems.length} itemSize={32} width={width}>
+              {Row}
+            </FixedSizeList>
+          )}
+        </AutoSizer>
       </div>
     </div>
   );
@@ -192,11 +204,15 @@ const _FilePickerPopover: React.FC<MyProps> = ({ children, onFilePicked, ...prop
   );
 };
 
-const ListItem: React.FC<{ directoryItem: DirectoryItem; onClick: { (): void } }> = ({ directoryItem, onClick }) => {
+const ListItem: React.FC<{ directoryItem: DirectoryItem; onClick: { (): void }; style: any }> = ({
+  directoryItem,
+  onClick,
+  style
+}) => {
   const classes = useStyles();
 
   return (
-    <div className={classes.listItem} onClick={onClick}>
+    <div className={classes.listItem} onClick={onClick} style={style}>
       <div className={classes.iconContainer}>
         {directoryItem.type === 'file' && <i className={`${classes.fileIcon} material-icons`}>attachment</i>}
         {directoryItem.type === 'dir' && <i className={`${classes.dirIcon} material-icons`}>folder</i>}
