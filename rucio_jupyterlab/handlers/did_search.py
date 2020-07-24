@@ -5,7 +5,7 @@ from rucio_jupyterlab.rucio.authenticators import RucioAuthenticationException
 import rucio_jupyterlab.utils as utils
 from .base import RucioAPIHandler
 
-ROW_LIMIT = 100
+ROW_LIMIT = 1000
 
 
 class WildcardDisallowedException(BaseException):
