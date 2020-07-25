@@ -152,7 +152,6 @@ class DIDDownloader:
             try:
                 results = DIDDownloader.download(dest_folder, did)
                 DIDDownloader.write_donefile(dest_folder, results)
-                print(results)
             finally:
                 DIDDownloader.delete_lockfile(dest_folder)
 

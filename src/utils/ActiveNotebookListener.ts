@@ -39,7 +39,6 @@ export class ActiveNotebookListener {
     const { activeNotebookPanel } = state;
 
     if (!attachments || !activeNotebookPanel) {
-      console.log('No attachment or active notebook');
       return;
     }
 

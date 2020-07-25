@@ -47,8 +47,6 @@ export class NotebookListener {
     const { notebookTracker } = this.options;
 
     const instanceConfigurationChange = () => {
-      console.log('[Listener] Instance config changed!');
-
       StatusStore.update(s => {
         s.status = {};
       });
@@ -143,7 +141,6 @@ export class NotebookListener {
     msg: KernelMessage.ICommMsgMsg | KernelMessage.ICommOpenMsg
   ) {
     const data = msg.content.data;
-    console.log('Incoming message', data);
     if (data.action === 'request-inject') {
       const { activeInstance } = UIStore.getRawState();
       const notebookId = this.getNotebookIdFromKernelConnectionId(kernelConnection.id);
@@ -156,7 +153,6 @@ export class NotebookListener {
       }
 
       this.resolveAttachments(activeNotebookAttachments, kernelConnection.id).then(injections => {
-        console.log('Replying request-inject', injections);
         return comm
           .send({ action: 'inject', dids: injections as any })
           .done.then(() => {
@@ -185,7 +181,6 @@ export class NotebookListener {
   }
 
   reinjectSpecificDID(notebookPanel: NotebookPanel, did: string): void {
-    console.log('Reinjecting did', did);
     const attachments = this.getAttachmentsFromMetadata(notebookPanel);
     const didAttachment = attachments.find(a => a.did === did);
 

@@ -14,7 +14,6 @@ class DIDPollingManager {
   }
 
   requestPolling(did: string, type: DIDType, ref?: PollingRequesterRef, fetchNow = true) {
-    console.log('Polling requested on DID', did);
     if (!this.pollingRequesterMap[did]) {
       this.pollingRequesterMap[did] = { type, refs: [] };
     }
@@ -32,7 +31,6 @@ class DIDPollingManager {
   }
 
   disablePolling(did: string, ref: PollingRequesterRef) {
-    console.log('Polling disabled on DID', did);
     if (this.pollingRequesterMap[did]) {
       this.pollingRequesterMap[did].refs = this.pollingRequesterMap[did].refs.filter(r => r !== ref);
     }
@@ -42,10 +40,6 @@ class DIDPollingManager {
     const dids = Object.keys(this.pollingRequesterMap).filter(did => {
       return this.pollingRequesterMap[did] && this.pollingRequesterMap[did].refs.length > 0;
     });
-
-    if (dids.length > 0) {
-      console.log('Polling', dids);
-    }
 
     dids.forEach(did => {
       this.fetchDid(did);

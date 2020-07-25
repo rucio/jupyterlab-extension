@@ -19,4 +19,4 @@ def load_jupyter_server_extension(lab_app): # pragma: no cover
     """
     setup_handlers(lab_app.web_app)
     lab_app.log.info(
-        "Registered HelloWorld extension at URL path /rucio-jupyterlab")
+        "Registered Rucio JupyterLab extension at URL path /rucio-jupyterlab")
