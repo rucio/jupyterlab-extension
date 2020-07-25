@@ -83,7 +83,7 @@ export const InlineDropdown: React.FC<MyProps> = ({ options, value, onItemSelect
         {currentOption ? currentOption.title : '(select)'}
         <span className={`${classes.icon} material-icons`}>arrow_drop_down</span>
       </span>
-      <div className={`${open ? classes.dropdownActive : classes.dropdownContent} jp-RucioExtensionPanel-base`}>
+      <div className={open ? classes.dropdownActive : classes.dropdownContent}>
         {options.map(option => (
           <div
             className={classes.dropdownListItem}
