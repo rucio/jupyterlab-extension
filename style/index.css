@@ -8,11 +8,6 @@
     background: var(--jp-layout-color1);
 }
 
-.jp-icon-rucio {
-    background-image: url("img/rucio-logo.svg");
-    fill: var(--jp-ui-font-color2);
-}
-
 .jp-RucioExtensionInjectToolbar {
     align-items: center;
 }

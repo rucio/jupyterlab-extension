@@ -3,7 +3,6 @@ import { createUseStyles } from 'react-jss';
 
 import { VDomRenderer } from '@jupyterlab/apputils';
 import { JupyterFrontEnd, ILabShell } from '@jupyterlab/application';
-
 import { INotebookTracker } from '@jupyterlab/notebook';
 import { NotebookListener } from './utils/NotebookListener';
 import { ActiveNotebookListener } from './utils/ActiveNotebookListener';
@@ -13,6 +12,7 @@ import { MainPanel } from './pages/MainPanel';
 import { Spinning } from './components/Spinning';
 import { UIStore } from './stores/UIStore';
 import { NotebookPollingListener } from './utils/NotebookPollingListener';
+import { rucioIcon } from './icons/RucioIcon';
 
 const useStyles = createUseStyles({
   panel: {
@@ -96,7 +96,7 @@ export class SidebarPanel extends VDomRenderer {
     super();
     super.addClass(PANEL_CLASS);
     super.title.closable = true;
-    super.title.iconClass += 'jp-icon-rucio';
+    super.title.icon = rucioIcon;
 
     if (!options || error) {
       this.error = error || 'Failed to activate extension. Make sure that the extension is configured and installed properly.';
