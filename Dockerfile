@@ -18,7 +18,7 @@ RUN pip install -e . \
     && jupyter serverextension enable --py rucio_jupyterlab --sys-prefix \
     && jlpm \
     && jlpm build \
-    && jupyter labextension link .
+    && jupyter labextension install .
 
 ENV JUPYTER_ENABLE_LAB=yes
 
