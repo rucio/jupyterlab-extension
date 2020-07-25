@@ -5,7 +5,7 @@ const useStyles = createUseStyles({
   control: {
     display: 'flex',
     flexDirection: 'row',
-    border: (props: TextFieldProps) => `1px solid ${props.outlineColor || '#808080'}`,
+    border: (props: TextFieldProps) => `1px solid ${props.outlineColor || 'var(--jp-border-color1)'}`,
     alignItems: 'stretch'
   },
   input: {
@@ -14,7 +14,8 @@ const useStyles = createUseStyles({
     border: 'none',
     outline: 'none',
     padding: '8px',
-    minWidth: 0
+    minWidth: 0,
+    color: (props: TextFieldProps) => props.color || 'var(--jp-ui-font-color1)'
   },
   block: {
     width: '100%'
@@ -23,6 +24,7 @@ const useStyles = createUseStyles({
 
 interface TextFieldProps {
   outlineColor?: string;
+  color?: string;
   block?: boolean;
   before?: any;
   after?: any;

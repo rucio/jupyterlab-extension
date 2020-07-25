@@ -3,7 +3,7 @@ import { createUseStyles } from 'react-jss';
 
 const useStyles = createUseStyles({
   tab: {
-    borderBottom: '1px solid #e0e0e0',
+    borderBottom: '1px solid var(--jp-border-color2)',
     listStyleType: 'none',
     margin: 0,
     padding: '0 8px 0 8px',
@@ -18,10 +18,10 @@ const useStyles = createUseStyles({
     fontSize: '9pt',
     cursor: 'pointer',
     '&:hover': {
-      background: '#f9f9f9'
+      background: 'var(--jp-layout-color2)'
     },
     '&.active': {
-      background: '#f0f0f0',
+      background: 'var(--jp-layout-color2)',
       fontWeight: 'bold'
     },
     '&.disabled': {

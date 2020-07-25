@@ -15,7 +15,7 @@ const useStyles = createUseStyles({
     borderRadius: '4px',
     cursor: 'pointer',
     '&:hover': {
-      background: '#efefef'
+      background: 'var(--jp-layout-color2)'
     }
   },
   ready: {

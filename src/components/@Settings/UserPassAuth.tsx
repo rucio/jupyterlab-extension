@@ -16,7 +16,7 @@ const useStyles = createUseStyles({
   },
   warning: {
     margin: '8px 8px 16px 8px',
-    color: '#808080',
+    color: 'var(--jp-ui-font-color2)',
     fontSize: '9pt'
   },
   loadingIcon: {
@@ -70,7 +70,6 @@ export const UserPassAuth: React.FC<MyProps> = ({
           <div className={classes.label}>Username</div>
           <TextField
             placeholder="Username"
-            outlineColor="#d5d5d5"
             value={params.username}
             onChange={e => onUsernameChange(e.target.value)}
             disabled={loading}
@@ -82,7 +81,6 @@ export const UserPassAuth: React.FC<MyProps> = ({
           <TextField
             placeholder="Password"
             type="password"
-            outlineColor="#d5d5d5"
             value={params.password}
             onChange={e => onPasswordChange(e.target.value)}
             disabled={loading}
@@ -94,7 +92,6 @@ export const UserPassAuth: React.FC<MyProps> = ({
           <div className={classes.label}>Account</div>
           <TextField
             placeholder="Account"
-            outlineColor="#d5d5d5"
             value={params.account}
             onChange={e => onAccountChange(e.target.value)}
             disabled={loading}

@@ -8,13 +8,15 @@ import { DirectoryItem } from '../../types';
 
 const useStyles = createUseStyles({
   main: {
-    width: '300px'
+    width: '300px',
+    background: 'var(--jp-layout-color1)',
+    color: 'var(--jp-ui-font-color1)'
   },
   heading: {
-    background: '#efefef',
-    color: '#808080',
+    background: 'var(--jp-layout-color2)',
+    color: 'var(--jp-ui-font-color2)',
     padding: '8px',
-    borderBottom: '1px solid #e0e0e0',
+    borderBottom: '1px solid var(--jp-border-color2)',
     fontSize: '9pt'
   },
   content: {
@@ -39,14 +41,14 @@ const useStyles = createUseStyles({
   listItem: {
     display: 'flex',
     padding: '8px',
-    borderBottom: '1px solid #E0E0E0',
+    borderBottom: '1px solid var(--jp-border-color2)',
     flexDirection: 'row',
     fontSize: '9pt',
     cursor: 'pointer',
     alignItems: 'center',
     boxSizing: 'border-box',
     '&:hover': {
-      backgroundColor: '#eeeeee'
+      backgroundColor: 'var(--jp-layout-color2)'
     }
   },
   textContainer: {

@@ -8,14 +8,20 @@ import { NotebookDIDAttachment } from '../../types';
 import { checkVariableNameValid } from '../../utils/Helpers';
 
 const useStyles = createUseStyles({
+  main: {
+    background: 'var(--jp-layout-color1)',
+    color: 'var(--jp-ui-font-color1)'
+  },
   textField: {
-    width: '200px'
+    width: '200px',
+    background: 'var(--jp-layout-color1)',
+    color: 'var(--jp-ui-font-color1)'
   },
   instructions: {
     padding: '8px',
-    background: '#f5f5f5',
     fontSize: '8pt',
-    color: '#808080'
+    background: 'var(--jp-layout-color2)',
+    color: 'var(--jp-ui-font-color2)'
   },
   proceedButton: {
     alignItems: 'center',
@@ -127,11 +133,11 @@ export const AddToNotebookPopover: React.FC<MyProps> = ({ children, did, type })
   );
 
   const popoverBody = (
-    <>
+    <div className={classes.main}>
       <TextField
         ref={textFieldRef}
         className={classes.textField}
-        outlineColor="#FFFFFF"
+        outlineColor="var(--jp-layout-color1)"
         placeholder="Enter a variable name"
         onKeyPress={handleKeyPress}
         after={proceedButton}
@@ -142,7 +148,7 @@ export const AddToNotebookPopover: React.FC<MyProps> = ({ children, did, type })
         {!error && <span>Press Enter to proceed, Esc to cancel</span>}
         {!!error && <span className={classes.error}>{error}</span>}
       </div>
-    </>
+    </div>
   );
 
   const openPopover = () => {

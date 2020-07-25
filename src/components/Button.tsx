@@ -13,24 +13,24 @@ const useStyles = createUseStyles({
     background: 'none',
     padding: 0,
     border: '1px solid',
-    borderColor: (props: ButtonProps) => `${props.outlineColor || '#000000'}90`,
-    color: (props: ButtonProps) => props.color || '#000',
+    borderColor: (props: ButtonProps) => `${props.outlineColor || 'var(--jp-border-color1)'}`,
+    color: (props: ButtonProps) => props.color || 'var(--jp-ui-font-color1)',
     outline: 'none',
     cursor: 'pointer',
     borderRadius: '2px',
     '&:hover': {
-      backgroundColor: (props: ButtonProps) => `${props.outlineColor || '#000000'}09`,
-      borderColor: (props: ButtonProps) => `${props.outlineColor || '#000000'}B0`
+      backgroundColor: (props: ButtonProps) => `${props.outlineColor || 'var(--jp-layout-color2)'}`,
+      borderColor: (props: ButtonProps) => `${props.outlineColor || 'var(--jp-border-color1)'}`
     },
     '&:active': {
-      backgroundColor: (props: ButtonProps) => `${props.outlineColor || '#000000'}12`
+      backgroundColor: (props: ButtonProps) => `${props.outlineColor || 'var(--jp-layout-color2)'}`
     },
     '&:disabled': {
       opacity: 0.5,
       cursor: 'inherit',
       '&:hover': {
         background: 'none',
-        borderColor: (props: ButtonProps) => `${props.outlineColor || '#000000'}90`
+        borderColor: (props: ButtonProps) => `${props.outlineColor || 'var(--jp-border-color1)'}`
       },
       '&:active': {
         background: 'none'

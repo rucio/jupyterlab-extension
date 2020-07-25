@@ -26,7 +26,7 @@ const useStyles = createUseStyles({
   },
   buttonContainer: {
     extend: 'container',
-    borderTop: '1px solid #e0e0e0'
+    borderTop: '1px solid var(--jp-border-color2)'
   },
   label: {},
   instanceName: {
@@ -148,7 +148,26 @@ const _Settings: React.FunctionComponent = props => {
   const selectStyles = {
     control: (provided: any, state: any) => ({
       ...provided,
-      borderRadius: 0
+      borderRadius: 0,
+      borderColor: 'var(--jp-border-color1)',
+      background: 'var(--jp-layout-color1)'
+    }),
+    singleValue: (provided: any, state: any) => ({
+      ...provided,
+      color: 'var(--jp-ui-font-color1)'
+    }),
+    menu: (provided: any, state: any) => ({
+      ...provided,
+      background: 'var(--jp-layout-color1)',
+      color: 'var(--jp-ui-font-color1)'
+    }),
+    option: (provided: any, { isFocused, isSelected }: any) => ({
+      ...provided,
+      background: isFocused ? (isSelected ? provided.background : 'var(--jp-layout-color2)') : provided.background,
+      ':active': {
+        ...provided[':active'],
+        background: isSelected ? provided.background : 'var(--jp-layout-color2)'
+      }
     })
   };
 

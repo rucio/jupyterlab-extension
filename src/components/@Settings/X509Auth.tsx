@@ -17,7 +17,7 @@ const useStyles = createUseStyles({
   },
   warning: {
     margin: '8px 8px 16px 8px',
-    color: '#808080',
+    color: 'var(--jp-ui-font-color2)',
     fontSize: '9pt'
   },
   icon: {
@@ -75,7 +75,6 @@ export const X509Auth: React.FC<MyProps> = ({
           <div className={classes.label}>Certificate file path</div>
           <TextField
             placeholder="Path to certificate file"
-            outlineColor="#d5d5d5"
             value={params.certificate}
             onChange={e => onCertPathChange(e.target.value)}
             disabled={loading}
@@ -86,7 +85,6 @@ export const X509Auth: React.FC<MyProps> = ({
           <div className={classes.label}>Key file path</div>
           <TextField
             placeholder="Path to key file"
-            outlineColor="#d5d5d5"
             value={params.key}
             onChange={e => onKeyPathChange(e.target.value)}
             disabled={loading}
@@ -101,7 +99,6 @@ export const X509Auth: React.FC<MyProps> = ({
           <div className={classes.label}>Account</div>
           <TextField
             placeholder="Account"
-            outlineColor="#d5d5d5"
             value={params.account}
             onChange={e => onAccountChange(e.target.value)}
             disabled={loading}

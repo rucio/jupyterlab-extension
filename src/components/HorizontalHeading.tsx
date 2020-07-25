@@ -3,7 +3,7 @@ import { createUseStyles } from 'react-jss';
 
 const useStyles = createUseStyles({
   heading: {
-    borderBottom: '1px solid #e0e0e0',
+    borderBottom: '1px solid var(--jp-border-color2)',
     margin: 0,
     padding: '24px 16px 8px 16px',
     fontWeight: 'bold',

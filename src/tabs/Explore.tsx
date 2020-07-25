@@ -10,7 +10,7 @@ import { DIDListItem } from '../components/@Explore/DIDListItem';
 import { Spinning } from '../components/Spinning';
 import { withRequestAPI, WithRequestAPIProps } from '../utils/Actions';
 import { DIDSearchType, DIDSearchResult } from '../types';
-import { InlineDropdown } from '../components/InlineDropdown';
+import { InlineDropdown } from '../components/@Explore/InlineDropdown';
 
 const useStyles = createUseStyles({
   mainContainer: {
@@ -170,7 +170,6 @@ const _Explore: React.FunctionComponent = props => {
     <div className={classes.mainContainer}>
       <div className={classes.searchContainer}>
         <TextField
-          outlineColor="#E0E0E0"
           placeholder="Enter a Data Identifier (DID)"
           after={searchButton}
           value={searchQuery}

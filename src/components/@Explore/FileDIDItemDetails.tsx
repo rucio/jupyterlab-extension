@@ -10,7 +10,7 @@ import { withPollingManager, WithPollingManagerProps, PollingRequesterRef } from
 const useStyles = createUseStyles({
   container: {
     padding: '4px 16px 4px 16px',
-    backgroundColor: '#F8F8F8',
+    backgroundColor: 'var(--jp-layout-color2)',
     boxSizing: 'border-box',
     height: '32px',
     alignItems: 'center'
@@ -20,7 +20,7 @@ const useStyles = createUseStyles({
     verticalAlign: 'middle'
   },
   loading: {
-    color: '#808080'
+    color: 'var(--jp-ui-font-color2)'
   },
   statusText: {
     fontSize: '9pt',

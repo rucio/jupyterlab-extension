@@ -7,7 +7,7 @@ import { ListAttachedFilesPopover } from './ListAttachedFilesPopover';
 
 const useStyles = createUseStyles({
   listItemContainer: {
-    borderBottom: '1px solid #E0E0E0',
+    borderBottom: '1px solid var(--jp-border-color2)',
     overflow: 'hidden',
     boxSizing: 'border-box'
   },
@@ -22,12 +22,12 @@ const useStyles = createUseStyles({
   listItemCollapsed: {
     extend: 'listItem',
     '&:hover': {
-      backgroundColor: '#eeeeee'
+      backgroundColor: 'var(--jp-layout-color2)'
     }
   },
   listItemExpanded: {
     extend: 'listItem',
-    backgroundColor: '#F8F8F8'
+    backgroundColor: 'var(--jp-layout-color2)'
   },
   textContainer: {
     flex: 1,
@@ -56,7 +56,7 @@ const useStyles = createUseStyles({
     color: '#FFB100'
   },
   sizeContainer: {
-    color: '#808080'
+    color: 'var(--jp-ui-font-color2)'
   },
   listFilesIcon: {
     extend: 'icon',

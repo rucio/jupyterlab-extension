@@ -12,7 +12,7 @@ const useStyles = createUseStyles({
   listItemContainer: {
     display: 'flex',
     flexDirection: 'row',
-    borderBottom: '1px solid #E0E0E0',
+    borderBottom: '1px solid var(--jp-border-color2)',
     padding: '8px 16px 8px 16px',
     fontSize: '9pt'
   },
@@ -33,7 +33,7 @@ const useStyles = createUseStyles({
   },
   variableName: {
     overflowWrap: 'break-word',
-    color: '#808080'
+    color: 'var(--jp-ui-font-color2)'
   },
   statusIcon: {
     marginTop: '2px',

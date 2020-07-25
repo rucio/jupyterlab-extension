@@ -13,11 +13,12 @@ const useStyles = createUseStyles({
     display: 'none',
     position: 'absolute',
     marginTop: '8px',
-    backgroundColor: '#FFFFFF',
     boxShadow: '0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)',
     borderRadius: '4px',
     zIndex: 1,
-    fontSize: '10pt'
+    fontSize: '10pt',
+    background: 'var(--jp-layout-color1)',
+    color: 'var(--jp-ui-font-color1)'
   },
   dropdownActive: {
     minWidth: (props: InlineDropdownProps) => props.optionWidth || '150px',
@@ -27,7 +28,7 @@ const useStyles = createUseStyles({
   dropdownListItem: {
     padding: '8px',
     width: 'auto',
-    borderBottom: '1px solid #e0e0e0',
+    borderBottom: '1px solid var(--jp-border-color2)',
     cursor: 'pointer',
     '&:hover': {
       backgroundColor: '#2196F3',
@@ -80,10 +81,9 @@ export const InlineDropdown: React.FC<MyProps> = ({ options, value, onItemSelect
     <span className={classes.dropdown} onClick={() => setOpen(!open)} ref={clickTargetRef}>
       <span className={classes.dropdownTitle} {...props}>
         {currentOption ? currentOption.title : '(select)'}
-        &nbsp;
         <span className={`${classes.icon} material-icons`}>arrow_drop_down</span>
       </span>
-      <div className={open ? classes.dropdownActive : classes.dropdownContent}>
+      <div className={`${open ? classes.dropdownActive : classes.dropdownContent} jp-RucioExtensionPanel-base`}>
         {options.map(option => (
           <div
             className={classes.dropdownListItem}
