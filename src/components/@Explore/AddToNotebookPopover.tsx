@@ -30,11 +30,13 @@ const useStyles = createUseStyles({
     cursor: 'pointer'
   },
   proceedIcon: {
-    color: '#2196F390',
+    color: 'var(--jp-rucio-primary-blue-color)',
+    opacity: 0.5,
     fontSize: '16px',
     lineHeight: '24px',
     '&:hover': {
-      color: '#2196F3'
+      color: 'var(--jp-rucio-primary-blue-color)',
+      opacity: 1
     }
   },
   error: {

@@ -53,11 +53,12 @@ const useStyles = createUseStyles({
   },
   pendingInjectionIcon: {
     extend: 'statusIcon',
-    color: '#a5d6a7'
+    color: 'var(--jp-success-color0)',
+    opacity: 0.5
   },
   notResolvedIcon: {
     extend: 'statusIcon',
-    color: '#e0e0e0'
+    color: 'var(--jp-ui-font-color2)'
   },
   actionContainer: {},
   clearButton: {
@@ -67,11 +68,12 @@ const useStyles = createUseStyles({
     cursor: 'pointer'
   },
   clearIcon: {
-    color: '#ef535090',
+    color: 'var(--jp-error-color1)',
+    opacity: 0.5,
     fontSize: '16px',
     lineHeight: '24px',
     '&:hover': {
-      color: '#ef5350'
+      opacity: 1
     }
   },
   action: {

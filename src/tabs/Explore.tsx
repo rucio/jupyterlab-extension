@@ -36,9 +36,10 @@ const useStyles = createUseStyles({
     cursor: 'pointer'
   },
   searchIcon: {
-    color: '#2196F390',
+    color: 'var(--jp-rucio-primary-blue-color)',
+    opacity: 0.5,
     '&:hover': {
-      color: '#2196F3'
+      opacity: 1
     }
   },
   dropdown: {
