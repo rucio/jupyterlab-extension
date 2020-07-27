@@ -38,7 +38,7 @@ const useStyles = createUseStyles({
     }
   },
   error: {
-    color: '#d32f2f'
+    color: 'var(--jp-error-color2)'
   }
 });
 

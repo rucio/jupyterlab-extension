@@ -31,7 +31,7 @@ const useStyles = createUseStyles({
   },
   action: {
     cursor: 'pointer',
-    color: '#2196F3'
+    color: 'var(--jp-rucio-primary-blue-color)'
   }
 });
 

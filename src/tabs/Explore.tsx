@@ -42,7 +42,7 @@ const useStyles = createUseStyles({
     }
   },
   dropdown: {
-    color: '#2196F3',
+    color: 'var(--jp-rucio-primary-blue-color)',
     cursor: 'pointer',
     marginLeft: '4px'
   },

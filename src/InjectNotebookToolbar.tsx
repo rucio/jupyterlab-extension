@@ -19,13 +19,13 @@ const useStyles = createUseStyles({
     }
   },
   ready: {
-    color: '#5a9216'
+    color: 'var(--jp-success-color0)'
   },
   failed: {
-    color: '#dd2c00'
+    color: 'var(--jp-error-color1)'
   },
   resolving: {
-    color: '#ffa000'
+    color: 'var(--jp-rucio-yellow-color)'
   },
   injecting: {
     color: '#c0ca33'
@@ -41,15 +41,15 @@ const useStyles = createUseStyles({
   },
   readyIcon: {
     extend: 'statusIcon',
-    color: '#5a9216'
+    color: 'var(--jp-success-color0)'
   },
   failedIcon: {
     extend: 'statusIcon',
-    color: '#dd2c00'
+    color: 'var(--jp-error-color1)'
   },
   resolvingIcon: {
     extend: 'statusIcon',
-    color: '#ffa000'
+    color: 'var(--jp-rucio-yellow-color)'
   },
   pendingInjectionIcon: {
     extend: 'statusIcon',

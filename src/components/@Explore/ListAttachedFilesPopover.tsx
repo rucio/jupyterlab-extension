@@ -74,7 +74,7 @@ const useStyles = createUseStyles({
     whiteSpace: 'nowrap',
     cursor: 'pointer',
     '&:hover': {
-      color: '#2196F3'
+      color: 'var(--jp-rucio-primary-blue-color)'
     },
     '& .copy': {
       display: 'none',

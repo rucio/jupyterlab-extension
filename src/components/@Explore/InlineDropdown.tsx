@@ -31,8 +31,7 @@ const useStyles = createUseStyles({
     borderBottom: '1px solid var(--jp-border-color2)',
     cursor: 'pointer',
     '&:hover': {
-      backgroundColor: '#2196F3',
-      color: '#ffffff'
+      backgroundColor: 'var(--jp-layout-color2)'
     },
     '&:last-child': {
       borderBottom: 'none'

@@ -41,15 +41,15 @@ const useStyles = createUseStyles({
   },
   availableIcon: {
     extend: 'statusIcon',
-    color: '#5a9216'
+    color: 'var(--jp-success-color0)'
   },
   notAvailableIcon: {
     extend: 'statusIcon',
-    color: '#dd2c00'
+    color: 'var(--jp-error-color1)'
   },
   replicatingIcon: {
     extend: 'statusIcon',
-    color: '#ffa000'
+    color: 'var(--jp-rucio-yellow-color)'
   },
   pendingInjectionIcon: {
     extend: 'statusIcon',
@@ -67,16 +67,16 @@ const useStyles = createUseStyles({
     cursor: 'pointer'
   },
   clearIcon: {
-    color: '#dd2c0090',
+    color: '#ef535090',
     fontSize: '16px',
     lineHeight: '24px',
     '&:hover': {
-      color: '#dd2c00'
+      color: '#ef5350'
     }
   },
   action: {
     fontSize: '9pt',
-    color: '#2196F3',
+    color: 'var(--jp-rucio-primary-blue-color)',
     cursor: 'pointer'
   }
 });

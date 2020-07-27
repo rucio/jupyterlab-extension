@@ -40,23 +40,23 @@ const useStyles = createUseStyles({
   },
   statusAvailable: {
     extend: 'statusContainer',
-    color: '#5a9216'
+    color: 'var(--jp-success-color0)'
   },
   statusPartiallyAvailable: {
     extend: 'statusContainer',
-    color: '#ffa000'
+    color: 'var(--jp-rucio-yellow-color)'
   },
   statusNotAvailable: {
     extend: 'statusContainer',
-    color: '#dd2c00'
+    color: 'var(--jp-error-color1)'
   },
   statusReplicating: {
     extend: 'statusContainer',
-    color: '#ffa000'
+    color: 'var(--jp-rucio-yellow-color)'
   },
   action: {
     fontSize: '9pt',
-    color: '#2196F3',
+    color: 'var(--jp-rucio-primary-blue-color)',
     cursor: 'pointer'
   }
 });
