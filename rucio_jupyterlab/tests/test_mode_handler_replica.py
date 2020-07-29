@@ -456,13 +456,18 @@ def test_get_did_details__force_fetch__not_all_dids_available___should_fetch_rep
     assert result == expected_result, "Invalid return value"
 
 
-def test_make_available(mocker, rucio):
-    """
-    Method make_available() should call add_replication_rule
-    if the given method is replica. Additionally, it should pass the
-    split scope and name to the called method.
-    """
+def test_make_available__lifetime_specified__should_call_add_rule(mocker, rucio):
+    mocker.patch.dict(rucio.instance_config, {'destination_rse': 'SWAN-EOS', 'replication_rule_lifetime_days': 1})
+    mocker.patch.object(rucio, 'add_replication_rule', return_value={})
 
+    handler = ReplicaModeHandler(namespace='atlas', rucio=rucio)
+    handler.make_available(scope='scope', name='name')
+
+    expected_dids = [{'scope': 'scope', 'name': 'name'}]
+    rucio.add_replication_rule.assert_called_once_with(dids=expected_dids, rse_expression='SWAN-EOS', copies=1, lifetime=86400)
+
+
+def test_make_available__lifetime_not_specified__should_call_add_rule__lifetime_none(mocker, rucio):
     mocker.patch.dict(rucio.instance_config, {'destination_rse': 'SWAN-EOS'})
     mocker.patch.object(rucio, 'add_replication_rule', return_value={})
 
@@ -470,4 +475,4 @@ def test_make_available(mocker, rucio):
     handler.make_available(scope='scope', name='name')
 
     expected_dids = [{'scope': 'scope', 'name': 'name'}]
-    rucio.add_replication_rule.assert_called_once_with(dids=expected_dids, rse_expression='SWAN-EOS', copies=1)
+    rucio.add_replication_rule.assert_called_once_with(dids=expected_dids, rse_expression='SWAN-EOS', copies=1, lifetime=None)

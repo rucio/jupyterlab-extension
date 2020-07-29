@@ -19,7 +19,9 @@ class ReplicaModeHandler:
     def make_available(self, scope, name):
         dids = [{'scope': scope, 'name': name}]
         destination_rse = self.rucio.instance_config.get('destination_rse')
-        return self.rucio.add_replication_rule(dids=dids, rse_expression=destination_rse, copies=1)
+        lifetime_days = self.rucio.instance_config.get('replication_rule_lifetime_days')
+        lifetime = (lifetime_days * 60 * 60 * 24) if lifetime_days else None
+        return self.rucio.add_replication_rule(dids=dids, rse_expression=destination_rse, copies=1, lifetime=lifetime)
 
     def get_did_details(self, scope, name, force_fetch=False):
         attached_file_replicas = self.get_attached_file_replicas(scope, name, force_fetch)

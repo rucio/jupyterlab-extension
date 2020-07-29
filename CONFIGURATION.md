@@ -122,6 +122,10 @@ This configuration indicates which part of the PFN should be appended to the mou
 
 Example: let us say that the PFN of a file is `root://xrd1:1094//rucio/test/49/ad/f1.txt` and the mount path is `/eos/rucio`. A starting index of `1` means that the path starting from the 2nd slash (index 1) in the PFN will be appended to the mount path. The resulting path would be `/eos/rucio/test/49/ad/f1.txt`.
 
+#### Replication Rule Lifetime (in days) - `replication_rule_lifetime_days`
+Replication rule lifetime in days. Optional, only applicable in Replica mode.
+
+Example: `365`
 
 #### Wildcard Search Enabled - `wildcard_enabled`
 Whether or not wildcard DID search is allowed. Optional, defaults to `false`.
