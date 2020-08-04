@@ -2,14 +2,18 @@ FROM jupyter/scipy-notebook
 LABEL maintainer="Muhammad Aditya Hilmy <mhilmy@hey.com>"
 
 USER root
+
+RUN apt update -y \
+    && apt install -y globus-proxy-utils \
+    && apt clean -y \
+    && conda install -y -c conda-forge python-gfal2 \
+    && conda clean --all -f -y
+
 COPY . /rucio-jupyterlab
-
-RUN conda install -y -c conda-forge python-gfal2 \
-    && conda clean --all -f -y \
-    && fix-permissions /rucio-jupyterlab \
-    && sed -i -e 's/\r$/\n/' /rucio-jupyterlab/docker/configure.sh
-
 WORKDIR /rucio-jupyterlab
+
+RUN fix-permissions /rucio-jupyterlab \
+    && sed -i -e 's/\r$/\n/' /rucio-jupyterlab/docker/configure.sh
 
 USER $NB_UID
 
