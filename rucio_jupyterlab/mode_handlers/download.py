@@ -4,6 +4,7 @@ import logging
 import multiprocessing as mp
 import base64
 import json
+from shutil import copyfile
 import psutil
 from rucio_jupyterlab.db import get_db
 from rucio_jupyterlab.entity import AttachedFile
@@ -149,6 +150,14 @@ class DIDDownloader:
             os.makedirs(dest_folder, exist_ok=True)
             DIDDownloader.write_lockfile(dest_folder)
 
+            cert_path = config.get('client_cert')
+            key_path = config.get('client_key')
+
+            if cert_path and key_path:
+                tmp_cert_path, tmp_key_path = DIDDownloader.write_certificate_files(rucio_home, cert_path, key_path)
+                os.environ['X509_USER_CERT'] = tmp_cert_path
+                os.environ['X509_USER_KEY'] = tmp_key_path
+
             try:
                 results = DIDDownloader.download(dest_folder, did)
                 DIDDownloader.write_donefile(dest_folder, results)
@@ -189,6 +198,19 @@ class DIDDownloader:
         config_file = open(cfg_path, 'w')
         config_file.writelines(lines)
         config_file.close()
+
+    @staticmethod
+    def write_certificate_files(base_dir, cert_path, key_path):
+        dest_cert_path = os.path.join(base_dir, 'usercert.pem')
+        dest_key_path = os.path.join(base_dir, 'userkey.pem')
+
+        copyfile(cert_path, dest_cert_path)
+        copyfile(key_path, dest_key_path)
+
+        os.chmod(dest_cert_path, 0o400)
+        os.chmod(dest_key_path, 0o400)
+
+        return dest_cert_path, dest_key_path
 
     @staticmethod
     def get_dest_folder(namespace, did):
