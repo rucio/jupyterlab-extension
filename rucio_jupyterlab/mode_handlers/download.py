@@ -37,7 +37,8 @@ class DownloadModeHandler:
                 return
 
         config = self._get_config()
-        process = mp.Process(target=DIDDownloader.start_download_target, args=(self.namespace, did, config))
+        site_name = self.rucio.instance_config.get('site_name')
+        process = mp.Process(target=DIDDownloader.start_download_target, args=(self.namespace, did, config, site_name))
         process.start()
 
     def get_did_details(self, scope, name, force_fetch=False):
@@ -136,7 +137,7 @@ class DownloadModeHandler:
 
 class DIDDownloader:
     @staticmethod
-    def start_download_target(namespace, did, config):
+    def start_download_target(namespace, did, config, site_name=None):
         dest_folder = DIDDownloader.get_dest_folder(namespace, did)
 
         if DIDDownloader.is_downloading(dest_folder):
@@ -145,6 +146,9 @@ class DIDDownloader:
 
         with tempfile.TemporaryDirectory() as rucio_home:
             download_logger.debug("Creating temporary directory: %s", rucio_home)
+
+            if site_name is not None:
+                os.environ['SITE_NAME'] = site_name
 
             os.environ['RUCIO_HOME'] = rucio_home
             DIDDownloader.write_temp_config_file(rucio_home, config)

@@ -14,6 +14,9 @@ instance_properties = {
     "rucio_ca_cert": {
         "type": "string"
     },
+    "site_name": {
+        "type": "string"
+    },
     "mode": {
         "type": "string",
         "enum": ["replica", "download"]
