@@ -107,6 +107,11 @@ Rucio App ID. Optional.
 
 Example: `swan`
 
+#### Site Name - `site_name`
+Site name of the JupyterLab instance, optional. It allows Rucio to know whether to serve a proxied PFN or not.
+
+Example: `ATLAS`
+
 #### Destination RSE - `destination_rse`
 The name of the Rucio Storage Element that is mounted to the JupyterLab server. Mandatory, only applicable in Replica mode.
 

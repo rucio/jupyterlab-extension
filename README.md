@@ -81,6 +81,7 @@ $ docker run -d -p 8888:8888 \
     -e RUCIO_AUTH_URL=<Rucio auth URL (if any)> \
     -e RUCIO_DISPLAY_NAME=<instance display name> \
     -e RUCIO_NAME=<instance name> \
+    -e RUCIO_SITE_NAME=ROAMING \
     -e RUCIO_CA_CERT=/certs/rucio_ca.pem \
     -v <path to Rucio CA PEM file>:/certs/rucio_ca.pem \
     didithilmy/rucio-jupyterlab:latest
