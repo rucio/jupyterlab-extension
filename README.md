@@ -23,7 +23,9 @@ $ pip install rucio-jupyterlab
 $ jupyter lab build
 ```
 
-If you are going to run the extension in Download mode, you will also need to install libraries required by the RSE downloaders. For instance, `gfal2`, which is available in EPEL or conda-forge. Additionally, you have to install `globus-proxy-utils`.
+If you are going to run the extension in Download mode, you will also need to install libraries required by the RSE downloaders. For instance, `gfal2`, which is available in EPEL or conda-forge. 
+
+Additionally, you need to have `grid-proxy-init` or `voms-proxy-init` executable. You can do so by installing `globus-proxy-utils`.
 
 ```bash
 $ apt install globus-proxy-utils

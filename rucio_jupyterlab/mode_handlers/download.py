@@ -4,7 +4,7 @@ import logging
 import multiprocessing as mp
 import base64
 import json
-from shutil import copyfile
+from shutil import copyfile, which
 import subprocess
 import psutil
 from rucio_jupyterlab.db import get_db
@@ -162,6 +162,8 @@ class DIDDownloader:
                 tmp_cert_path, tmp_key_path = DIDDownloader.write_certificate_files(rucio_home, cert_path, key_path)
                 tmp_proxy_path = DIDDownloader.generate_proxy_certificate(rucio_home, tmp_cert_path, tmp_key_path)
                 os.environ['X509_USER_PROXY'] = tmp_proxy_path
+                os.environ['X509_USER_CERT'] = tmp_cert_path
+                os.environ['X509_USER_KEY'] = tmp_key_path
 
             try:
                 results = DIDDownloader.download(dest_folder, did)
@@ -226,16 +228,18 @@ class DIDDownloader:
     @staticmethod
     def generate_proxy_certificate(base_dir, cert_path, key_path):
         dest_proxy_path = os.path.join(base_dir, 'x509up')
-        process = subprocess.Popen(['grid-proxy-init', '-cert', cert_path, '-key', key_path, '-out', dest_proxy_path],
-                                   stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE)
+        executable = 'grid-proxy-init' if which('grid-proxy-init') is not None else 'voms-proxy-init'
 
-        process.communicate()
+        try:
+            process = subprocess.Popen([executable, '-cert', cert_path, '-key', key_path, '-out', dest_proxy_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            process.communicate()
 
-        if process.returncode != 0:
+            if process.returncode != 0:
+                return None
+
+            return dest_proxy_path
+        except subprocess.SubprocessError:
             return None
-
-        return dest_proxy_path
 
     @staticmethod
     def get_dest_folder(namespace, did):
