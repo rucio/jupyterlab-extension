@@ -13,7 +13,7 @@ The `jlpm` command is JupyterLab's pinned version of
 # Install server extension
 pip install -e .
 # Register server extension
-jupyter serverextension enable --py rucio_jupyterlab --sys-prefix
+jupyter serverextension enable --py rucio_jupyterlab.server --sys-prefix
 
 # Install dependencies
 jlpm

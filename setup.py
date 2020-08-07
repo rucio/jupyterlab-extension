@@ -52,10 +52,6 @@ cmdclass["jsdeps"] = combine_commands(
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-packages = setuptools.find_packages()
-kernels = ['rucio_jupyterlab.kernels.ipython']
-packages.extend(kernels)
-
 setup_args = dict(
     name=name,
     version=version,
@@ -65,9 +61,10 @@ setup_args = dict(
     long_description=long_description,
     long_description_content_type="text/markdown",
     cmdclass=cmdclass,
-    packages=packages,
+    packages=setuptools.find_packages(),
     install_requires=[
         "jupyterlab~=2.0",
+        "requests~=2.0",
         "peewee~=3.0",
         "jsonschema~=3.0",
         "psutil~=5.0",
