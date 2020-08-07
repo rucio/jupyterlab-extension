@@ -5,6 +5,7 @@ import { NotebookPanel } from '@jupyterlab/notebook';
 import { useNotebookResolveStatusStore } from './utils/NotebookListener';
 import { ResolveStatus } from './types';
 import { Spinning } from './components/Spinning';
+import { rucioIcon } from './icons/RucioIcon';
 
 const useStyles = createUseStyles({
   main: {
@@ -31,9 +32,8 @@ const useStyles = createUseStyles({
     color: '#c0ca33'
   },
   rucioIcon: {
-    width: '16px',
-    height: '16px',
-    marginRight: '4px'
+    marginRight: '4px',
+    marginTop: '2px'
   },
   statusIcon: {
     fontSize: '16px',
@@ -111,7 +111,7 @@ const ResolverStatusIcon: React.FC<{ status: ResolveStatus }> = ({ status }) => 
     case 'FAILED':
       return <i className={`${classes.failedIcon} material-icons`}>cancel</i>;
     default:
-      return <i className={`${classes.rucioIcon} jp-icon-rucio`}></i>;
+      return <rucioIcon.react tag="span" className={classes.rucioIcon} width="16px" height="16px" />;
   }
 };
 
