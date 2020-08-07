@@ -12,7 +12,7 @@ import setuptools
 HERE = os.path.abspath(os.path.dirname(__file__))
 
 # The name of the project
-name="rucio_jupyterlab"
+name = "rucio_jupyterlab"
 
 # Ensure a valid python version
 ensure_python(">=3.5")
@@ -39,10 +39,10 @@ data_files_spec = [
      "jupyter-config", "rucio_jupyterlab.json"),
 ]
 
-cmdclass = create_cmdclass("jsdeps", 
-    package_data_spec=package_data_spec,
-    data_files_spec=data_files_spec
-)
+cmdclass = create_cmdclass("jsdeps",
+                           package_data_spec=package_data_spec,
+                           data_files_spec=data_files_spec
+                           )
 
 cmdclass["jsdeps"] = combine_commands(
     install_npm(HERE, build_cmd="build:all", npm=["jlpm"]),
@@ -51,6 +51,10 @@ cmdclass["jsdeps"] = combine_commands(
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
+
+packages = setuptools.find_packages()
+kernels = ['rucio_jupyterlab.kernels.ipython']
+packages.extend(kernels)
 
 setup_args = dict(
     name=name,
@@ -61,7 +65,7 @@ setup_args = dict(
     long_description=long_description,
     long_description_content_type="text/markdown",
     cmdclass=cmdclass,
-    packages=setuptools.find_packages(),
+    packages=packages,
     install_requires=[
         "jupyterlab~=2.0",
         "peewee~=3.0",
