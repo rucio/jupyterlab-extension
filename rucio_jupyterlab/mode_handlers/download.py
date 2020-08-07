@@ -178,7 +178,13 @@ class DIDDownloader:
 
         with open(lockfile_path, 'r') as lockfile:
             pid = int(lockfile.read())
-            return psutil.pid_exists(pid)
+            pid_exists = psutil.pid_exists(pid)
+
+            if not pid_exists:
+                return False
+
+            process = psutil.Process(pid=pid)
+            return process.is_running() and process.status() != 'zombie'
 
     @staticmethod
     def download(dest_path, did):
