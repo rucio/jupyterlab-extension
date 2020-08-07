@@ -18,7 +18,7 @@ RUN fix-permissions /rucio-jupyterlab \
 USER $NB_UID
 
 RUN pip install -e . \
-    && jupyter serverextension enable --py rucio_jupyterlab --sys-prefix \
+    && jupyter serverextension enable --py rucio_jupyterlab.server --sys-prefix \
     && jlpm \
     && jlpm build \
     && jupyter labextension link . --dev-build=False \
