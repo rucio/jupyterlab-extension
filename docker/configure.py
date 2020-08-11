@@ -25,6 +25,7 @@ def write_jupyterlab_config():
         "rucio_auth_url": os.getenv('RUCIO_AUTH_URL'),
         "rucio_ca_cert": os.getenv('RUCIO_CA_CERT'),
         "site_name": os.getenv('RUCIO_SITE_NAME'),
+        "vo": os.getenv('RUCIO_VO'),
         "destination_rse": os.getenv('RUCIO_DESTINATION_RSE'),
         "rse_mount_path": os.getenv('RUCIO_RSE_MOUNT_PATH'),
         "path_begins_at": int(os.getenv('RUCIO_PATH_BEGINS_AT', '0')),

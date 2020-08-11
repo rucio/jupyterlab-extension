@@ -17,6 +17,9 @@ instance_properties = {
     "site_name": {
         "type": "string"
     },
+    "vo": {
+        "type": "string"
+    },
     "mode": {
         "type": "string",
         "enum": ["replica", "download"]

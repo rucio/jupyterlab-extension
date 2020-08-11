@@ -112,6 +112,11 @@ Site name of the JupyterLab instance, optional. It allows Rucio to know whether 
 
 Example: `ATLAS`
 
+#### VO Name - `vo`
+VO of the instance. Optional, for use in multi-VO installations only.
+
+Example: `def`
+
 #### Destination RSE - `destination_rse`
 The name of the Rucio Storage Element that is mounted to the JupyterLab server. Mandatory, only applicable in Replica mode.
 

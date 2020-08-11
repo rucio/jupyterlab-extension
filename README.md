@@ -63,6 +63,8 @@ $ docker run -d -p 8888:8888 \
     -e RUCIO_DESTINATION_RSE=<destination RSE> \
     -e RUCIO_DISPLAY_NAME=<instance display name> \
     -e RUCIO_NAME=<instance name> \
+    -e RUCIO_SITE_NAME=ROAMING \
+    -e RUCIO_VO=def \
     -e RUCIO_PATH_BEGINS_AT=<path begins at> \
     -e RUCIO_RSE_MOUNT_PATH=<mount path> \
     -v <host folder>:<container folder> \
@@ -84,6 +86,7 @@ $ docker run -d -p 8888:8888 \
     -e RUCIO_DISPLAY_NAME=<instance display name> \
     -e RUCIO_NAME=<instance name> \
     -e RUCIO_SITE_NAME=ROAMING \
+    -e RUCIO_VO=def \
     -e RUCIO_CA_CERT=/certs/rucio_ca.pem \
     -v <path to Rucio CA PEM file>:/certs/rucio_ca.pem \
     didithilmy/rucio-jupyterlab:latest
