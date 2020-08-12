@@ -10,6 +10,7 @@ import { UserPassAuth } from '../components/@Settings/UserPassAuth';
 import { X509Auth } from '../components/@Settings/X509Auth';
 import { RucioAuthType, RucioUserpassAuth, RucioX509Auth } from '../types';
 import { HorizontalHeading } from '../components/HorizontalHeading';
+import { TextField } from '../components/TextField';
 
 const useStyles = createUseStyles({
   content: {
@@ -19,16 +20,16 @@ const useStyles = createUseStyles({
   },
   scrollable: {
     flex: 1,
-    overflow: 'auto'
+    overflow: 'auto',
+    paddingTop: '8px'
   },
   container: {
-    padding: '16px'
+    padding: '8px 16px 8px 16px'
   },
   buttonContainer: {
     extend: 'container',
     borderTop: '1px solid var(--jp-border-color2)'
   },
-  label: {},
   instanceName: {
     fontSize: '16pt'
   },
@@ -37,6 +38,17 @@ const useStyles = createUseStyles({
   },
   formItem: {
     marginBottom: '16px'
+  },
+  label: {
+    margin: '4px 0 4px 0'
+  },
+  textFieldContainer: {
+    margin: '8px 0 8px 0'
+  },
+  warning: {
+    margin: '8px 8px 16px 8px',
+    color: 'var(--jp-ui-font-color2)',
+    fontSize: '9pt'
   },
   icon: {
     fontSize: '10pt',
@@ -48,6 +60,11 @@ const useStyles = createUseStyles({
   },
   hidden: {
     display: 'none'
+  },
+  action: {
+    cursor: 'pointer',
+    color: 'var(--jp-rucio-primary-blue-color)',
+    fontSize: '9pt'
   },
   buttonSavedAcknowledgement: {
     background: '#689f38',
@@ -76,6 +93,7 @@ const _Settings: React.FunctionComponent = props => {
   const [credentialsLoading, setCredentialsLoading] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(false);
   const [showSaved, setShowSaved] = useState<boolean>(false);
+  const [showAdvancedSettings, setShowAdvancedSettings] = useState<boolean>(false);
 
   const instanceOptions = useMemo(() => instances?.map(i => ({ label: i.displayName, value: i.name })), [instances]);
 
@@ -217,6 +235,32 @@ const _Settings: React.FunctionComponent = props => {
               onAuthParamsChange={v => setRucioX509AuthCredentials(v)}
             />
           </div>
+        </div>
+        <div className={showAdvancedSettings ? undefined : classes.hidden}>
+          <HorizontalHeading title="Advanced Settings" />
+          <div className={classes.container}>
+            <div className={classes.formItem}>
+              <div className={classes.textFieldContainer}>
+                <div className={classes.label}>Virtual Organization (VO)</div>
+                <TextField placeholder="Virtual Organization" />
+                <div className={classes.warning}>
+                  If no VO is specified, it is set to the one configured by the site administrator.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className={classes.container}>
+          {!showAdvancedSettings && (
+            <div className={classes.action} onClick={() => setShowAdvancedSettings(true)}>
+              Show Advanced Settings
+            </div>
+          )}
+          {showAdvancedSettings && (
+            <div className={classes.action} onClick={() => setShowAdvancedSettings(false)}>
+              Hide Advanced Settings
+            </div>
+          )}
         </div>
       </div>
       <div className={classes.buttonContainer}>
