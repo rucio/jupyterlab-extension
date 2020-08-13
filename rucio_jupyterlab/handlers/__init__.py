@@ -8,6 +8,7 @@ from .did_search import DIDSearchHandler
 from .did_details import DIDDetailsHandler
 from .did_make_available import DIDMakeAvailableHandler
 from .file_browser import FileBrowserHandler
+from .purge_cache import PurgeCacheHandler
 
 
 def setup_handlers(web_app):  # pragma: no cover
@@ -29,5 +30,6 @@ def setup_handlers(web_app):  # pragma: no cover
         (url_path_join(base_path, 'did-search'), DIDSearchHandler, handler_params),
         (url_path_join(base_path, 'did', 'make-available'), DIDMakeAvailableHandler, handler_params),
         (url_path_join(base_path, 'file-browser'), FileBrowserHandler, handler_params),
+        (url_path_join(base_path, 'purge-cache'), PurgeCacheHandler, handler_params)
     ]
     web_app.add_handlers(host_pattern, handlers)

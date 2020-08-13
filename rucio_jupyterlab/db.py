@@ -93,6 +93,10 @@ class DatabaseInstance:
         FileReplicasCache.replace(
             namespace=namespace, did=file_did, pfn=pfn, size=size, expiry=cache_expires).execute()
 
+    def purge_cache(self):
+        FileReplicasCache.delete().execute(database=None)
+        AttachedFilesListCache.delete().execute(database=None)
+
 
 class UserConfig(Model):
     key = TextField(unique=True)

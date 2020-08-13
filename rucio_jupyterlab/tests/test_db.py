@@ -16,7 +16,7 @@ def test_get_config__config_exists(database_instance, mocker):  # pylint: disabl
         key = 'key'
 
         @staticmethod
-        def get_or_none(*args, **kwargs): # pylint: disable=unused-argument
+        def get_or_none(*args, **kwargs):  # pylint: disable=unused-argument
             return Struct(key='key', value='value')
 
     mocker.patch('rucio_jupyterlab.db.UserConfig', MockUserConfig)
@@ -89,7 +89,7 @@ def test_get_attached_files__files_not_exist(database_instance, mocker):  # pyli
 def test_set_attached_files(database_instance, mocker):  # pylint: disable=redefined-outer-name
     class MockAttachedFilesListCache:
         @staticmethod
-        def execute(*args, **kwargs): # pylint: disable=unused-argument
+        def execute(*args, **kwargs):  # pylint: disable=unused-argument
             pass
 
         @staticmethod
@@ -118,11 +118,11 @@ def test_set_attached_files(database_instance, mocker):  # pylint: disable=redef
 def test_set_file_replica(database_instance, mocker):  # pylint: disable=redefined-outer-name
     class MockFileReplicasCache:
         @staticmethod
-        def execute(*args, **kwargs):  #pylint: disable=unused-argument
+        def execute(*args, **kwargs):  # pylint: disable=unused-argument
             pass
 
         @staticmethod
-        def replace(namespace, did, pfn, size, expiry, *args, **kwargs):  #pylint: disable=unused-argument
+        def replace(namespace, did, pfn, size, expiry, *args, **kwargs):  # pylint: disable=unused-argument
             assert namespace == 'namespace', "Invalid namespace"
             assert did == 'scope:name', "Invalid DID"
             assert pfn == 'root://xrd1:1094//test', "Invalid PFN"
@@ -134,3 +134,29 @@ def test_set_file_replica(database_instance, mocker):  # pylint: disable=redefin
     mocker.patch('rucio_jupyterlab.db.FileReplicasCache', MockFileReplicasCache)
 
     database_instance.set_file_replica('namespace', 'scope:name', 'root://xrd1:1094//test', 123)
+
+
+def test_purge_cache(database_instance, mocker):  # pylint: disable=redefined-outer-name
+    class MockDeleteQuery:
+        @staticmethod
+        def execute(*args, **kwargs):
+            pass
+
+    class MockCacheEntity:
+        def __init__(self):
+            self.called = False
+
+        def delete(self, *args, **kwargs):  # pylint: disable=unused-argument
+            self.called = True
+            return MockDeleteQuery
+
+    mock_replicas_cache = MockCacheEntity()
+    mock_attached_files_list_cache = MockCacheEntity()
+
+    mocker.patch('rucio_jupyterlab.db.FileReplicasCache', mock_replicas_cache)
+    mocker.patch('rucio_jupyterlab.db.AttachedFilesListCache', mock_attached_files_list_cache)
+
+    database_instance.purge_cache()
+
+    assert mock_replicas_cache.called, "FileReplicasCache not cleared"
+    assert mock_attached_files_list_cache.called, "AttachedFilesListCache not cleared"
