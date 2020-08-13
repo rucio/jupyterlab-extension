@@ -383,3 +383,22 @@ describe('makeCollectionAvailable', () => {
         expect(mockUpdateState).toBeCalled();
     })
 })
+
+describe('purgeCache', () => {
+    test('should call /purge-cache endpoint with method POST', async () => {
+        const mockRequestAPI = requestAPI as jest.MockedFunction<typeof requestAPI>;
+
+        mockRequestAPI.mockClear();
+        mockRequestAPI.mockReturnValue(Promise.resolve());
+
+        const actions = new Actions();
+        await actions.purgeCache();
+
+        expect(mockRequestAPI).toBeCalledWith(
+            expect.stringMatching(/purge-cache/),
+            expect.objectContaining({
+                method: 'POST'
+            })
+        );
+    })
+})

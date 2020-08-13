@@ -10,25 +10,23 @@ import { UserPassAuth } from '../components/@Settings/UserPassAuth';
 import { X509Auth } from '../components/@Settings/X509Auth';
 import { RucioAuthType, RucioUserpassAuth, RucioX509Auth } from '../types';
 import { HorizontalHeading } from '../components/HorizontalHeading';
-import { TextField } from '../components/TextField';
 
 const useStyles = createUseStyles({
   content: {
     height: '100%',
     display: 'flex',
+    overflow: 'auto',
     flexDirection: 'column'
   },
   scrollable: {
     flex: 1,
-    overflow: 'auto',
     paddingTop: '8px'
   },
   container: {
     padding: '8px 16px 8px 16px'
   },
   buttonContainer: {
-    extend: 'container',
-    borderTop: '1px solid var(--jp-border-color2)'
+    extend: 'container'
   },
   instanceName: {
     fontSize: '16pt'
@@ -45,10 +43,13 @@ const useStyles = createUseStyles({
   textFieldContainer: {
     margin: '8px 0 8px 0'
   },
-  warning: {
-    margin: '8px 8px 16px 8px',
+  subtitle: {
     color: 'var(--jp-ui-font-color2)',
     fontSize: '9pt'
+  },
+  warning: {
+    extend: 'subtitle',
+    margin: '8px 8px 16px 8px'
   },
   icon: {
     fontSize: '10pt',
@@ -72,6 +73,17 @@ const useStyles = createUseStyles({
     '&:hover': {
       background: '#689f38'
     }
+  },
+  buttonPurgedAcknowledgement: {
+    extend: 'purgeButton',
+    background: 'var(--jp-error-color1)',
+    color: '#ffffff',
+    '&:hover': {
+      background: 'var(--jp-error-color1)'
+    }
+  },
+  purgeButton: {
+    marginTop: '16px'
   }
 });
 
@@ -94,6 +106,8 @@ const _Settings: React.FunctionComponent = props => {
   const [loading, setLoading] = useState<boolean>(false);
   const [showSaved, setShowSaved] = useState<boolean>(false);
   const [showAdvancedSettings, setShowAdvancedSettings] = useState<boolean>(false);
+  const [purgingCache, setPurgingCache] = useState<boolean>(false);
+  const [showCachePurged, setShowCachePurged] = useState<boolean>(false);
 
   const instanceOptions = useMemo(() => instances?.map(i => ({ label: i.displayName, value: i.name })), [instances]);
 
@@ -157,6 +171,18 @@ const _Settings: React.FunctionComponent = props => {
         .catch(() => setRucioX509AuthCredentials(undefined))
         .finally(() => setCredentialsLoading(false));
     }
+  };
+
+  const purgeCache = () => {
+    setShowCachePurged(false);
+    setPurgingCache(true);
+    actions
+      .purgeCache()
+      .then(() => {
+        setShowCachePurged(true);
+        setTimeout(() => setShowCachePurged(false), 3000);
+      })
+      .finally(() => setPurgingCache(false));
   };
 
   useEffect(reloadAuthConfig, [selectedInstance, selectedAuthType]);
@@ -241,11 +267,20 @@ const _Settings: React.FunctionComponent = props => {
           <div className={classes.container}>
             <div className={classes.formItem}>
               <div className={classes.textFieldContainer}>
-                <div className={classes.label}>Virtual Organization (VO)</div>
-                <TextField placeholder="Virtual Organization" />
-                <div className={classes.warning}>
-                  If no VO is specified, it is set to the one configured by the site administrator.
-                </div>
+                <div className={classes.label}>Purge cache</div>
+                <div className={classes.subtitle}>Remove all caches, including search results and DID paths.</div>
+                <Button
+                  block
+                  onClick={purgeCache}
+                  disabled={purgingCache}
+                  outlineColor="var(--jp-error-color1)"
+                  color={!purgingCache && showCachePurged ? '#FFFFFF' : 'var(--jp-error-color1)'}
+                  className={!purgingCache && showCachePurged ? classes.buttonPurgedAcknowledgement : classes.purgeButton}
+                >
+                  {!purgingCache && !showCachePurged && <>Purge Cache</>}
+                  {purgingCache && <>Purging...</>}
+                  {!purgingCache && showCachePurged && <>Purged!</>}
+                </Button>
               </div>
             </div>
           </div>
