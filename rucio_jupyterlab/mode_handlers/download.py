@@ -107,6 +107,10 @@ class DownloadModeHandler:
             'ca_cert': instance_config.get('rucio_ca_cert')
         }
 
+        vo = instance_config.get('vo')  # pylint: disable=invalid-name
+        if vo is not None:
+            config['vo'] = vo
+
         return config
 
     def _is_downloading(self, did):
