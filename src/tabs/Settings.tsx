@@ -15,20 +15,19 @@ const useStyles = createUseStyles({
   content: {
     height: '100%',
     display: 'flex',
+    overflow: 'auto',
     flexDirection: 'column'
   },
   scrollable: {
     flex: 1,
-    overflow: 'auto'
+    paddingTop: '8px'
   },
   container: {
-    padding: '16px'
+    padding: '8px 16px 8px 16px'
   },
   buttonContainer: {
-    extend: 'container',
-    borderTop: '1px solid var(--jp-border-color2)'
+    extend: 'container'
   },
-  label: {},
   instanceName: {
     fontSize: '16pt'
   },
@@ -37,6 +36,20 @@ const useStyles = createUseStyles({
   },
   formItem: {
     marginBottom: '16px'
+  },
+  label: {
+    margin: '4px 0 4px 0'
+  },
+  textFieldContainer: {
+    margin: '8px 0 8px 0'
+  },
+  subtitle: {
+    color: 'var(--jp-ui-font-color2)',
+    fontSize: '9pt'
+  },
+  warning: {
+    extend: 'subtitle',
+    margin: '8px 8px 16px 8px'
   },
   icon: {
     fontSize: '10pt',
@@ -49,12 +62,28 @@ const useStyles = createUseStyles({
   hidden: {
     display: 'none'
   },
+  action: {
+    cursor: 'pointer',
+    color: 'var(--jp-rucio-primary-blue-color)',
+    fontSize: '9pt'
+  },
   buttonSavedAcknowledgement: {
     background: '#689f38',
     color: '#ffffff',
     '&:hover': {
       background: '#689f38'
     }
+  },
+  buttonPurgedAcknowledgement: {
+    extend: 'purgeButton',
+    background: 'var(--jp-error-color1)',
+    color: '#ffffff',
+    '&:hover': {
+      background: 'var(--jp-error-color1)'
+    }
+  },
+  purgeButton: {
+    marginTop: '16px'
   }
 });
 
@@ -76,6 +105,9 @@ const _Settings: React.FunctionComponent = props => {
   const [credentialsLoading, setCredentialsLoading] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(false);
   const [showSaved, setShowSaved] = useState<boolean>(false);
+  const [showAdvancedSettings, setShowAdvancedSettings] = useState<boolean>(false);
+  const [purgingCache, setPurgingCache] = useState<boolean>(false);
+  const [showCachePurged, setShowCachePurged] = useState<boolean>(false);
 
   const instanceOptions = useMemo(() => instances?.map(i => ({ label: i.displayName, value: i.name })), [instances]);
 
@@ -139,6 +171,18 @@ const _Settings: React.FunctionComponent = props => {
         .catch(() => setRucioX509AuthCredentials(undefined))
         .finally(() => setCredentialsLoading(false));
     }
+  };
+
+  const purgeCache = () => {
+    setShowCachePurged(false);
+    setPurgingCache(true);
+    actions
+      .purgeCache()
+      .then(() => {
+        setShowCachePurged(true);
+        setTimeout(() => setShowCachePurged(false), 3000);
+      })
+      .finally(() => setPurgingCache(false));
   };
 
   useEffect(reloadAuthConfig, [selectedInstance, selectedAuthType]);
@@ -217,6 +261,41 @@ const _Settings: React.FunctionComponent = props => {
               onAuthParamsChange={v => setRucioX509AuthCredentials(v)}
             />
           </div>
+        </div>
+        <div className={showAdvancedSettings ? undefined : classes.hidden}>
+          <HorizontalHeading title="Advanced Settings" />
+          <div className={classes.container}>
+            <div className={classes.formItem}>
+              <div className={classes.textFieldContainer}>
+                <div className={classes.label}>Purge cache</div>
+                <div className={classes.subtitle}>Remove all caches, including search results and DID paths.</div>
+                <Button
+                  block
+                  onClick={purgeCache}
+                  disabled={purgingCache}
+                  outlineColor="var(--jp-error-color1)"
+                  color={!purgingCache && showCachePurged ? '#FFFFFF' : 'var(--jp-error-color1)'}
+                  className={!purgingCache && showCachePurged ? classes.buttonPurgedAcknowledgement : classes.purgeButton}
+                >
+                  {!purgingCache && !showCachePurged && <>Purge Cache</>}
+                  {purgingCache && <>Purging...</>}
+                  {!purgingCache && showCachePurged && <>Purged!</>}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className={classes.container}>
+          {!showAdvancedSettings && (
+            <div className={classes.action} onClick={() => setShowAdvancedSettings(true)}>
+              Show Advanced Settings
+            </div>
+          )}
+          {showAdvancedSettings && (
+            <div className={classes.action} onClick={() => setShowAdvancedSettings(false)}>
+              Hide Advanced Settings
+            </div>
+          )}
         </div>
       </div>
       <div className={classes.buttonContainer}>

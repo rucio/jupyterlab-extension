@@ -133,6 +133,14 @@ export class Actions {
   async listDirectory(path: string): Promise<DirectoryItem[]> {
     return requestAPI<DirectoryItem[]>('file-browser?path=' + encodeURIComponent(path));
   }
+
+  async purgeCache(): Promise<void> {
+    const init = {
+      method: 'POST'
+    };
+
+    return requestAPI('purge-cache', init);
+  }
 }
 
 export const actions = new Actions();
