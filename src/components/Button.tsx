@@ -4,6 +4,8 @@ import { createUseStyles } from 'react-jss';
 interface ButtonProps {
   onClick?: { (): void };
   color?: string;
+  hoverTextColor?: string;
+  hoverBackgroundColor?: string;
   outlineColor?: string;
   block?: boolean;
 }
@@ -19,11 +21,12 @@ const useStyles = createUseStyles({
     cursor: 'pointer',
     borderRadius: '2px',
     '&:hover': {
-      backgroundColor: (props: ButtonProps) => `${props.outlineColor || 'var(--jp-layout-color2)'}`,
-      borderColor: (props: ButtonProps) => `${props.outlineColor || 'var(--jp-border-color1)'}`
+      backgroundColor: (props: ButtonProps) => `${props.hoverBackgroundColor || 'var(--jp-layout-color2)'}`,
+      borderColor: (props: ButtonProps) => `${props.outlineColor || 'var(--jp-border-color1)'}`,
+      color: (props: ButtonProps) => `${props.color || props.hoverTextColor || 'var(--jp-ui-font-color1)'}`
     },
     '&:active': {
-      backgroundColor: (props: ButtonProps) => `${props.outlineColor || 'var(--jp-layout-color2)'}`
+      backgroundColor: (props: ButtonProps) => `${props.hoverBackgroundColor || 'var(--jp-layout-color2)'}`
     },
     '&:disabled': {
       opacity: 0.5,
