@@ -1,13 +1,16 @@
 FROM jupyter/scipy-notebook
 LABEL maintainer="Muhammad Aditya Hilmy <mhilmy@hey.com>"
 
+USER $NB_UID
+
+RUN conda install -y -c conda-forge python-gfal2 \
+    && conda clean --all -f -y
+
 USER root
 
 RUN apt update -y \
     && apt install -y globus-proxy-utils \
-    && apt clean -y \
-    && conda install -y -c conda-forge python-gfal2 \
-    && conda clean --all -f -y
+    && apt clean -y
 
 COPY . /rucio-jupyterlab
 WORKDIR /rucio-jupyterlab
