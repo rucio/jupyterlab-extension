@@ -58,7 +58,13 @@ export class ActiveNotebookListener {
     const rucioDidAttachments = attachments as ReadonlyArray<any>;
 
     if (current !== rucioDidAttachments) {
-      metadata.set(METADATA_ATTACHMENTS_KEY, rucioDidAttachments as ReadonlyPartialJSONArray);
+      if (rucioDidAttachments.length === 0) {
+        if (current) {
+          metadata.delete(METADATA_ATTACHMENTS_KEY);
+        }
+      } else {
+        metadata.set(METADATA_ATTACHMENTS_KEY, rucioDidAttachments as ReadonlyPartialJSONArray);
+      }
     }
   }
 
