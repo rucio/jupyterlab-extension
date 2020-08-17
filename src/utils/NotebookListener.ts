@@ -5,7 +5,7 @@ import { IKernelConnection } from '@jupyterlab/services/lib/kernel/kernel';
 import { Store, useStoreState } from 'pullstate';
 import { UIStore } from '../stores/UIStore';
 import { NotebookDIDAttachment, FileDIDDetails, ResolveStatus } from '../types';
-import { COMM_NAME_KERNEL, COMM_NAME_FRONTEND, METADATA_KEY } from '../const';
+import { COMM_NAME_KERNEL, COMM_NAME_FRONTEND, METADATA_ATTACHMENTS_KEY } from '../const';
 import { actions } from '../utils/Actions';
 import { InjectNotebookToolbar } from '../InjectNotebookToolbar';
 import { computeCollectionState } from './Helpers';
@@ -191,7 +191,7 @@ export class NotebookListener {
   }
 
   private getAttachmentsFromMetadata(notebook: NotebookPanel): NotebookDIDAttachment[] {
-    const rucioDidAttachments = notebook.model.metadata.get(METADATA_KEY);
+    const rucioDidAttachments = notebook.model.metadata.get(METADATA_ATTACHMENTS_KEY);
     const attachedDIDs = rucioDidAttachments as ReadonlyArray<any>;
     return attachedDIDs as NotebookDIDAttachment[];
   }

@@ -2,7 +2,7 @@ import { ILabShell } from '@jupyterlab/application';
 import { INotebookTracker, NotebookPanel } from '@jupyterlab/notebook';
 import { ExtensionStore, ExtensionState } from '../stores/ExtensionStore';
 import { NotebookDIDAttachment } from '../types';
-import { METADATA_KEY } from '../const';
+import { METADATA_ATTACHMENTS_KEY } from '../const';
 import { ReadonlyPartialJSONArray } from '@lumino/coreutils';
 import { SessionManager } from '@jupyterlab/services';
 import { NotebookListener } from './NotebookListener';
@@ -54,11 +54,11 @@ export class ActiveNotebookListener {
 
   private setJupyterNotebookFileRucioMetadata(attachments: NotebookDIDAttachment[], state: ExtensionState) {
     const { metadata } = state.activeNotebookPanel.model;
-    const current = metadata.get(METADATA_KEY) as ReadonlyArray<any>;
+    const current = metadata.get(METADATA_ATTACHMENTS_KEY) as ReadonlyArray<any>;
     const rucioDidAttachments = attachments as ReadonlyArray<any>;
 
     if (current !== rucioDidAttachments) {
-      metadata.set(METADATA_KEY, rucioDidAttachments as ReadonlyPartialJSONArray);
+      metadata.set(METADATA_ATTACHMENTS_KEY, rucioDidAttachments as ReadonlyPartialJSONArray);
     }
   }
 
@@ -74,7 +74,7 @@ export class ActiveNotebookListener {
 
     nbWidget.revealed.then(() => {
       this.setActiveNotebook(nbWidget);
-      const rucioDidAttachments = nbWidget.model.metadata.get(METADATA_KEY);
+      const rucioDidAttachments = nbWidget.model.metadata.get(METADATA_ATTACHMENTS_KEY);
       if (!rucioDidAttachments) {
         this.setActiveNotebookAttachments([]);
         return;

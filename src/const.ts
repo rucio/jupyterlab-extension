@@ -1,5 +1,5 @@
 export const EXTENSION_ID = 'rucio-jupyterlab';
-export const METADATA_KEY = 'rucio';
+export const METADATA_ATTACHMENTS_KEY = 'rucio_attachments';
 export const COMM_NAME_KERNEL = `${EXTENSION_ID}:kernel`;
 export const COMM_NAME_FRONTEND = `${EXTENSION_ID}:frontend`;
 
