@@ -2,6 +2,7 @@ import os
 import tempfile
 import logging
 import multiprocessing as mp
+import traceback
 import base64
 import json
 from shutil import copyfile, which
@@ -165,7 +166,9 @@ class DIDDownloader:
             if cert_path and key_path:
                 tmp_cert_path, tmp_key_path = DIDDownloader.write_certificate_files(rucio_home, cert_path, key_path)
                 tmp_proxy_path = DIDDownloader.generate_proxy_certificate(rucio_home, tmp_cert_path, tmp_key_path)
-                os.environ['X509_USER_PROXY'] = tmp_proxy_path
+                if tmp_proxy_path is not None:
+                    os.environ['X509_USER_PROXY'] = tmp_proxy_path
+
                 os.environ['X509_USER_CERT'] = tmp_cert_path
                 os.environ['X509_USER_KEY'] = tmp_key_path
 
@@ -239,10 +242,12 @@ class DIDDownloader:
             process.communicate()
 
             if process.returncode != 0:
+                download_logger.error("Generating proxy certificate fails, process returns non-zero code.")
                 return None
 
             return dest_proxy_path
         except subprocess.SubprocessError:
+            traceback.print_exc()
             return None
 
     @staticmethod
