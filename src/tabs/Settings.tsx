@@ -8,7 +8,8 @@ import { withRequestAPI, WithRequestAPIProps } from '../utils/Actions';
 import { authTypeOptions } from '../const';
 import { UserPassAuth } from '../components/@Settings/UserPassAuth';
 import { X509Auth } from '../components/@Settings/X509Auth';
-import { RucioAuthType, RucioUserpassAuth, RucioX509Auth } from '../types';
+import { X509ProxyAuth } from '../components/@Settings/X509ProxyAuth';
+import { RucioAuthType, RucioUserpassAuth, RucioX509Auth, RucioX509ProxyAuth } from '../types';
 import { HorizontalHeading } from '../components/HorizontalHeading';
 
 const useStyles = createUseStyles({
@@ -102,6 +103,7 @@ const _Settings: React.FunctionComponent = props => {
   const [selectedAuthType, setSelectedAuthType] = useState<RucioAuthType>(activeAuthType);
   const [rucioUserpassAuthCredentials, setRucioUserpassAuthCredentials] = useState<RucioUserpassAuth>();
   const [rucioX509AuthCredentials, setRucioX509AuthCredentials] = useState<RucioX509Auth>();
+  const [rucioX509ProxyAuthCredentials, setRucioX509ProxyAuthCredentials] = useState<RucioX509ProxyAuth>();
   const [credentialsLoading, setCredentialsLoading] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(false);
   const [showSaved, setShowSaved] = useState<boolean>(false);
@@ -135,7 +137,17 @@ const _Settings: React.FunctionComponent = props => {
     }
 
     if (selectedAuthType) {
-      const rucioAuthCredentials = selectedAuthType === 'userpass' ? rucioUserpassAuthCredentials : rucioX509AuthCredentials;
+      const rucioAuthCredentials = (() => {
+        switch (selectedAuthType) {
+          case 'userpass':
+            return rucioUserpassAuthCredentials;
+          case 'x509':
+            return rucioX509AuthCredentials;
+          case 'x509_proxy':
+            return rucioX509ProxyAuthCredentials;
+        }
+      })();
+
       if (rucioAuthCredentials) {
         const setPutAuthConfigPromise = actions.putAuthConfig(selectedInstance, selectedAuthType, rucioAuthCredentials);
         promises.push(setPutAuthConfigPromise);
@@ -169,6 +181,12 @@ const _Settings: React.FunctionComponent = props => {
         .fetchAuthConfig<RucioX509Auth>(selectedInstance, selectedAuthType)
         .then(c => setRucioX509AuthCredentials(c))
         .catch(() => setRucioX509AuthCredentials(undefined))
+        .finally(() => setCredentialsLoading(false));
+    } else if (selectedAuthType === 'x509_proxy') {
+      actions
+        .fetchAuthConfig<RucioX509ProxyAuth>(selectedInstance, selectedAuthType)
+        .then(c => setRucioX509ProxyAuthCredentials(c))
+        .catch(() => setRucioX509ProxyAuthCredentials(undefined))
         .finally(() => setCredentialsLoading(false));
     }
   };
@@ -259,6 +277,14 @@ const _Settings: React.FunctionComponent = props => {
               loading={credentialsLoading}
               params={rucioX509AuthCredentials}
               onAuthParamsChange={v => setRucioX509AuthCredentials(v)}
+            />
+          </div>
+          <div className={selectedInstance && selectedAuthType === 'x509_proxy' ? '' : classes.hidden}>
+            <HorizontalHeading title="X.509 Proxy Certificate" />
+            <X509ProxyAuth
+              loading={credentialsLoading}
+              params={rucioX509ProxyAuthCredentials}
+              onAuthParamsChange={v => setRucioX509ProxyAuthCredentials(v)}
             />
           </div>
         </div>

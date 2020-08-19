@@ -17,9 +17,13 @@ export interface RucioX509Auth extends RucioAuth {
   key?: string;
 }
 
-export type RucioAuthCredentials = RucioUserpassAuth | RucioX509Auth;
+export interface RucioX509ProxyAuth extends RucioAuth {
+  proxy: string;
+}
 
-export type RucioAuthType = 'userpass' | 'x509';
+export type RucioAuthCredentials = RucioUserpassAuth | RucioX509Auth | RucioX509ProxyAuth;
+
+export type RucioAuthType = 'userpass' | 'x509' | 'x509_proxy';
 
 export interface InstanceConfig {
   activeInstance?: string;
