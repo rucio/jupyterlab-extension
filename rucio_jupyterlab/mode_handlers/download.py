@@ -38,8 +38,10 @@ class DownloadModeHandler:
                 return
 
         config = self._get_config()
+        auth_type = self.rucio.auth_type
+        auth_config = self.rucio.auth_config
         site_name = self.rucio.instance_config.get('site_name')
-        process = mp.Process(target=DIDDownloader.start_download_target, args=(self.namespace, did, config, site_name))
+        process = mp.Process(target=DIDDownloader.start_download_target, args=(self.namespace, did, config, auth_type, auth_config, site_name))
         process.start()
 
     def get_did_details(self, scope, name, force_fetch=False):
@@ -142,7 +144,7 @@ class DownloadModeHandler:
 
 class DIDDownloader:
     @staticmethod
-    def start_download_target(namespace, did, config, site_name=None):
+    def start_download_target(namespace, did, config, auth_type=None, auth_config=None, site_name=None):
         dest_folder = DIDDownloader.get_dest_folder(namespace, did)
 
         if DIDDownloader.is_downloading(dest_folder):
@@ -157,26 +159,46 @@ class DIDDownloader:
 
             os.environ['RUCIO_HOME'] = rucio_home
             DIDDownloader.write_temp_config_file(rucio_home, config)
+
             os.makedirs(dest_folder, exist_ok=True)
             DIDDownloader.write_lockfile(dest_folder)
 
-            cert_path = config.get('client_cert')
-            key_path = config.get('client_key')
-
-            if cert_path and key_path:
-                tmp_cert_path, tmp_key_path = DIDDownloader.write_certificate_files(rucio_home, cert_path, key_path)
-                tmp_proxy_path = DIDDownloader.generate_proxy_certificate(rucio_home, tmp_cert_path, tmp_key_path)
-                if tmp_proxy_path is not None:
-                    os.environ['X509_USER_PROXY'] = tmp_proxy_path
-
-                os.environ['X509_USER_CERT'] = tmp_cert_path
-                os.environ['X509_USER_KEY'] = tmp_key_path
+            if auth_config is not None:
+                if auth_type == 'x509':
+                    DIDDownloader.prepare_x509_user_authentication(rucio_home, auth_config)
+                elif auth_type == 'x509_proxy':
+                    DIDDownloader.prepare_x509_proxy_authentication(rucio_home, auth_config)
 
             try:
                 results = DIDDownloader.download(dest_folder, did)
                 DIDDownloader.write_donefile(dest_folder, results)
             finally:
                 DIDDownloader.delete_lockfile(dest_folder)
+
+    @staticmethod
+    def prepare_x509_user_authentication(rucio_home, auth_config):
+        cert_path = auth_config.get('certificate')
+        key_path = auth_config.get('key')
+
+        if cert_path and key_path:
+            tmp_cert_path, tmp_key_path = DIDDownloader.write_user_certificate_files(rucio_home, cert_path, key_path)
+            tmp_proxy_path = DIDDownloader.generate_proxy_certificate(rucio_home, tmp_cert_path, tmp_key_path)
+
+            if tmp_proxy_path is not None:
+                os.environ['X509_USER_PROXY'] = tmp_proxy_path
+
+            if tmp_cert_path is not None and tmp_key_path is not None:
+                os.environ['X509_USER_CERT'] = tmp_cert_path
+                os.environ['X509_USER_KEY'] = tmp_key_path
+
+    @staticmethod
+    def prepare_x509_proxy_authentication(rucio_home, auth_config):
+        proxy_path = auth_config.get('proxy')
+
+        if proxy_path:
+            tmp_proxy_path = DIDDownloader.write_proxy_certificate_files(rucio_home, proxy_path)
+            if tmp_proxy_path is not None:
+                os.environ['X509_USER_PROXY'] = tmp_proxy_path
 
     @staticmethod
     def is_downloading(dest_path):
@@ -220,7 +242,7 @@ class DIDDownloader:
         config_file.close()
 
     @staticmethod
-    def write_certificate_files(base_dir, cert_path, key_path):
+    def write_user_certificate_files(base_dir, cert_path, key_path):
         dest_cert_path = os.path.join(base_dir, 'usercert.pem')
         dest_key_path = os.path.join(base_dir, 'userkey.pem')
 
@@ -231,6 +253,13 @@ class DIDDownloader:
         os.chmod(dest_key_path, 0o400)
 
         return dest_cert_path, dest_key_path
+
+    @staticmethod
+    def write_proxy_certificate_files(base_dir, proxy_path):
+        dest_proxy_path = os.path.join(base_dir, 'proxy.pem')
+        copyfile(proxy_path, dest_proxy_path)
+        os.chmod(dest_proxy_path, 0o400)
+        return dest_proxy_path
 
     @staticmethod
     def generate_proxy_certificate(base_dir, cert_path, key_path):
