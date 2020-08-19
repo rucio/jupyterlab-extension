@@ -26,7 +26,7 @@ def write_jupyterlab_config():
         "rucio_ca_cert": os.getenv('RUCIO_CA_CERT'),
         "site_name": os.getenv('RUCIO_SITE_NAME'),
         "vo": os.getenv('RUCIO_VO'),
-        "voms_enabled": os.getenv('VOMS_ENABLED', '0') == '1',
+        "voms_enabled": os.getenv('RUCIO_VOMS_ENABLED', '0') == '1',
         "voms_vomses_path": os.getenv('RUCIO_VOMS_VOMSES_PATH'),
         "voms_certdir_path": os.getenv('RUCIO_VOMS_CERTDIR_PATH'),
         "voms_vomsdir_path": os.getenv('RUCIO_VOMS_VOMSDIR_PATH'),
