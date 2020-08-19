@@ -20,6 +20,19 @@ instance_properties = {
     "vo": {
         "type": "string"
     },
+    "voms_enabled": {
+        "type": "boolean",
+        "default": False
+    },
+    "voms_vomses_path": {
+        "type": "string"
+    },
+    "voms_certdir_path": {
+        "type": "string"
+    },
+    "voms_vomsdir_path": {
+        "type": "string"
+    },
     "mode": {
         "type": "string",
         "enum": ["replica", "download"]

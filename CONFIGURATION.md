@@ -113,9 +113,35 @@ Site name of the JupyterLab instance, optional. It allows Rucio to know whether 
 Example: `ATLAS`
 
 #### VO Name - `vo`
-VO of the instance. Optional, for use in multi-VO installations only.
+VO of the instance. Optional, for use in multi-VO installations only. If VOMS is enabled, this value will be supplied as `--voms` option when invoking `voms-proxy-init`.
 
 Example: `def`
+
+#### VOMS Enabled - `voms_enabled`
+The extension uses `voms-proxy-init` to generate a Proxy certificate when downloading a file from an authenticated RSE.
+
+If set to `true`, `vo` option is specified, and X.509 User Certificate is used, the extension will invoke `voms-proxy-init` with the `--voms` argument set to the extension's `vo` option.
+
+Optional, with default: `false`
+
+#### VOMS `certdir` Path - `voms_certdir_path`
+If VOMS is enabled and this configuration is set, the extension will set the `--certdir` option with this value. Refer to `voms-proxy-init` documentation.
+
+Example: `/etc/grid-security/certificates`
+
+#### VOMS `vomsdir` Path - `voms_vomsdir_path`
+If VOMS is enabled and this configuration is set, the extension will set the `--vomsdir` option with this value. Refer to `voms-proxy-init` documentation.
+
+Example: `/etc/grid-security/vomsdir`
+
+**WARNING:** In earlier versions, `voms-proxy-init` does not support the `--vomsdir` option. In that case, this option must be omitted.
+
+#### VOMS `vomses` File Path - `voms_vomses_path`
+If VOMS is enabled and this configuration is set, the extension will set the `--vomses` option with this value. Refer to `voms-proxy-init` documentation.
+
+Example: `/etc/vomses`
+
+**WARNING:** In earlier versions, `voms-proxy-init` does not support the `--vomsdir` option. In that case, this option must be omitted.
 
 #### Destination RSE - `destination_rse`
 The name of the Rucio Storage Element that is mounted to the JupyterLab server. Mandatory, only applicable in Replica mode.

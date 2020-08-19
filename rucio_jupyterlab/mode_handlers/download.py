@@ -40,8 +40,8 @@ class DownloadModeHandler:
         config = self._get_config()
         auth_type = self.rucio.auth_type
         auth_config = self.rucio.auth_config
-        site_name = self.rucio.instance_config.get('site_name')
-        process = mp.Process(target=DIDDownloader.start_download_target, args=(self.namespace, did, config, auth_type, auth_config, site_name))
+        instance_config = self.rucio.instance_config
+        process = mp.Process(target=DIDDownloader.start_download_target, args=(self.namespace, did, config, instance_config, auth_type, auth_config))
         process.start()
 
     def get_did_details(self, scope, name, force_fetch=False):
@@ -144,7 +144,7 @@ class DownloadModeHandler:
 
 class DIDDownloader:
     @staticmethod
-    def start_download_target(namespace, did, config, auth_type=None, auth_config=None, site_name=None):
+    def start_download_target(namespace, did, config, instance_config, auth_type=None, auth_config=None):
         dest_folder = DIDDownloader.get_dest_folder(namespace, did)
 
         if DIDDownloader.is_downloading(dest_folder):
@@ -154,6 +154,7 @@ class DIDDownloader:
         with tempfile.TemporaryDirectory() as rucio_home:
             download_logger.debug("Creating temporary directory: %s", rucio_home)
 
+            site_name = instance_config.get("site_name")
             if site_name is not None:
                 os.environ['SITE_NAME'] = site_name
 
@@ -165,9 +166,9 @@ class DIDDownloader:
 
             if auth_config is not None:
                 if auth_type == 'x509':
-                    DIDDownloader.prepare_x509_user_authentication(rucio_home, auth_config)
+                    DIDDownloader.prepare_x509_user_authentication(rucio_home, instance_config=instance_config, auth_config=auth_config)
                 elif auth_type == 'x509_proxy':
-                    DIDDownloader.prepare_x509_proxy_authentication(rucio_home, auth_config)
+                    DIDDownloader.prepare_x509_proxy_authentication(rucio_home, auth_config=auth_config)
 
             try:
                 results = DIDDownloader.download(dest_folder, did)
@@ -176,13 +177,27 @@ class DIDDownloader:
                 DIDDownloader.delete_lockfile(dest_folder)
 
     @staticmethod
-    def prepare_x509_user_authentication(rucio_home, auth_config):
+    def prepare_x509_user_authentication(rucio_home, instance_config, auth_config):
         cert_path = auth_config.get('certificate')
         key_path = auth_config.get('key')
+        voms_nickname = instance_config.get('vo')
+        voms_enabled = instance_config.get('voms_enabled', False)
+        voms_certdir_path = instance_config.get('voms_certdir_path')
+        voms_vomsdir_path = instance_config.get('voms_vomsdir_path')
+        voms_vomses_path = instance_config.get('voms_vomses_path')
 
         if cert_path and key_path:
             tmp_cert_path, tmp_key_path = DIDDownloader.write_user_certificate_files(rucio_home, cert_path, key_path)
-            tmp_proxy_path = DIDDownloader.generate_proxy_certificate(rucio_home, tmp_cert_path, tmp_key_path)
+            tmp_proxy_path = DIDDownloader.generate_proxy_certificate(
+                rucio_home,
+                tmp_cert_path,
+                tmp_key_path,
+                voms_enabled=voms_enabled,
+                voms_nickname=voms_nickname,
+                voms_certdir_path=voms_certdir_path,
+                voms_vomsdir_path=voms_vomsdir_path,
+                voms_vomses_path=voms_vomses_path
+            )
 
             if tmp_proxy_path is not None:
                 os.environ['X509_USER_PROXY'] = tmp_proxy_path
@@ -262,16 +277,45 @@ class DIDDownloader:
         return dest_proxy_path
 
     @staticmethod
-    def generate_proxy_certificate(base_dir, cert_path, key_path):
+    def generate_proxy_certificate(base_dir, cert_path, key_path, voms_enabled=False, voms_nickname=None, voms_certdir_path=None, voms_vomsdir_path=None, voms_vomses_path=None):
         dest_proxy_path = os.path.join(base_dir, 'x509up')
-        executable = 'grid-proxy-init' if which('grid-proxy-init') is not None else 'voms-proxy-init'
+        cmd_args = {
+            '-cert': cert_path,
+            '-key': key_path,
+            '-out': dest_proxy_path
+        }
+
+        if which('voms-proxy-init') is not None:
+            executable = "voms-proxy-init"
+
+            if voms_enabled:
+                if voms_nickname is not None:
+                    cmd_args['--voms'] = voms_nickname
+
+                if voms_certdir_path is not None:
+                    cmd_args['--certdir'] = voms_certdir_path
+
+                if voms_vomsdir_path is not None:
+                    cmd_args['--vomsdir'] = voms_vomsdir_path
+
+                if voms_vomses_path is not None:
+                    cmd_args['--vomses'] = voms_vomses_path
+        else:
+            executable = "grid-proxy-init"
 
         try:
-            process = subprocess.Popen([executable, '-cert', cert_path, '-key', key_path, '-out', dest_proxy_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            process.communicate()
+            args = []
+            for option in cmd_args:
+                args.append(option)
+                args.append(cmd_args[option])
+
+            process = subprocess.Popen([executable] + args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            out, err = process.communicate()
 
             if process.returncode != 0:
                 download_logger.error("Generating proxy certificate fails, process returns non-zero code.")
+                download_logger.error(out)
+                download_logger.error(err)
                 return None
 
             return dest_proxy_path

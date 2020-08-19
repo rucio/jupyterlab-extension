@@ -9,7 +9,7 @@ RUN conda install -y -c conda-forge python-gfal2 \
 USER root
 
 RUN apt update -y \
-    && apt install -y globus-proxy-utils \
+    && apt install -y voms-clients-java \
     && apt clean -y
 
 COPY . /rucio-jupyterlab

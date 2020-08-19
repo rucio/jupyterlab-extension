@@ -25,14 +25,14 @@ $ jupyter lab build
 
 If you are going to run the extension in Download mode, you will also need to install libraries required by the RSE downloaders. For instance, `gfal2`, which is available in EPEL or conda-forge. 
 
-Additionally, you need to have `grid-proxy-init` or `voms-proxy-init` executable. You can do so by installing `globus-proxy-utils`.
+Additionally, you need to have `grid-proxy-init` or `voms-proxy-init` executable. You can do so by installing `voms-clients-java`.
 
 ```bash
-$ apt install globus-proxy-utils
+$ apt install voms-clients-java
 $ conda install -c conda-forge python-gfal2
 # OR
 $ yum install epel-release
-$ yum install gfal2-all gfal2-python globus-proxy-utils
+$ yum install gfal2-all gfal2-python voms-clients-java
 ```
 
 Restart your JupyterLab instance afterwards to load the server extension.
