@@ -87,6 +87,10 @@ $ docker run -d -p 8888:8888 \
     -e RUCIO_NAME=<instance name> \
     -e RUCIO_SITE_NAME=ROAMING \
     -e RUCIO_VO=def \
+    -e RUCIO_VOMS_ENABLED=<true = 1, false = 0> \
+    -e RUCIO_VOMS_VOMSES_PATH=<path to vomses file (optional)> \
+    -e RUCIO_VOMS_CERTDIR_PATH=<path to certdir (optional)> \
+    -e RUCIO_VOMS_VOMSDIR_PATH=<path to vomsdir (optional)> \
     -e RUCIO_CA_CERT=/certs/rucio_ca.pem \
     -v <path to Rucio CA PEM file>:/certs/rucio_ca.pem \
     didithilmy/rucio-jupyterlab:latest
