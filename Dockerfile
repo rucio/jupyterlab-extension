@@ -10,7 +10,9 @@ USER root
 
 RUN apt update -y \
     && apt install -y voms-clients-java \
-    && apt clean -y
+    && apt clean -y \
+    && rm /opt/conda/bin/voms-proxy-init \
+    && ln -s /usr/bin/voms-proxy-init /opt/conda/bin/voms-proxy-init
 
 COPY . /rucio-jupyterlab
 WORKDIR /rucio-jupyterlab
