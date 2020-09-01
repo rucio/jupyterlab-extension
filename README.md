@@ -1,6 +1,6 @@
 # Rucio JupyterLab Extension
 
-![Github Actions Status](https://github.com/didithilmy/rucio-jupyterlab/workflows/Build/badge.svg)
+![Github Actions Status](https://github.com/rucio/jupyterlab/workflows/Build/badge.svg)
 
 This is a JupyterLab extension that integrates with [Rucio - Scientific Data Management](https://github.com/rucio/rucio) to allow users to access some of Rucio's capabilities directly from the JupyterLab interface.
 
@@ -68,7 +68,7 @@ $ docker run -d -p 8888:8888 \
     -e RUCIO_PATH_BEGINS_AT=<path begins at> \
     -e RUCIO_RSE_MOUNT_PATH=<mount path> \
     -v <host folder>:<container folder> \
-    didithilmy/rucio-jupyterlab:latest
+    rucio/jupyterlab:latest
 ```
 
 `<host folder>` is a folder in the host that is mounted to a Rucio Storage Element via FUSE.
@@ -93,7 +93,7 @@ $ docker run -d -p 8888:8888 \
     -e RUCIO_VOMS_VOMSDIR_PATH=<path to vomsdir (optional)> \
     -e RUCIO_CA_CERT=/certs/rucio_ca.pem \
     -v <path to Rucio CA PEM file>:/certs/rucio_ca.pem \
-    didithilmy/rucio-jupyterlab:latest
+    rucio/jupyterlab:latest
 ```
 
 Follow the [configuration guide](CONFIGURATION.md) for details of the parameters.
