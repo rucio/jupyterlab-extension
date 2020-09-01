@@ -1,6 +1,12 @@
-"""
-Setup Module to setup Python Handlers for the rucio-jupyterlab extension.
-"""
+# Copyright European Organization for Nuclear Research (CERN)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# You may not use this file except in compliance with the License.
+# You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+#
+# Authors:
+# - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
+
 import os
 
 from jupyter_packaging import (
@@ -72,11 +78,11 @@ setup_args = dict(
     ],
     zip_safe=False,
     include_package_data=True,
-    license="BSD-3-Clause",
+    license="Apache-2.0",
     platforms="Linux, Mac OS X, Windows",
     keywords=["Jupyter", "JupyterLab"],
     classifiers=[
-        "License :: OSI Approved :: BSD License",
+        "License :: OSI Approved :: Apache Software License",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.5",

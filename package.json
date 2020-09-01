@@ -1,6 +1,6 @@
 {
   "name": "rucio-jupyterlab",
-  "version": "0.1.0",
+  "version": "0.4.0",
   "description": "JupyterLab extension for integrating Rucio",
   "keywords": [
     "jupyter",
@@ -11,7 +11,7 @@
   "bugs": {
     "url": "https://github.com/didithilmy/rucio-jupyterlab/issues"
   },
-  "license": "BSD-3-Clause",
+  "license": "Apache-2.0",
   "author": "Muhammad Aditya Hilmy",
   "files": [
     "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",

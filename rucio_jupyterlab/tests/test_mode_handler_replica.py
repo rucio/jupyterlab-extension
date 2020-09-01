@@ -1,21 +1,11 @@
-"""
-Possible states:
-- Attachments cache: empty, exists
-- File replica cache: empty, some exists, all exists
-- DID states: All available, not all available
-- Force fetch: no, yes
-
-Case 1: Attachments exist, all replica cache exists, all available, no force fetch -> should not fetch
-Case 2: Attachments exist, all replica cache exists, not all available, no force fetch -> should fetch rule status only
-Case 3: Attachments exist, some replica cache exists, all available, no force fetch -> should fetch replicas only
-Case 4: Attachments exist, some replica cache exists, not all available, no force fetch -> should fetch replicas and rule status
-Case 5: Attachments exist, no replica cache exists, all available, no force fetch -> should fetch replicas only
-Case 6: Attachments exist, no replica cache exists, not all available, no force fetch -> should fetch replicas and rule status
-Case 7: Attachments not exist, no replica cache exists, all available, no force fetch -> should fetch replicas only
-Case 8: Attachments not exist, no replica cache exists, not all available, no force fetch -> should fetch replicas and rule status
-Case 9: Force fetch, all available -> should fetch replicas only
-Case 10: Force fetch, not all available -> should fetch replicas and rule status
-"""
+# Copyright European Organization for Nuclear Research (CERN)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# You may not use this file except in compliance with the License.
+# You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+#
+# Authors:
+# - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
 
 from rucio_jupyterlab.entity import AttachedFile
 from rucio_jupyterlab.mode_handlers.replica import ReplicaModeHandler
