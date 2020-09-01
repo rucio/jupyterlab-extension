@@ -7,9 +7,9 @@
     "jupyterlab",
     "jupyterlab-extension"
   ],
-  "homepage": "https://github.com/rucio/jupyterlab",
+  "homepage": "https://github.com/rucio/jupyterlab-extension",
   "bugs": {
-    "url": "https://github.com/rucio/jupyterlab/issues"
+    "url": "https://github.com/rucio/jupyterlab-extension/issues"
   },
   "license": "Apache-2.0",
   "author": "Muhammad Aditya Hilmy",
@@ -22,7 +22,7 @@
   "style": "style/index.css",
   "repository": {
     "type": "git",
-    "url": "https://github.com/rucio/jupyterlab.git"
+    "url": "https://github.com/rucio/jupyterlab-extension.git"
   },
   "scripts": {
     "build": "jlpm run build:lib",
