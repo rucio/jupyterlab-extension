@@ -87,6 +87,12 @@ setup_args = dict(
     ],
     zip_safe=False,
     include_package_data=True,
+    data_files=[
+        (
+            "etc/jupyter/jupyter_server_config.d",
+            ["jupyter-config/jupyter_server_config.d/rucio_jupyterlab.json"]
+        ),
+    ],
     python_requires=">=3.6",
     platforms="Linux, Mac OS X, Windows",
     keywords=["Jupyter", "JupyterLab", "JupyterLab3"],
@@ -99,7 +105,7 @@ setup_args = dict(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Framework :: Jupyter",
-    ],
+    ]
 )
 
 
