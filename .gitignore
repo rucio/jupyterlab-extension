@@ -112,6 +112,6 @@ dmypy.json
 .idea/
 .vscode/
 coverage/
-venv/
+venv*/
 _temp_extension/
 rucio_jupyterlab/labextension
