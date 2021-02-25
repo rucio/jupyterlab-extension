@@ -19,8 +19,7 @@ for the frontend extension.
 Note: You will need NodeJS to install the extension.
 
 ```bash
-$ pip install rucio-jupyterlab
-$ jupyter lab build
+pip install rucio-jupyterlab
 ```
 
 If you are going to run the extension in Download mode, you will also need to install libraries required by the RSE downloaders. For instance, `gfal2`, which is available in EPEL or conda-forge. 
