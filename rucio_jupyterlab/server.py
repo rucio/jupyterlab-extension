@@ -7,7 +7,20 @@
 # Authors:
 # - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
 
+import json
+from pathlib import Path
 from .handlers import setup_handlers
+
+HERE = Path(__file__).parent.resolve()
+
+with (HERE / "labextension" / "package.json").open() as fid:
+    data = json.load(fid)
+
+def _jupyter_labextension_paths():
+    return [{
+        "src": "labextension",
+        "dest": data["name"]
+    }]
 
 
 def _jupyter_server_extension_paths():  # pragma: no cover
@@ -26,5 +39,6 @@ def load_jupyter_server_extension(lab_app):  # pragma: no cover
     """
     setup_handlers(lab_app.web_app)
     lab_app.log.info("Registered Rucio JupyterLab extension at URL path /rucio-jupyterlab")
+
 
 _load_jupyter_server_extension = load_jupyter_server_extension

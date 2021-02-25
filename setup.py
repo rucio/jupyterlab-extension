@@ -39,9 +39,9 @@ labext_name = "rucio-jupyterlab"
 
 data_files_spec = [
     ("share/jupyter/labextensions/%s" % labext_name, str(lab_path), "**"),
-    ("share/jupyter/labextensions/%s" % labext_name, str(HERE), "install.json"),("etc/jupyter/jupyter_server_config.d",
-     "jupyter-config", "rucio_jupyterlab.json"),
-    
+    ("share/jupyter/labextensions/%s" % labext_name, str(HERE), "install.json"),
+    ("etc/jupyter/jupyter_notebook_config.d", "jupyter-config/jupyter_notebook_config.d", "rucio_jupyterlab.json"),
+    ("etc/jupyter/jupyter_server_config.d", "jupyter-config/jupyter_server_config.d", "rucio_jupyterlab.json"),
 ]
 
 cmdclass = create_cmdclass("jsdeps",
@@ -87,12 +87,6 @@ setup_args = dict(
     ],
     zip_safe=False,
     include_package_data=True,
-    data_files=[
-        (
-            "etc/jupyter/jupyter_server_config.d",
-            ["jupyter-config/jupyter_server_config.d/rucio_jupyterlab.json"]
-        ),
-    ],
     python_requires=">=3.6",
     platforms="Linux, Mac OS X, Windows",
     keywords=["Jupyter", "JupyterLab", "JupyterLab3"],
