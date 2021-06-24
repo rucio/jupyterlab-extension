@@ -10,9 +10,7 @@
  */
 
 @import 'https://fonts.googleapis.com/icon?family=Material+Icons';
-@import url('~@jupyterlab/ui-components/style/index.css');
-@import url('~@jupyterlab/apputils/style/index.css');
-@import url('~@jupyterlab/application/style/index.css');
+
 :root {
     --jp-rucio-primary-blue-color: #03a9f4;
     --jp-rucio-yellow-color: #ffa000;

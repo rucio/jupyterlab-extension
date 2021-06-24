@@ -45,9 +45,9 @@ data_files_spec = [
 ]
 
 cmdclass = create_cmdclass("jsdeps",
-    package_data_spec=package_data_spec,
-    data_files_spec=data_files_spec
-)
+                           package_data_spec=package_data_spec,
+                           data_files_spec=data_files_spec
+                           )
 
 js_command = combine_commands(
     install_npm(HERE, build_cmd="build:prod", npm=["jlpm"]),
@@ -78,12 +78,12 @@ setup_args = dict(
     cmdclass=cmdclass,
     packages=setuptools.find_packages(),
     install_requires=[
-        "jupyterlab>=2.0.0",
+        "jupyter_server>=1.6,<2",
         "requests~=2.25.0",
         "peewee~=3.14.0",
         "jsonschema~=3.2.0",
         "psutil~=5.8.0",
-        "rucio-clients~=1.25.7"
+        "rucio-clients~=1.0"
     ],
     zip_safe=False,
     include_package_data=True,
