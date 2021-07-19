@@ -13,7 +13,7 @@ import json
 from urllib.parse import urlencode, quote
 import requests
 from rucio_jupyterlab.db import get_db
-from .authenticators import RucioAuthenticationException, authenticate_userpass, authenticate_x509
+from .authenticators import RucioAuthenticationException, authenticate_userpass, authenticate_x509, authenticate_oidc
 
 
 class RucioAPI:
@@ -177,6 +177,12 @@ class RucioAPI:
             account = auth_config.get('account')
 
             return authenticate_x509(base_url=self.auth_url, cert_path=proxy, key_path=proxy, account=account, vo=vo, app_id=app_id, rucio_ca_cert=self.rucio_ca_cert)
+
+        elif auth_type == 'oidc':
+            oidc_auth = self.instance_config.get('oidc_auth')
+            oidc_auth_source = self.instance_config.get('oidc_env_name') if oidc_auth_source == 'env' else self.instance_config.get('oidc_file_name')
+
+            return authenticate_oidc(base_url=self.base_url, oidc_auth=oidc_auth, oidc_auth_source=oidc_auth_source, rucio_ca_cert=self.rucio_ca_cert)
 
         return None
 

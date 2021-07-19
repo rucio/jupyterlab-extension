@@ -9,8 +9,20 @@
 
 import time
 import calendar
+import traceback
 
 
 def parse_timestamp(timestr):
     time_struct = time.strptime(timestr, '%a, %d %b %Y %H:%M:%S %Z')
     return int(calendar.timegm(time_struct))
+
+
+def get_oidc_token(oidc_auth, oidc_auth_source):
+    try:
+        if oidc_auth == 'env':
+            return os.environ[oidc_auth_source]
+        elif oidc_auth == 'file':
+            with open(oidc_auth_source) as f:
+                return f.read()
+    except:
+        return None

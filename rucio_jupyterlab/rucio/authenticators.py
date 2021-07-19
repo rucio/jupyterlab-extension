@@ -5,12 +5,12 @@
 # You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
 #
 # Authors:
-# - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
+# - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020-2021
 
 import traceback
 import requests
 import rucio_jupyterlab.utils as utils
-from .utils import parse_timestamp
+from .utils import parse_timestamp, get_oidc_token
 
 
 class RucioAuthenticationException(BaseException):
@@ -53,6 +53,25 @@ def authenticate_x509(base_url, cert_path, key_path=None, account=None, vo=None,
         expires = parse_timestamp(expires)
 
         return (auth_token, expires)
+    except:
+        traceback.print_exc()
+        raise RucioAuthenticationException()
+
+
+def authenticate_oidc(base_url, oidc_auth, oidc_auth_source, rucio_ca_cert=False):
+    try:
+        oidc_token = get_oidc_token(oidc_auth, oidc_auth_source)
+        headers = {'X-Rucio-Auth-Token': oidc_token}
+
+        response = requests.get(url=f'{base_url}/accounts/whoami', headers=headers, verify=rucio_ca_cert)
+
+        if response.status_code != 200:
+            raise RucioAuthenticationException()
+
+        jwt_payload = jwt.decode(oidc_token, options={"verify_signature": False})
+        expires = jwt_payload['exp']
+
+        return (oidc_token, expires)
     except:
         traceback.print_exc()
         raise RucioAuthenticationException()

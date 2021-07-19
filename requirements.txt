@@ -7,3 +7,4 @@ pytest-mock
 requests-mock
 traitlets
 pylint-fail-under
+pyjwt
