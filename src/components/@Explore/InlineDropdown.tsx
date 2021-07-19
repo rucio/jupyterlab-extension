@@ -72,10 +72,10 @@ export const InlineDropdown: React.FC<MyProps> = ({ options, value, onItemSelect
   const classes = useStyles({ optionWidth });
   const [open, setOpen] = useState(false);
   const currentOption = options.find(o => o.value === value);
-  const clickTargetRef = useRef<HTMLElement>();
+  const clickTargetRef = useRef<HTMLElement>(null);
 
   const handleClickOutside = (event: Event) => {
-    if (clickTargetRef && !clickTargetRef.current.contains(event.target as Node)) {
+    if (clickTargetRef && !clickTargetRef.current?.contains(event.target as Node)) {
       setOpen(false);
     }
   };

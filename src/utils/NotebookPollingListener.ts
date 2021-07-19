@@ -64,7 +64,9 @@ export class NotebookPollingListener {
             }
             if (file.current.status === 'OK' && file.prev?.status === 'REPLICATING') {
               const { activeNotebookPanel } = ExtensionStore.getRawState();
-              this.notebookListener.reinjectSpecificDID(activeNotebookPanel, did);
+              if (activeNotebookPanel) {
+                this.notebookListener.reinjectSpecificDID(activeNotebookPanel, did);
+              }
             }
           }
         });
@@ -100,7 +102,9 @@ export class NotebookPollingListener {
             const prevCollectionState = computeCollectionState(file.prev);
             if (currentCollectionState === 'AVAILABLE' && prevCollectionState === 'REPLICATING') {
               const { activeNotebookPanel } = ExtensionStore.getRawState();
-              this.notebookListener.reinjectSpecificDID(activeNotebookPanel, did);
+              if (activeNotebookPanel) {
+                this.notebookListener.reinjectSpecificDID(activeNotebookPanel, did);
+              }
             }
           }
         });
@@ -126,6 +130,9 @@ export class NotebookPollingListener {
 
   private async shouldEnablePolling(attachment: NotebookDIDAttachment) {
     const { activeInstance } = UIStore.getRawState();
+    if (!activeInstance) {
+      return false;
+    }
 
     if (attachment.type === 'file') {
       const didDetails = await actions.getFileDIDDetails(activeInstance.name, attachment.did);

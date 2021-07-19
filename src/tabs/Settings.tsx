@@ -28,7 +28,7 @@ const getEnabledAuthTypes = (instance: Instance) =>
     { label: 'X.509 User Certificate', value: 'x509' },
     { label: 'X.509 Proxy Certificate', value: 'x509_proxy' },
     { label: 'Username & Password', value: 'userpass' }
-  ].filter(x => !!x);
+  ].filter(x => !!x) as Array<{ label: string; value: string }>;
 
 const useStyles = createUseStyles({
   content: {
@@ -114,12 +114,12 @@ const _Settings: React.FunctionComponent = props => {
   const activeAuthType = useStoreState(UIStore, s => s.activeAuthType);
   const instances = useStoreState(UIStore, s => s.instances) || [];
 
-  const [selectedInstance, setSelectedInstance] = useState<string>(activeInstance?.name);
+  const [selectedInstance, setSelectedInstance] = useState<string | undefined>(activeInstance?.name);
 
   const selectedInstanceObject = instances.find(i => i.name === selectedInstance);
   const authTypeOptions = selectedInstanceObject ? getEnabledAuthTypes(selectedInstanceObject) : [];
-  const authTypeDefaultValue = activeAuthType ? authTypeOptions.find(o => o.value === activeAuthType) : null;
-  const [selectedAuthType, setSelectedAuthType] = useState<RucioAuthType>(activeAuthType);
+  const authTypeDefaultValue = activeAuthType ? authTypeOptions.find(o => o.value === activeAuthType) : undefined;
+  const [selectedAuthType, setSelectedAuthType] = useState<RucioAuthType | undefined>(activeAuthType);
 
   const [rucioUserpassAuthCredentials, setRucioUserpassAuthCredentials] = useState<RucioUserpassAuth>();
   const [rucioX509AuthCredentials, setRucioX509AuthCredentials] = useState<RucioX509Auth>();
@@ -133,7 +133,7 @@ const _Settings: React.FunctionComponent = props => {
 
   const instanceOptions = useMemo(() => instances?.map(i => ({ label: i.displayName, value: i.name })), [instances]);
 
-  const setActiveInstance = (instanceName?: string, authType?: RucioAuthType) => {
+  const setActiveInstance = (instanceName: string, authType: RucioAuthType) => {
     UIStore.update(s => {
       if (s.activeInstance?.name !== instanceName) {
         resetRucioCaches();
@@ -150,6 +150,10 @@ const _Settings: React.FunctionComponent = props => {
   };
 
   const saveSettings = () => {
+    if (!selectedInstance) {
+      return;
+    }
+
     const promises = [];
     if (selectedInstance && selectedAuthType) {
       const setActiveInstancePromise = setActiveInstance(selectedInstance, selectedAuthType);

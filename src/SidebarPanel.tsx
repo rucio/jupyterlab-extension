@@ -97,11 +97,11 @@ const PANEL_CLASS = 'jp-RucioExtensionPanel';
 
 export class SidebarPanel extends VDomRenderer {
   error?: string;
-  app: JupyterFrontEnd;
-  notebookListener: NotebookListener;
-  activeNotebookListener: ActiveNotebookListener;
-  notebookPollingListener: NotebookPollingListener;
-  instanceConfig: InstanceConfig;
+  app?: JupyterFrontEnd;
+  notebookListener?: NotebookListener;
+  activeNotebookListener?: ActiveNotebookListener;
+  notebookPollingListener?: NotebookPollingListener;
+  instanceConfig?: InstanceConfig;
 
   constructor(options?: SidebarPanelOptions, error?: string) {
     super();
@@ -138,6 +138,10 @@ export class SidebarPanel extends VDomRenderer {
   render(): React.ReactElement {
     if (this.error) {
       return <ErrorPanel error={this.error} />;
+    }
+
+    if (!this.instanceConfig) {
+      return <ErrorPanel error="Extension is not configured properly." />;
     }
 
     return <Panel instanceConfig={this.instanceConfig} />;

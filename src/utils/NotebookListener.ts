@@ -80,9 +80,15 @@ export class NotebookListener {
   private onNotebookOpened(sender: INotebookTracker, panel: NotebookPanel) {
     panel.sessionContext.statusChanged.connect((sender, status) => {
       if (status === 'restarting') {
-        this.onKernelRestarted(panel, sender.session.kernel);
+        const kernel = sender.session?.kernel;
+
+        if (kernel) {
+          this.onKernelRestarted(panel, kernel);
+        }
         panel.sessionContext.ready.then(() => {
-          this.onKernelAttached(panel, sender.session.kernel);
+          if (kernel) {
+            this.onKernelAttached(panel, kernel);
+          }
         });
       }
     });
@@ -157,11 +163,12 @@ export class NotebookListener {
       const notebookId = this.getNotebookIdFromKernelConnectionId(kernelConnection.id);
       const { notebookTracker } = this.options;
       const notebook = notebookTracker.find(p => p.id === notebookId);
-      const activeNotebookAttachments = this.getAttachmentsFromMetadata(notebook);
 
-      if (!activeNotebookAttachments || !activeInstance) {
+      if (!notebook || !activeInstance) {
         return;
       }
+
+      const activeNotebookAttachments = this.getAttachmentsFromMetadata(notebook);
 
       this.resolveAttachments(activeNotebookAttachments, kernelConnection.id).then(injections => {
         return comm
@@ -181,28 +188,32 @@ export class NotebookListener {
     const attachments = this.getAttachmentsFromMetadata(notebookPanel);
     const kernel = notebookPanel.sessionContext?.session?.kernel;
 
-    this.injectUninjectedAttachments(kernel, attachments);
-    this.removeNonExistentInjectedAttachments(kernel?.id, attachments);
+    if (kernel) {
+      this.injectUninjectedAttachments(kernel, attachments);
+      this.removeNonExistentInjectedAttachments(kernel?.id, attachments);
+    }
   }
 
   reinject(notebookPanel: NotebookPanel): void {
     const attachments = this.getAttachmentsFromMetadata(notebookPanel);
     const kernel = notebookPanel.sessionContext?.session?.kernel;
-    this.injectAttachments(kernel, attachments);
+    if (kernel) {
+      this.injectAttachments(kernel, attachments);
+    }
   }
 
   reinjectSpecificDID(notebookPanel: NotebookPanel, did: string): void {
     const attachments = this.getAttachmentsFromMetadata(notebookPanel);
     const didAttachment = attachments.find(a => a.did === did);
+    const kernel = notebookPanel.sessionContext?.session?.kernel;
 
-    if (didAttachment) {
-      const kernel = notebookPanel.sessionContext?.session?.kernel;
+    if (kernel && didAttachment) {
       this.injectAttachments(kernel, [didAttachment]);
     }
   }
 
   private getAttachmentsFromMetadata(notebook: NotebookPanel): NotebookDIDAttachment[] {
-    const rucioDidAttachments = notebook.model.metadata.get(METADATA_ATTACHMENTS_KEY);
+    const rucioDidAttachments = notebook.model?.metadata.get(METADATA_ATTACHMENTS_KEY) ?? [];
     const attachedDIDs = rucioDidAttachments as ReadonlyArray<any>;
     return attachedDIDs as NotebookDIDAttachment[];
   }
@@ -247,7 +258,7 @@ export class NotebookListener {
 
   private injectVariables(kernel: Kernel.IKernelConnection, injections: NotebookVariableInjection[]): Promise<any> {
     if (injections.length === 0) {
-      return;
+      return Promise.resolve();
     }
 
     const comm = kernel.createComm(COMM_NAME_KERNEL);
@@ -259,7 +270,7 @@ export class NotebookListener {
 
   private async resolveAttachments(
     attachments: NotebookDIDAttachment[],
-    kernelConnectionId?: string
+    kernelConnectionId: string
   ): Promise<NotebookVariableInjection[]> {
     const promises = attachments.map(a => this.resolveAttachment(a, kernelConnectionId));
     return Promise.all(promises);
@@ -267,7 +278,7 @@ export class NotebookListener {
 
   private async resolveAttachment(
     attachment: NotebookDIDAttachment,
-    kernelConnectionId?: string
+    kernelConnectionId: string
   ): Promise<NotebookVariableInjection> {
     const { variableName, type, did } = attachment;
     this.setResolveStatus(kernelConnectionId, did, 'RESOLVING');
@@ -288,7 +299,7 @@ export class NotebookListener {
 
         this.setResolveStatus(kernelConnectionId, did, 'PENDING_INJECTION');
 
-        return { variableName, path, did };
+        return { variableName, path: path ?? '', did };
       }
     } catch (e) {
       this.setResolveStatus(kernelConnectionId, did, 'FAILED');
@@ -308,20 +319,28 @@ export class NotebookListener {
   }
 
   private getCollectionDIDPaths(didDetails: FileDIDDetails[]): string[] {
-    return didDetails.map(d => d.path).filter(p => !!p);
+    return didDetails.map(d => d.path).filter(p => !!p) as string[];
   }
 
-  private getFileDIDPaths(didDetails: FileDIDDetails): string {
+  private getFileDIDPaths(didDetails: FileDIDDetails): string | undefined {
     return didDetails.path;
   }
 
   private async resolveFileDIDDetails(did: string): Promise<FileDIDDetails> {
     const { activeInstance } = UIStore.getRawState();
+    if (!activeInstance) {
+      throw new Error('activeInstance cannot be empty');
+    }
+
     return actions.getFileDIDDetails(activeInstance.name, did);
   }
 
   private async resolveCollectionDIDDetails(did: string): Promise<FileDIDDetails[]> {
     const { activeInstance } = UIStore.getRawState();
+    if (!activeInstance) {
+      throw new Error('activeInstance cannot be empty');
+    }
+
     return actions.getCollectionDIDDetails(activeInstance.name, did);
   }
 

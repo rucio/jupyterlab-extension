@@ -31,7 +31,7 @@ export const Notebook: React.FunctionComponent = () => {
   const activeNotebookPanel = useStoreState(ExtensionStore, s => s.activeNotebookPanel);
   const activeNotebookAttachments = useStoreState(ExtensionStore, s => s.activeNotebookAttachment);
   const notebookStatusStore = useNotebookResolveStatusStore();
-  const notebookStatus = notebookStatusStore[activeNotebookPanel?.id];
+  const notebookStatus = activeNotebookPanel?.id ? notebookStatusStore[activeNotebookPanel?.id] : null;
 
   return (
     <>
@@ -44,7 +44,7 @@ export const Notebook: React.FunctionComponent = () => {
                 <NotebookAttachmentListItem
                   key={attachment.did}
                   attachment={attachment}
-                  status={notebookStatus ? notebookStatus[attachment.did] : null}
+                  status={notebookStatus ? notebookStatus[attachment.did] : undefined}
                 />
               ))}
             </>

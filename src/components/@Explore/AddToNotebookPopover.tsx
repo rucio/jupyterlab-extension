@@ -64,7 +64,7 @@ type MyProps = React.HTMLAttributes<HTMLDivElement> & AddToNotebookPopoverProps;
 
 export const AddToNotebookPopover: React.FC<MyProps> = ({ children, did, type }) => {
   const classes = useStyles();
-  const textFieldRef = useRef<HTMLInputElement>();
+  const textFieldRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string>();
   const [varName, setVarName] = useState('');
@@ -169,7 +169,7 @@ export const AddToNotebookPopover: React.FC<MyProps> = ({ children, did, type })
     setVarName('');
     setError(undefined);
     setTimeout(() => {
-      textFieldRef.current.focus();
+      textFieldRef.current?.focus();
     }, 10);
   };
 

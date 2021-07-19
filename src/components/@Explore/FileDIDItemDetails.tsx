@@ -98,8 +98,11 @@ const _FileDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
   }, []);
 
   const makeAvailable = () => {
+    if (!activeInstance) {
+      return;
+    }
     actions
-      .makeFileAvailable(activeInstance.name, did)
+      ?.makeFileAvailable(activeInstance.name, did)
       .then(() => enablePolling())
       .catch(e => console.log(e)); // TODO handle error
   };
@@ -112,7 +115,7 @@ const _FileDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
           <span className={classes.statusText}>Loading...</span>
         </div>
       )}
-      {!!fileDetails && fileDetails.status === 'OK' && <FileAvailable did={did} path={fileDetails.path} />}
+      {!!fileDetails && fileDetails.status === 'OK' && fileDetails.path && <FileAvailable did={did} path={fileDetails.path} />}
       {!!fileDetails && fileDetails.status === 'NOT_AVAILABLE' && <FileNotAvailable onMakeAvailableClicked={makeAvailable} />}
       {!!fileDetails && fileDetails.status === 'REPLICATING' && <FileReplicating did={did} />}
       {!!fileDetails && fileDetails.status === 'STUCK' && <FileStuck onMakeAvailableClicked={makeAvailable} />}

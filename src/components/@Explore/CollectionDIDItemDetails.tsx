@@ -104,8 +104,12 @@ const _CollectionDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
   }, []);
 
   const makeAvailable = () => {
+    if (!activeInstance) {
+      return;
+    }
+
     actions
-      .makeCollectionAvailable(activeInstance.name, did)
+      ?.makeCollectionAvailable(activeInstance.name, did)
       .then(() => enablePolling())
       .catch(e => console.log(e)); // TODO handle error
   };
