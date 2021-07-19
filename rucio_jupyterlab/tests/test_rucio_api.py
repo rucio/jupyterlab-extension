@@ -12,7 +12,7 @@ from .conftest import MOCK_BASE_URL, MOCK_ACCOUNT, MOCK_AUTH_TOKEN
 
 
 def test_search_did_non_empty_result(rucio, mocker, requests_mock):
-    mocker.patch('rucio_jupyterlab.rucio.authenticate_userpass', return_value=(MOCK_AUTH_TOKEN, 1368440583))
+    mocker.patch('rucio_jupyterlab.rucio.rucio.authenticate_userpass', return_value=(MOCK_AUTH_TOKEN, 1368440583))
     scope, name = "scope", "name"
 
     request_headers = {'X-Rucio-Auth-Token': MOCK_AUTH_TOKEN}
@@ -30,7 +30,7 @@ def test_search_did_non_empty_result(rucio, mocker, requests_mock):
 
 
 def test_search_did_empty_result(rucio, mocker, requests_mock):
-    mocker.patch('rucio_jupyterlab.rucio.authenticate_userpass', return_value=(MOCK_AUTH_TOKEN, 1368440583))
+    mocker.patch('rucio_jupyterlab.rucio.rucio.authenticate_userpass', return_value=(MOCK_AUTH_TOKEN, 1368440583))
     scope, name = "scope", "name"
 
     request_headers = {'X-Rucio-Auth-Token': MOCK_AUTH_TOKEN}
@@ -42,7 +42,7 @@ def test_search_did_empty_result(rucio, mocker, requests_mock):
 
 
 def test_get_files_non_empty_result(rucio, mocker, requests_mock):
-    mocker.patch('rucio_jupyterlab.rucio.authenticate_userpass', return_value=(MOCK_AUTH_TOKEN, 1368440583))
+    mocker.patch('rucio_jupyterlab.rucio.rucio.authenticate_userpass', return_value=(MOCK_AUTH_TOKEN, 1368440583))
     scope, name = "scope", "name"
 
     request_headers = {'X-Rucio-Auth-Token': MOCK_AUTH_TOKEN}
@@ -60,7 +60,7 @@ def test_get_files_non_empty_result(rucio, mocker, requests_mock):
 
 
 def test_get_files_empty_result(rucio, mocker, requests_mock):
-    mocker.patch('rucio_jupyterlab.rucio.authenticate_userpass', return_value=(MOCK_AUTH_TOKEN, 1368440583))
+    mocker.patch('rucio_jupyterlab.rucio.rucio.authenticate_userpass', return_value=(MOCK_AUTH_TOKEN, 1368440583))
     scope, name = "scope", "name"
 
     request_headers = {'X-Rucio-Auth-Token': MOCK_AUTH_TOKEN}
@@ -72,7 +72,7 @@ def test_get_files_empty_result(rucio, mocker, requests_mock):
 
 
 def test_get_rules_non_empty_result(rucio, mocker, requests_mock):
-    mocker.patch('rucio_jupyterlab.rucio.authenticate_userpass', return_value=(MOCK_AUTH_TOKEN, 1368440583))
+    mocker.patch('rucio_jupyterlab.rucio.rucio.authenticate_userpass', return_value=(MOCK_AUTH_TOKEN, 1368440583))
     scope, name = "scope", "name"
 
     request_headers = {'X-Rucio-Auth-Token': MOCK_AUTH_TOKEN}
@@ -90,7 +90,7 @@ def test_get_rules_non_empty_result(rucio, mocker, requests_mock):
 
 
 def test_get_rules_empty_result(rucio, mocker, requests_mock):
-    mocker.patch('rucio_jupyterlab.rucio.authenticate_userpass', return_value=(MOCK_AUTH_TOKEN, 1368440583))
+    mocker.patch('rucio_jupyterlab.rucio.rucio.authenticate_userpass', return_value=(MOCK_AUTH_TOKEN, 1368440583))
     scope, name = "scope", "name"
 
     request_headers = {'X-Rucio-Auth-Token': MOCK_AUTH_TOKEN}
@@ -102,7 +102,7 @@ def test_get_rules_empty_result(rucio, mocker, requests_mock):
 
 
 def test_get_rule_details_ok(rucio, mocker, requests_mock):
-    mocker.patch('rucio_jupyterlab.rucio.authenticate_userpass', return_value=(MOCK_AUTH_TOKEN, 1368440583))
+    mocker.patch('rucio_jupyterlab.rucio.rucio.authenticate_userpass', return_value=(MOCK_AUTH_TOKEN, 1368440583))
     rule_id = 'rule_id'
 
     request_headers = {'X-Rucio-Auth-Token': MOCK_AUTH_TOKEN}
@@ -115,7 +115,7 @@ def test_get_rule_details_ok(rucio, mocker, requests_mock):
 
 
 def test_get_replicas_non_empty_result(rucio, mocker, requests_mock):
-    mocker.patch('rucio_jupyterlab.rucio.authenticate_userpass', return_value=(MOCK_AUTH_TOKEN, 1368440583))
+    mocker.patch('rucio_jupyterlab.rucio.rucio.authenticate_userpass', return_value=(MOCK_AUTH_TOKEN, 1368440583))
     scope, name = "scope", "name"
 
     request_headers = {'X-Rucio-Auth-Token': MOCK_AUTH_TOKEN}
@@ -133,7 +133,7 @@ def test_get_replicas_non_empty_result(rucio, mocker, requests_mock):
 
 
 def test_get_replicas_empty_result(rucio, mocker, requests_mock):
-    mocker.patch('rucio_jupyterlab.rucio.authenticate_userpass', return_value=(MOCK_AUTH_TOKEN, 1368440583))
+    mocker.patch('rucio_jupyterlab.rucio.rucio.authenticate_userpass', return_value=(MOCK_AUTH_TOKEN, 1368440583))
     scope, name = "scope", "name"
 
     request_headers = {'X-Rucio-Auth-Token': MOCK_AUTH_TOKEN}
@@ -145,7 +145,7 @@ def test_get_replicas_empty_result(rucio, mocker, requests_mock):
 
 
 def test_add_replication_rule(rucio, mocker, requests_mock):
-    mocker.patch('rucio_jupyterlab.rucio.authenticate_userpass', return_value=(MOCK_AUTH_TOKEN, 1368440583))
+    mocker.patch('rucio_jupyterlab.rucio.rucio.authenticate_userpass', return_value=(MOCK_AUTH_TOKEN, 1368440583))
 
     request_headers = {'X-Rucio-Auth-Token': MOCK_AUTH_TOKEN}
     response_json = {}
