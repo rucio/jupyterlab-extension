@@ -22,5 +22,6 @@ export const searchByOptions = [
 export const authTypeOptions = [
   { label: 'X.509 User Certificate', value: 'x509' },
   { label: 'X.509 Proxy Certificate', value: 'x509_proxy' },
-  { label: 'Username & Password', value: 'userpass' }
+  { label: 'Username & Password', value: 'userpass' },
+  { label: 'OpenID Connect', value: 'oidc' },
 ];
