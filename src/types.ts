@@ -12,6 +12,7 @@
 export interface Instance {
   displayName: string;
   name: string;
+  oidcEnabled: boolean;
 }
 
 interface RucioAuth {

@@ -9,6 +9,7 @@
 
 import traceback
 import requests
+import jwt
 import rucio_jupyterlab.utils as utils
 from .utils import parse_timestamp, get_oidc_token
 

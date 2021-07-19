@@ -152,7 +152,7 @@ class RucioAPI:
         auth_config = self.auth_config
         auth_type = self.auth_type
 
-        if not auth_config or not auth_type:
+        if not auth_type:
             raise RucioAuthenticationException()
 
         logging.info('Attempting to authenticate using method %s...', auth_type)
@@ -180,7 +180,7 @@ class RucioAPI:
 
         elif auth_type == 'oidc':
             oidc_auth = self.instance_config.get('oidc_auth')
-            oidc_auth_source = self.instance_config.get('oidc_env_name') if oidc_auth_source == 'env' else self.instance_config.get('oidc_file_name')
+            oidc_auth_source = self.instance_config.get('oidc_env_name') if oidc_auth == 'env' else self.instance_config.get('oidc_file_name')
 
             return authenticate_oidc(base_url=self.base_url, oidc_auth=oidc_auth, oidc_auth_source=oidc_auth_source, rucio_ca_cert=self.rucio_ca_cert)
 

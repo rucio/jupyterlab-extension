@@ -19,7 +19,6 @@ from .did_make_available import DIDMakeAvailableHandler
 from .file_browser import FileBrowserHandler
 from .purge_cache import PurgeCacheHandler
 from .oidc_auth_check import OIDCAuthCheckHandler
-from .oidc_auth_enabled import OIDCAuthEnabledHandler
 
 
 def setup_handlers(web_app):  # pragma: no cover
@@ -43,6 +42,5 @@ def setup_handlers(web_app):  # pragma: no cover
         (url_path_join(base_path, 'file-browser'), FileBrowserHandler, handler_params),
         (url_path_join(base_path, 'purge-cache'), PurgeCacheHandler, handler_params),
         (url_path_join(base_path, 'oidc-auth-check'), OIDCAuthCheckHandler, handler_params),
-        (url_path_join(base_path, 'oidc-auth-enabled'), OIDCAuthEnabledHandler, handler_params),
     ]
     web_app.add_handlers(host_pattern, handlers)

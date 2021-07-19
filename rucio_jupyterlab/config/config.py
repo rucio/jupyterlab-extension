@@ -12,6 +12,7 @@ import requests
 from jsonschema import validate
 from traitlets import List, Dict
 from traitlets.config import Configurable
+from rucio_jupyterlab.rucio.utils import get_oidc_token
 from . import schema
 
 
@@ -30,8 +31,7 @@ class Config:
         instances = self.config.instances
         for instance in instances:
             if "$url" in instance:
-                remote_config, cache_expires_at = self._preprocess_remote_config(
-                    instance)
+                remote_config, cache_expires_at = self._preprocess_remote_config(instance)
 
                 instance_name = instance['name']
                 self.instances[instance_name] = instance
@@ -64,10 +64,17 @@ class Config:
         for instance_name in self.instances:
             instances.append({
                 'name': instance_name,
-                'display_name': self.instances[instance_name]['display_name']
+                'display_name': self.instances[instance_name]['display_name'],
+                'oidc_enabled': self._is_oidc_enabled(instance_name)
             })
 
         return instances
+
+    def _is_oidc_enabled(self, instance_name):
+        instance_config = self.get_instance_config(instance_name)
+        oidc_auth = instance_config.get('oidc_auth')
+        oidc_auth_source = instance_config.get('oidc_env_name') if oidc_auth == 'env' else instance_config.get('oidc_file_name')
+        return get_oidc_token(oidc_auth, oidc_auth_source) is not None
 
     def _preprocess_remote_config(self, remote_config):
         instance = self._retrieve_remote_config(remote_config['$url'])

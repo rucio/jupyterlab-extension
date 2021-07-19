@@ -9,7 +9,7 @@
 
 import time
 import calendar
-import traceback
+import os
 
 
 def parse_timestamp(timestr):
