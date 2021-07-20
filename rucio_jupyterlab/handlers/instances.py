@@ -23,7 +23,13 @@ class InstancesHandler(RucioAPIHandler):
     def get(self):
         db = get_db()  # pylint: disable=invalid-name
         active_instance = db.get_active_instance()
+        if not active_instance:
+            active_instance = self.rucio_config.get_default_instance()
+
         auth_type = db.get_active_auth_method()
+        if not auth_type:
+            auth_type = self.rucio_config.get_default_auth_type()
+
         instances = self.rucio_config.list_instances()
         self.finish(json.dumps({
             'active_instance': active_instance,

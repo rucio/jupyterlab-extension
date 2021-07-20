@@ -196,6 +196,9 @@ class RucioAPIFactory:  # pragma: no cover
         db = get_db()   # pylint: disable=invalid-name
 
         auth_type = db.get_active_auth_method()
+        if not auth_type:
+            auth_type = self.config.get_default_auth_type()
+
         auth_config = db.get_rucio_auth_credentials(instance, auth_type)
 
         return RucioAPI(instance_config=instance_config, auth_type=auth_type, auth_config=auth_config)

@@ -203,8 +203,8 @@ def test_list_instances():
     config = Config(mock_config)
 
     expected_instances = [
-        {'display_name': 'ATLAS', 'name': 'atlas'},
-        {'display_name': 'CMS', 'name': 'cms'}
+        {'display_name': 'ATLAS', 'name': 'atlas', 'oidc_enabled': False},
+        {'display_name': 'CMS', 'name': 'cms', 'oidc_enabled': False}
     ]
 
     assert config.list_instances() == expected_instances, "Invalid instances"

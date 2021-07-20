@@ -10,7 +10,7 @@
 import time
 import requests
 from jsonschema import validate
-from traitlets import List, Dict
+from traitlets import List, Dict, Unicode, Enum
 from traitlets.config import Configurable
 from rucio_jupyterlab.rucio.utils import get_oidc_token
 from . import schema
@@ -18,6 +18,8 @@ from . import schema
 
 class RucioConfig(Configurable):  # pragma: no cover
     instances = List(Dict(config=True), config=True)
+    default_instance = Unicode(config=True, default_value=None, allow_none=True)
+    default_auth_type = Enum(["userpass", "x509", "x509_proxy", "oidc", None], default_value=None, config=True)
 
 
 class Config:
@@ -69,6 +71,12 @@ class Config:
             })
 
         return instances
+
+    def get_default_instance(self):
+        return self.config.default_instance
+
+    def get_default_auth_type(self):
+        return self.config.default_auth_type
 
     def _is_oidc_enabled(self, instance_name):
         instance_config = self.get_instance_config(instance_name)
