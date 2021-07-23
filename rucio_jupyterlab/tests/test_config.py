@@ -177,7 +177,7 @@ def test_config_init__remote_config__schema_invalid(requests_mock):
         Config(mock_config)
 
 
-def test_list_instances():
+def test_list_instances__oidc_disabled():
     mock_instances = [
         {
             "name": "atlas",
@@ -205,6 +205,166 @@ def test_list_instances():
     expected_instances = [
         {'display_name': 'ATLAS', 'name': 'atlas', 'oidc_enabled': False},
         {'display_name': 'CMS', 'name': 'cms', 'oidc_enabled': False}
+    ]
+
+    assert config.list_instances() == expected_instances, "Invalid instances"
+
+
+def test_list_instances__oidc_file__file_config_exists__file_exists__oidc_should_be_enabled(mocker):
+    mock_instances = [
+        {
+            "name": "escape",
+            "display_name": "ESCAPE",
+            "mode": "replica",
+            "rucio_base_url": "https://rucio-cms",
+            "destination_rse": "SWAN-EOS",
+            "rse_mount_path": "/eos/user/rucio",
+            "path_begins_at": 4,
+            "oidc_auth": "file",
+            "oidc_file_name": "/tmp/oauth2"
+        }
+    ]
+
+    mocker.patch('rucio_jupyterlab.config.config.get_oidc_token', return_value='oauth2:token:resource')
+
+    mock_config = Struct(instances=mock_instances)
+    config = Config(mock_config)
+
+    expected_instances = [
+        {'display_name': 'ESCAPE', 'name': 'escape', 'oidc_enabled': True},
+    ]
+
+    assert config.list_instances() == expected_instances, "Invalid instances"
+
+
+def test_list_instances__oidc_file__file_config_exists__file_does_not_exist__oidc_should_be_disabled(mocker):
+    mock_instances = [
+        {
+            "name": "escape",
+            "display_name": "ESCAPE",
+            "mode": "replica",
+            "rucio_base_url": "https://rucio-cms",
+            "destination_rse": "SWAN-EOS",
+            "rse_mount_path": "/eos/user/rucio",
+            "path_begins_at": 4,
+            "oidc_auth": "file",
+            "oidc_file_name": "/tmp/oauth2"
+        }
+    ]
+
+    mocker.patch('rucio_jupyterlab.config.config.get_oidc_token', return_value=None)
+
+    mock_config = Struct(instances=mock_instances)
+    config = Config(mock_config)
+
+    expected_instances = [
+        {'display_name': 'ESCAPE', 'name': 'escape', 'oidc_enabled': False},
+    ]
+
+    assert config.list_instances() == expected_instances, "Invalid instances"
+
+
+def test_list_instances__oidc_file__file_config_does_not_exist__oidc_should_be_disabled(mocker):
+    mock_instances = [
+        {
+            "name": "escape",
+            "display_name": "ESCAPE",
+            "mode": "replica",
+            "rucio_base_url": "https://rucio-cms",
+            "destination_rse": "SWAN-EOS",
+            "rse_mount_path": "/eos/user/rucio",
+            "path_begins_at": 4,
+            "oidc_auth": "file",
+        }
+    ]
+
+    mocker.patch('rucio_jupyterlab.config.config.get_oidc_token', return_value=None)
+
+    mock_config = Struct(instances=mock_instances)
+    config = Config(mock_config)
+
+    expected_instances = [
+        {'display_name': 'ESCAPE', 'name': 'escape', 'oidc_enabled': False},
+    ]
+
+    assert config.list_instances() == expected_instances, "Invalid instances"
+
+
+def test_list_instances__oidc_env__env_config_exists__env_exists__oidc_should_be_enabled(mocker):
+    mock_instances = [
+        {
+            "name": "escape",
+            "display_name": "ESCAPE",
+            "mode": "replica",
+            "rucio_base_url": "https://rucio-cms",
+            "destination_rse": "SWAN-EOS",
+            "rse_mount_path": "/eos/user/rucio",
+            "path_begins_at": 4,
+            "oidc_auth": "env",
+            "oidc_env_name": "/tmp/oauth2"
+        }
+    ]
+
+    mocker.patch('rucio_jupyterlab.config.config.get_oidc_token', return_value='oauth2:token:resource')
+
+    mock_config = Struct(instances=mock_instances)
+    config = Config(mock_config)
+
+    expected_instances = [
+        {'display_name': 'ESCAPE', 'name': 'escape', 'oidc_enabled': True},
+    ]
+
+    assert config.list_instances() == expected_instances, "Invalid instances"
+
+
+def test_list_instances__oidc_env__env_config_exists__env_does_not_exist__oidc_should_be_disabled(mocker):
+    mock_instances = [
+        {
+            "name": "escape",
+            "display_name": "ESCAPE",
+            "mode": "replica",
+            "rucio_base_url": "https://rucio-cms",
+            "destination_rse": "SWAN-EOS",
+            "rse_mount_path": "/eos/user/rucio",
+            "path_begins_at": 4,
+            "oidc_auth": "env",
+            "oidc_env_name": "/tmp/oauth2"
+        }
+    ]
+
+    mocker.patch('rucio_jupyterlab.config.config.get_oidc_token', return_value=None)
+
+    mock_config = Struct(instances=mock_instances)
+    config = Config(mock_config)
+
+    expected_instances = [
+        {'display_name': 'ESCAPE', 'name': 'escape', 'oidc_enabled': False},
+    ]
+
+    assert config.list_instances() == expected_instances, "Invalid instances"
+
+
+def test_list_instances__oidc_env__env_config_does_not_exist__oidc_should_be_disabled(mocker):
+    mock_instances = [
+        {
+            "name": "escape",
+            "display_name": "ESCAPE",
+            "mode": "replica",
+            "rucio_base_url": "https://rucio-cms",
+            "destination_rse": "SWAN-EOS",
+            "rse_mount_path": "/eos/user/rucio",
+            "path_begins_at": 4,
+            "oidc_auth": "env",
+        }
+    ]
+
+    mocker.patch('rucio_jupyterlab.config.config.get_oidc_token', return_value=None)
+
+    mock_config = Struct(instances=mock_instances)
+    config = Config(mock_config)
+
+    expected_instances = [
+        {'display_name': 'ESCAPE', 'name': 'escape', 'oidc_enabled': False},
     ]
 
     assert config.list_instances() == expected_instances, "Invalid instances"
