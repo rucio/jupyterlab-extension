@@ -39,7 +39,9 @@ export class ActiveNotebookListener {
     ExtensionStore.subscribe(
       s => s.activeNotebookAttachment,
       (attachments, state) => {
-        this.onNotebookAttachmentChanged(attachments, state);
+        if (attachments) {
+          this.onNotebookAttachmentChanged(attachments, state);
+        }
       }
     );
 
@@ -64,7 +66,11 @@ export class ActiveNotebookListener {
   }
 
   private setJupyterNotebookFileRucioMetadata(attachments: NotebookDIDAttachment[], state: ExtensionState) {
-    const { metadata } = state.activeNotebookPanel.model;
+    const metadata = state.activeNotebookPanel?.model?.metadata;
+    if (!metadata) {
+      return;
+    }
+
     const current = metadata.get(METADATA_ATTACHMENTS_KEY) as ReadonlyArray<any>;
     const rucioDidAttachments = attachments as ReadonlyArray<any>;
 
@@ -89,9 +95,13 @@ export class ActiveNotebookListener {
     const { notebookTracker } = this.options;
     const nbWidget = notebookTracker.currentWidget;
 
+    if (!nbWidget) {
+      return;
+    }
+
     nbWidget.revealed.then(() => {
       this.setActiveNotebook(nbWidget);
-      const rucioDidAttachments = nbWidget.model.metadata.get(METADATA_ATTACHMENTS_KEY);
+      const rucioDidAttachments = nbWidget.model?.metadata.get(METADATA_ATTACHMENTS_KEY);
       if (!rucioDidAttachments) {
         this.setActiveNotebookAttachments([]);
         return;
@@ -116,7 +126,7 @@ export class ActiveNotebookListener {
     });
   }
 
-  private setActiveNotebookAttachments(attachments: NotebookDIDAttachment[]) {
+  private setActiveNotebookAttachments(attachments?: NotebookDIDAttachment[]) {
     ExtensionStore.update(s => {
       s.activeNotebookAttachment = attachments;
     });

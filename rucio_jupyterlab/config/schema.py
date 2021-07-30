@@ -70,7 +70,17 @@ instance_properties = {
     "wildcard_enabled": {
         "type": "boolean",
         "default": False
-    }
+    },
+    "oidc_auth": {
+        "type": "string",
+        "enum": ["env", "file"]
+    },
+    "oidc_env_name": {
+        "type": "string"
+    },
+    "oidc_file_name": {
+        "type": "string"
+    },
 }
 
 instance = {

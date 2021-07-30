@@ -96,7 +96,7 @@ const useStyles = createUseStyles({
 
 export interface NotebookAttachmentListItemProps {
   attachment: NotebookDIDAttachment;
-  status: ResolveStatus;
+  status?: ResolveStatus;
 }
 
 const _NotebookAttachmentListItem: React.FC<NotebookAttachmentListItemProps> = ({ attachment, status, ...props }) => {
@@ -109,6 +109,9 @@ const _NotebookAttachmentListItem: React.FC<NotebookAttachmentListItemProps> = (
   const collectionDetails = useStoreState(UIStore, s => s.collectionDetails[did]);
 
   useEffect(() => {
+    if (!activeInstance) {
+      return;
+    }
     if (attachment.type === 'file') {
       actions.getFileDIDDetails(activeInstance.name, did);
     } else {
@@ -118,7 +121,7 @@ const _NotebookAttachmentListItem: React.FC<NotebookAttachmentListItemProps> = (
 
   const deleteAttachment = () => {
     ExtensionStore.update(s => {
-      s.activeNotebookAttachment = s.activeNotebookAttachment.filter(a => a.did !== did);
+      s.activeNotebookAttachment = s.activeNotebookAttachment?.filter(a => a.did !== did);
     });
   };
 
@@ -137,6 +140,10 @@ const _NotebookAttachmentListItem: React.FC<NotebookAttachmentListItemProps> = (
   })();
 
   const makeAvailable = () => {
+    if (!activeInstance) {
+      return;
+    }
+
     const { did, type } = attachment;
     if (type === 'file') {
       actions.makeFileAvailable(activeInstance.name, did);
@@ -170,7 +177,7 @@ const _NotebookAttachmentListItem: React.FC<NotebookAttachmentListItemProps> = (
   );
 };
 
-const ResolverStatusIcon: React.FC<{ status: ResolveStatus }> = ({ status }) => {
+const ResolverStatusIcon: React.FC<{ status?: ResolveStatus }> = ({ status }) => {
   const classes = useStyles();
 
   switch (status) {
@@ -187,7 +194,7 @@ const ResolverStatusIcon: React.FC<{ status: ResolveStatus }> = ({ status }) => 
   }
 };
 
-const FileStatusIcon: React.FC<{ status: FileStatus; resolverStatus: ResolveStatus }> = ({ status, resolverStatus }) => {
+const FileStatusIcon: React.FC<{ status?: FileStatus; resolverStatus?: ResolveStatus }> = ({ status, resolverStatus }) => {
   const classes = useStyles();
 
   switch (status) {
@@ -201,7 +208,7 @@ const FileStatusIcon: React.FC<{ status: FileStatus; resolverStatus: ResolveStat
   }
 };
 
-const CollectionStatusIcon: React.FC<{ status: CollectionStatus; resolverStatus: ResolveStatus }> = ({
+const CollectionStatusIcon: React.FC<{ status?: CollectionStatus; resolverStatus?: ResolveStatus }> = ({
   status,
   resolverStatus
 }) => {

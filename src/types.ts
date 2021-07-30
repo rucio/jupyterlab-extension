@@ -12,6 +12,7 @@
 export interface Instance {
   displayName: string;
   name: string;
+  oidcEnabled: boolean;
 }
 
 interface RucioAuth {
@@ -34,7 +35,7 @@ export interface RucioX509ProxyAuth extends RucioAuth {
 
 export type RucioAuthCredentials = RucioUserpassAuth | RucioX509Auth | RucioX509ProxyAuth;
 
-export type RucioAuthType = 'userpass' | 'x509' | 'x509_proxy';
+export type RucioAuthType = 'userpass' | 'x509' | 'x509_proxy' | 'oidc';
 
 export interface InstanceConfig {
   activeInstance?: string;

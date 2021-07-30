@@ -101,11 +101,11 @@ class DownloadModeHandler:
         auth_type = self.rucio.auth_type
         auth_url = self.rucio.auth_url
 
-        cert_path = auth_config.get('certificate')
-        key_path = auth_config.get('key')
-        username = auth_config.get('username')
-        password = auth_config.get('password')
-        account = auth_config.get('account')
+        cert_path = auth_config.get('certificate') if auth_config else None
+        key_path = auth_config.get('key') if auth_config else None
+        username = auth_config.get('username') if auth_config else None
+        password = auth_config.get('password') if auth_config else None
+        account = auth_config.get('account') if auth_config else None
 
         config = {
             'rucio_host': base_url,

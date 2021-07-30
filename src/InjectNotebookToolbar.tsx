@@ -73,7 +73,7 @@ const Panel: React.FC<{ notebookPanel: NotebookPanel; onClick: { (): void } }> =
   const notebookResolveStatusStore = useNotebookResolveStatusStore();
   const notebookResolveStatus = notebookResolveStatusStore[notebookPanel.id];
   const statuses = notebookResolveStatus ? Object.keys(notebookResolveStatus).map(k => notebookResolveStatus[k]) : null;
-  const computeSummarizedStatus = (statuses: ResolveStatus[]): ResolveStatus => {
+  const computeSummarizedStatus = (statuses: ResolveStatus[] | null): ResolveStatus | null => {
     if (!statuses) {
       return null;
     } else if (statuses.length === 0) {

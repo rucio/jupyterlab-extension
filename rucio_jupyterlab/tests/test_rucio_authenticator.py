@@ -7,7 +7,7 @@
 # Authors:
 # - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
 
-from rucio_jupyterlab.rucio.authenticators import authenticate_userpass, authenticate_x509
+from rucio_jupyterlab.rucio.authenticators import authenticate_userpass, authenticate_x509, authenticate_oidc
 
 
 def test_authenticate_userpass_call_requests(requests_mock):
@@ -62,3 +62,22 @@ def test_authenticate_x509_call_requests(requests_mock):
     response = authenticate_x509(mock_base_url, cert_path=mock_cert_path, key_path=mock_key_path, account=mock_account, vo=mock_vo, app_id=mock_app_id)
     assert response == expected_output, "Invalid return value"
     assert requests_mock.last_request.cert == (mock_cert_path, mock_key_path), "Invalid certs"
+
+
+def test_authenticate_oidc_call_requests(requests_mock, mocker):
+    mock_base_url = "https://rucio/"
+
+    mock_auth_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE1MTcyMzkwMjJ9.k_SimHta0DlhbRkKZIrtKFczsXac9YID1Vwz2O3suuI"
+    mock_exp = 1517239022
+
+    mocker.patch('rucio_jupyterlab.rucio.authenticators.get_oidc_token', return_value=mock_auth_token)
+
+    request_headers = {
+        'X-Rucio-Auth-Token': mock_auth_token
+    }
+
+    requests_mock.get(f'{mock_base_url}/accounts/whoami', request_headers=request_headers)
+
+    expected_output = (mock_auth_token, mock_exp)
+    response = authenticate_oidc(mock_base_url, oidc_auth='env', oidc_auth_source='ACCESS_TOKEN')
+    assert response == expected_output, "Invalid return value"

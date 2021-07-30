@@ -6,7 +6,7 @@
  * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
  * Authors:
- * - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
+ * - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020-2021
  */
 
 import { computeCollectionState, toHumanReadableSize, checkVariableNameValid } from '../src/utils/Helpers';
@@ -43,7 +43,7 @@ describe('computeCollectionState', () => {
     })
     
     test('null files should return false', () => {
-        const mockFiles: FileDIDDetails[] = undefined;
+        const mockFiles: FileDIDDetails[] | undefined = undefined;
     
         const computedState = computeCollectionState(mockFiles);
         expect(computedState).toBeFalsy();

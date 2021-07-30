@@ -15,7 +15,7 @@
     "resolveJsonModule": true,
     "outDir": "lib",
     "strict": true,
-    "strictNullChecks": false,
+    "strictNullChecks": true,
     "target": "es2017",
     "types": ["node", "jest"]
   },

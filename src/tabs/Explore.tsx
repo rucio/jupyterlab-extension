@@ -114,7 +114,7 @@ const _Explore: React.FunctionComponent = props => {
   };
 
   useEffect(() => {
-    if (!lastQuery) {
+    if (!lastQuery || !activeInstance) {
       return;
     }
 
@@ -152,10 +152,10 @@ const _Explore: React.FunctionComponent = props => {
     }
   };
 
-  const listRef = useRef<VariableSizeList>();
+  const listRef = useRef<VariableSizeList>(null);
 
   const toggleExpand = (index: number) => {
-    listRef.current.resetAfterIndex(index);
+    listRef.current?.resetAfterIndex(index);
     didExpanded[index] = !didExpanded[index];
     setDidExpanded(didExpanded);
   };
@@ -163,6 +163,10 @@ const _Explore: React.FunctionComponent = props => {
   const getItemHeight = (i: number) => (didExpanded[i] === true ? 64 : 32);
 
   const Row = ({ index, style }: any) => {
+    if (!searchResult) {
+      return <></>;
+    }
+
     const item = searchResult[index];
     const expanded = !!didExpanded[index];
     return (

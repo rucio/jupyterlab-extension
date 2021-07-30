@@ -169,6 +169,9 @@ export const ListAttachedFilesPopover: React.FC<MyProps> = ({ children, did }) =
   );
 
   const loadAttachedFiles = () => {
+    if (!activeInstance) {
+      return;
+    }
     setLoading(true);
     setFiles([]);
     actions

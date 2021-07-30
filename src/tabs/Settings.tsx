@@ -16,12 +16,19 @@ import { useStoreState } from 'pullstate';
 import { UIStore, resetRucioCaches } from '../stores/UIStore';
 import { Button } from '../components/Button';
 import { withRequestAPI, WithRequestAPIProps } from '../utils/Actions';
-import { authTypeOptions } from '../const';
 import { UserPassAuth } from '../components/@Settings/UserPassAuth';
 import { X509Auth } from '../components/@Settings/X509Auth';
 import { X509ProxyAuth } from '../components/@Settings/X509ProxyAuth';
-import { RucioAuthType, RucioUserpassAuth, RucioX509Auth, RucioX509ProxyAuth } from '../types';
+import { Instance, RucioAuthType, RucioUserpassAuth, RucioX509Auth, RucioX509ProxyAuth } from '../types';
 import { HorizontalHeading } from '../components/HorizontalHeading';
+
+const getEnabledAuthTypes = (instance: Instance) =>
+  [
+    instance.oidcEnabled ? { label: 'OpenID Connect', value: 'oidc' } : undefined,
+    { label: 'X.509 User Certificate', value: 'x509' },
+    { label: 'X.509 Proxy Certificate', value: 'x509_proxy' },
+    { label: 'Username & Password', value: 'userpass' }
+  ].filter(x => !!x) as Array<{ label: string; value: string }>;
 
 const useStyles = createUseStyles({
   content: {
@@ -107,11 +114,13 @@ const _Settings: React.FunctionComponent = props => {
   const activeAuthType = useStoreState(UIStore, s => s.activeAuthType);
   const instances = useStoreState(UIStore, s => s.instances) || [];
 
-  const instanceDefaultValue = activeInstance ? { label: activeInstance.displayName, value: activeInstance.name } : null;
-  const authTypeDefaultValue = activeAuthType ? authTypeOptions.find(o => o.value === activeAuthType) : null;
+  const [selectedInstance, setSelectedInstance] = useState<string | undefined>(activeInstance?.name);
 
-  const [selectedInstance, setSelectedInstance] = useState<string>(instanceDefaultValue?.value);
-  const [selectedAuthType, setSelectedAuthType] = useState<RucioAuthType>(activeAuthType);
+  const selectedInstanceObject = instances.find(i => i.name === selectedInstance);
+  const authTypeOptions = selectedInstanceObject ? getEnabledAuthTypes(selectedInstanceObject) : [];
+  const authTypeDefaultValue = activeAuthType ? authTypeOptions.find(o => o.value === activeAuthType) : undefined;
+  const [selectedAuthType, setSelectedAuthType] = useState<RucioAuthType | undefined>(activeAuthType);
+
   const [rucioUserpassAuthCredentials, setRucioUserpassAuthCredentials] = useState<RucioUserpassAuth>();
   const [rucioX509AuthCredentials, setRucioX509AuthCredentials] = useState<RucioX509Auth>();
   const [rucioX509ProxyAuthCredentials, setRucioX509ProxyAuthCredentials] = useState<RucioX509ProxyAuth>();
@@ -124,7 +133,7 @@ const _Settings: React.FunctionComponent = props => {
 
   const instanceOptions = useMemo(() => instances?.map(i => ({ label: i.displayName, value: i.name })), [instances]);
 
-  const setActiveInstance = (instanceName?: string, authType?: RucioAuthType) => {
+  const setActiveInstance = (instanceName: string, authType: RucioAuthType) => {
     UIStore.update(s => {
       if (s.activeInstance?.name !== instanceName) {
         resetRucioCaches();
@@ -141,6 +150,10 @@ const _Settings: React.FunctionComponent = props => {
   };
 
   const saveSettings = () => {
+    if (!selectedInstance) {
+      return;
+    }
+
     const promises = [];
     if (selectedInstance && selectedAuthType) {
       const setActiveInstancePromise = setActiveInstance(selectedInstance, selectedAuthType);
@@ -244,6 +257,8 @@ const _Settings: React.FunctionComponent = props => {
     })
   };
 
+  const instanceDefaultValue = activeInstance ? { label: activeInstance.displayName, value: activeInstance.name } : null;
+
   return (
     <div className={classes.content}>
       <div className={classes.scrollable}>
@@ -255,21 +270,17 @@ const _Settings: React.FunctionComponent = props => {
               options={instanceOptions}
               styles={selectStyles}
               defaultValue={instanceDefaultValue}
-              onChange={(value: any) => {
-                setSelectedInstance(value.value);
-              }}
+              onChange={(value: any) => setSelectedInstance(value.value)}
             />
           </div>
           <div className={classes.formItem}>
-            <div className={classes.label}>Rucio Authentication</div>
+            <div className={classes.label}>Authentication</div>
             <Select
               className={classes.formControl}
               options={authTypeOptions}
               styles={selectStyles}
               defaultValue={authTypeDefaultValue}
-              onChange={(value: any) => {
-                setSelectedAuthType(value.value);
-              }}
+              onChange={(value: any) => setSelectedAuthType(value.value)}
             />
           </div>
         </div>

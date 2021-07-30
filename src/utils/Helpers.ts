@@ -6,12 +6,12 @@
  * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
  * Authors:
- * - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
+ * - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020-2021
  */
 
 import { FileDIDDetails, CollectionStatus } from '../types';
 
-export const computeCollectionState = (files: FileDIDDetails[]): CollectionStatus | false => {
+export const computeCollectionState = (files?: FileDIDDetails[]): CollectionStatus | false => {
   if (!files) {
     return false;
   }
