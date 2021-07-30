@@ -167,6 +167,15 @@ Example: `365`
 Whether or not wildcard DID search is allowed. Optional, defaults to `false`.
 
 
+#### OpenID Connect Auth Source - `oidc_auth`
+Specifies where should the extension gets the OIDC token from. Optional, the value should be `file` or `env`.
+
+#### OpenID Connect Token Filename - `oidc_file_name`
+Specifies an absolute path to a file containing the OIDC access token.
+
+#### OpenID Connect Token Environment Variable Name - `oidc_env_name`
+Specifies the environment variable name containing the OIDC access token.
+
 ## IPython Kernel
 To allow users to access the paths from within the notebook, a kernel extension must be enabled. The kernel resides in module `rucio_jupyterlab.kernels.ipython`.
 
@@ -181,3 +190,12 @@ Or, if you want to enable it by default, put the following snippet in your IPyth
 ```python
 c.IPKernelApp.extensions = ['rucio_jupyterlab.kernels.ipython']
 ```
+
+## Enabling OpenID Connect Authentication
+Unlike the other authentication methods supported by the extension, which is configurable by users only, OIDC auth should be configured by the admins. Users won't see "OpenID Connect" option if OIDC auth is not configured properly.
+
+This extension does not provide a way for users to authenticate directly from the extension. Instead, the OIDC token must be obtained from an external mechanism.
+
+In a multi-user setup with JupyterHub, admins must make the OIDC token accessible from the single user's container via either a file or an environment variable. Then, they need to configure the `oidc_auth` and `oidc_env_name` or `oidc_file_name` parameters (see above).
+
+Furthermore, the JupyterHub installation must have a mechanism of periodically refreshing the OIDC token so that an expired token is not used.
