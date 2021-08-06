@@ -130,7 +130,7 @@ const _CollectionDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
       {collectionState === 'PARTIALLY_AVAILABLE' && <FilePartiallyAvailable onMakeAvailableClicked={makeAvailable} />}
       {collectionState === 'NOT_AVAILABLE' && <FileNotAvailable onMakeAvailableClicked={makeAvailable} />}
       {collectionState === 'REPLICATING' && <FileReplicating did={did} />}
-      {collectionState === 'STUCK' && <FileStuck onMakeAvailableClicked={makeAvailable} />}
+      {collectionState === 'STUCK' && <FileStuck />}
     </div>
   );
 };
@@ -197,16 +197,13 @@ const FileReplicating: React.FC<{ did: string }> = ({ did }) => {
   );
 };
 
-const FileStuck: React.FC<{ onMakeAvailableClicked?: { (): void } }> = ({ onMakeAvailableClicked }) => {
+const FileStuck: React.FC = () => {
   const classes = useStyles();
 
   return (
     <div className={classes.statusNotAvailable}>
       <i className={`${classes.icon} material-icons`}>error</i>
       <div className={classes.statusText}>Something went wrong</div>
-      <div className={classes.action} onClick={onMakeAvailableClicked}>
-        Make Available
-      </div>
     </div>
   );
 };
