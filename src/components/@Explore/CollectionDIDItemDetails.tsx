@@ -57,6 +57,10 @@ const useStyles = createUseStyles({
     extend: 'statusContainer',
     color: 'var(--jp-rucio-yellow-color)'
   },
+  statusEmpty: {
+    extend: 'statusContainer',
+    color: 'var(--jp-rucio-yellow-color)'
+  },
   statusNotAvailable: {
     extend: 'statusContainer',
     color: 'var(--jp-error-color1)'
@@ -131,6 +135,7 @@ const _CollectionDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
       {collectionState === 'NOT_AVAILABLE' && <FileNotAvailable onMakeAvailableClicked={makeAvailable} />}
       {collectionState === 'REPLICATING' && <FileReplicating did={did} />}
       {collectionState === 'STUCK' && <FileStuck />}
+      {collectionState === 'EMPTY' && <FileEmpty />}
     </div>
   );
 };
@@ -204,6 +209,17 @@ const FileStuck: React.FC = () => {
     <div className={classes.statusNotAvailable}>
       <i className={`${classes.icon} material-icons`}>error</i>
       <div className={classes.statusText}>Something went wrong</div>
+    </div>
+  );
+};
+
+const FileEmpty: React.FC = () => {
+  const classes = useStyles();
+
+  return (
+    <div className={classes.statusEmpty}>
+      <i className={`${classes.icon} material-icons`}>warning</i>
+      <div className={classes.statusText}>Collection is empty</div>
     </div>
   );
 };
