@@ -88,11 +88,6 @@ const _CollectionDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
 
   const collectionAttachedFiles = useStoreState(UIStore, s => s.collectionDetails[did]);
   const activeInstance = useStoreState(UIStore, s => s.activeInstance);
-  const instances = useStoreState(UIStore, s => s.instances) || [];
-  const selectedInstanceObject = useMemo(() => instances.find(i => i.name === activeInstance?.name), [
-    instances,
-    activeInstance
-  ]);
 
   const [pollingRequesterRef] = useState(() => new PollingRequesterRef());
 
@@ -140,7 +135,7 @@ const _CollectionDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
       {collectionState === 'NOT_AVAILABLE' && <FileNotAvailable onMakeAvailableClicked={makeAvailable} />}
       {collectionState === 'REPLICATING' && <FileReplicating did={did} />}
       {collectionState === 'STUCK' && (
-        <FileStuck onMakeAvailableClicked={selectedInstanceObject?.mode === 'download' ? makeAvailable : undefined} />
+        <FileStuck onMakeAvailableClicked={activeInstance?.mode === 'download' ? makeAvailable : undefined} />
       )}
       {collectionState === 'EMPTY' && <FileEmpty />}
     </div>

@@ -9,7 +9,7 @@
  * - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
  */
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useStoreState } from 'pullstate';
 import { UIStore } from '../../stores/UIStore';
@@ -79,11 +79,6 @@ const _FileDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
 
   const fileDetails = useStoreState(UIStore, s => s.fileDetails[did]);
   const activeInstance = useStoreState(UIStore, s => s.activeInstance);
-  const instances = useStoreState(UIStore, s => s.instances) || [];
-  const selectedInstanceObject = useMemo(() => instances.find(i => i.name === activeInstance?.name), [
-    instances,
-    activeInstance
-  ]);
 
   const [pollingRequesterRef] = useState(() => new PollingRequesterRef());
 
@@ -125,7 +120,7 @@ const _FileDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
       {!!fileDetails && fileDetails.status === 'NOT_AVAILABLE' && <FileNotAvailable onMakeAvailableClicked={makeAvailable} />}
       {!!fileDetails && fileDetails.status === 'REPLICATING' && <FileReplicating did={did} />}
       {!!fileDetails && fileDetails.status === 'STUCK' && (
-        <FileStuck onMakeAvailableClicked={selectedInstanceObject?.mode === 'download' ? makeAvailable : undefined} />
+        <FileStuck onMakeAvailableClicked={activeInstance?.mode === 'download' ? makeAvailable : undefined} />
       )}
     </div>
   );
