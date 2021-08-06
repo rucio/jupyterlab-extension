@@ -12,6 +12,7 @@
 export interface Instance {
   displayName: string;
   name: string;
+  mode: 'replica' | 'download';
   oidcEnabled: boolean;
 }
 

@@ -203,8 +203,8 @@ def test_list_instances__oidc_disabled():
     config = Config(mock_config)
 
     expected_instances = [
-        {'display_name': 'ATLAS', 'name': 'atlas', 'oidc_enabled': False},
-        {'display_name': 'CMS', 'name': 'cms', 'oidc_enabled': False}
+        {'display_name': 'ATLAS', 'name': 'atlas', 'mode': 'replica', 'oidc_enabled': False},
+        {'display_name': 'CMS', 'name': 'cms', 'mode': 'replica', 'oidc_enabled': False}
     ]
 
     assert config.list_instances() == expected_instances, "Invalid instances"
@@ -231,7 +231,7 @@ def test_list_instances__oidc_file__file_config_exists__file_exists__oidc_should
     config = Config(mock_config)
 
     expected_instances = [
-        {'display_name': 'ESCAPE', 'name': 'escape', 'oidc_enabled': True},
+        {'display_name': 'ESCAPE', 'name': 'escape', 'mode': 'replica', 'oidc_enabled': True},
     ]
 
     assert config.list_instances() == expected_instances, "Invalid instances"
@@ -258,7 +258,7 @@ def test_list_instances__oidc_file__file_config_exists__file_does_not_exist__oid
     config = Config(mock_config)
 
     expected_instances = [
-        {'display_name': 'ESCAPE', 'name': 'escape', 'oidc_enabled': False},
+        {'display_name': 'ESCAPE', 'name': 'escape', 'mode': 'replica', 'oidc_enabled': False},
     ]
 
     assert config.list_instances() == expected_instances, "Invalid instances"
@@ -284,7 +284,7 @@ def test_list_instances__oidc_file__file_config_does_not_exist__oidc_should_be_d
     config = Config(mock_config)
 
     expected_instances = [
-        {'display_name': 'ESCAPE', 'name': 'escape', 'oidc_enabled': False},
+        {'display_name': 'ESCAPE', 'name': 'escape', 'mode': 'replica', 'oidc_enabled': False},
     ]
 
     assert config.list_instances() == expected_instances, "Invalid instances"
@@ -311,7 +311,7 @@ def test_list_instances__oidc_env__env_config_exists__env_exists__oidc_should_be
     config = Config(mock_config)
 
     expected_instances = [
-        {'display_name': 'ESCAPE', 'name': 'escape', 'oidc_enabled': True},
+        {'display_name': 'ESCAPE', 'name': 'escape', 'mode': 'replica', 'oidc_enabled': True},
     ]
 
     assert config.list_instances() == expected_instances, "Invalid instances"
@@ -338,7 +338,7 @@ def test_list_instances__oidc_env__env_config_exists__env_does_not_exist__oidc_s
     config = Config(mock_config)
 
     expected_instances = [
-        {'display_name': 'ESCAPE', 'name': 'escape', 'oidc_enabled': False},
+        {'display_name': 'ESCAPE', 'name': 'escape', 'mode': 'replica', 'oidc_enabled': False},
     ]
 
     assert config.list_instances() == expected_instances, "Invalid instances"
@@ -364,7 +364,7 @@ def test_list_instances__oidc_env__env_config_does_not_exist__oidc_should_be_dis
     config = Config(mock_config)
 
     expected_instances = [
-        {'display_name': 'ESCAPE', 'name': 'escape', 'oidc_enabled': False},
+        {'display_name': 'ESCAPE', 'name': 'escape', 'mode': 'replica', 'oidc_enabled': False},
     ]
 
     assert config.list_instances() == expected_instances, "Invalid instances"

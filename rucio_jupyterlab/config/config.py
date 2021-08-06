@@ -64,9 +64,11 @@ class Config:
     def list_instances(self):
         instances = []
         for instance_name in self.instances:
+            instance_config = self.get_instance_config(instance_name)
             instances.append({
                 'name': instance_name,
                 'display_name': self.instances[instance_name]['display_name'],
+                'mode': instance_config.get('mode', 'replica'),
                 'oidc_enabled': self._is_oidc_enabled(instance_name)
             })
 

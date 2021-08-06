@@ -88,6 +88,8 @@ const _CollectionDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
 
   const activeInstance = useStoreState(UIStore, s => s.activeInstance);
   const collectionAttachedFiles = useStoreState(UIStore, s => s.collectionDetails[did]);
+  const instances = useStoreState(UIStore, s => s.instances) || [];
+  const selectedInstanceObject = instances.find(i => i.name === activeInstance?.name);
 
   const [pollingRequesterRef] = useState(() => new PollingRequesterRef());
 
@@ -134,7 +136,9 @@ const _CollectionDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
       {collectionState === 'PARTIALLY_AVAILABLE' && <FilePartiallyAvailable onMakeAvailableClicked={makeAvailable} />}
       {collectionState === 'NOT_AVAILABLE' && <FileNotAvailable onMakeAvailableClicked={makeAvailable} />}
       {collectionState === 'REPLICATING' && <FileReplicating did={did} />}
-      {collectionState === 'STUCK' && <FileStuck />}
+      {collectionState === 'STUCK' && (
+        <FileStuck onMakeAvailableClicked={selectedInstanceObject?.mode === 'download' ? makeAvailable : undefined} />
+      )}
       {collectionState === 'EMPTY' && <FileEmpty />}
     </div>
   );
@@ -202,13 +206,18 @@ const FileReplicating: React.FC<{ did: string }> = ({ did }) => {
   );
 };
 
-const FileStuck: React.FC = () => {
+const FileStuck: React.FC<{ onMakeAvailableClicked?: { (): void } }> = ({ onMakeAvailableClicked }) => {
   const classes = useStyles();
 
   return (
     <div className={classes.statusNotAvailable}>
       <i className={`${classes.icon} material-icons`}>error</i>
       <div className={classes.statusText}>Something went wrong</div>
+      {onMakeAvailableClicked && (
+        <div className={classes.action} onClick={onMakeAvailableClicked}>
+          Make Available
+        </div>
+      )}
     </div>
   );
 };
