@@ -131,9 +131,9 @@ const _NotebookAttachmentListItem: React.FC<NotebookAttachmentListItemProps> = (
 
   const shouldDisplayMakeAvailableButton = (() => {
     if (fileDetails) {
-      return fileDetails.status === 'STUCK' || fileDetails.status === 'NOT_AVAILABLE';
+      return fileDetails.status === 'NOT_AVAILABLE';
     } else if (collectionState) {
-      return collectionState === 'STUCK' || collectionState === 'NOT_AVAILABLE' || collectionState === 'PARTIALLY_AVAILABLE';
+      return collectionState === 'NOT_AVAILABLE' || collectionState === 'PARTIALLY_AVAILABLE';
     }
 
     return false;
