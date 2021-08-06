@@ -86,10 +86,13 @@ const _CollectionDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
   const { actions } = props as WithRequestAPIProps;
   const { didPollingManager } = props as WithPollingManagerProps;
 
-  const activeInstance = useStoreState(UIStore, s => s.activeInstance);
   const collectionAttachedFiles = useStoreState(UIStore, s => s.collectionDetails[did]);
+  const activeInstance = useStoreState(UIStore, s => s.activeInstance);
   const instances = useStoreState(UIStore, s => s.instances) || [];
-  const selectedInstanceObject = instances.find(i => i.name === activeInstance?.name);
+  const selectedInstanceObject = useMemo(() => instances.find(i => i.name === activeInstance?.name), [
+    instances,
+    activeInstance
+  ]);
 
   const [pollingRequesterRef] = useState(() => new PollingRequesterRef());
 

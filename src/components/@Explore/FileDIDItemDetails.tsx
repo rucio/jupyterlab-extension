@@ -9,7 +9,7 @@
  * - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useStoreState } from 'pullstate';
 import { UIStore } from '../../stores/UIStore';
@@ -72,14 +72,18 @@ export interface DIDItem {
 }
 
 const _FileDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
+  const classes = useStyles();
+
   const { actions } = props as WithRequestAPIProps;
   const { didPollingManager } = props as WithPollingManagerProps;
 
-  const classes = useStyles();
-  const activeInstance = useStoreState(UIStore, s => s.activeInstance);
   const fileDetails = useStoreState(UIStore, s => s.fileDetails[did]);
+  const activeInstance = useStoreState(UIStore, s => s.activeInstance);
   const instances = useStoreState(UIStore, s => s.instances) || [];
-  const selectedInstanceObject = instances.find(i => i.name === activeInstance?.name);
+  const selectedInstanceObject = useMemo(() => instances.find(i => i.name === activeInstance?.name), [
+    instances,
+    activeInstance
+  ]);
 
   const [pollingRequesterRef] = useState(() => new PollingRequesterRef());
 
