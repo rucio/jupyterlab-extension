@@ -23,7 +23,8 @@ import { computeCollectionState } from './Helpers';
 
 interface NotebookVariableInjection {
   variableName: string;
-  path: string | string[];
+  path: string | string[] | null;
+  pfn: string | string[] | null;
   did: string;
   didAvailable?: boolean;
 }
@@ -286,20 +287,22 @@ export class NotebookListener {
       if (type === 'collection') {
         const didDetails = await this.resolveCollectionDIDDetails(did);
         const path = this.getCollectionDIDPaths(didDetails);
+        const pfn = this.getCollectionDIDPFNs(didDetails);
 
         this.setResolveStatus(kernelConnectionId, did, 'PENDING_INJECTION');
 
         const collectionStatus = computeCollectionState(didDetails);
         const didAvailable = collectionStatus === 'AVAILABLE';
 
-        return { variableName, path, did, didAvailable };
+        return { variableName, path, pfn, did, didAvailable };
       } else {
         const didDetails = await this.resolveFileDIDDetails(did);
-        const path = this.getFileDIDPaths(didDetails);
+        const path = this.getFileDIDPath(didDetails);
+        const pfn = this.getFileDIDPFN(didDetails);
 
         this.setResolveStatus(kernelConnectionId, did, 'PENDING_INJECTION');
 
-        return { variableName, path: path ?? '', did };
+        return { variableName, path: path ?? null, pfn: pfn ?? null, did };
       }
     } catch (e) {
       this.setResolveStatus(kernelConnectionId, did, 'FAILED');
@@ -322,8 +325,16 @@ export class NotebookListener {
     return didDetails.map(d => d.path).filter(p => !!p) as string[];
   }
 
-  private getFileDIDPaths(didDetails: FileDIDDetails): string | undefined {
+  private getCollectionDIDPFNs(didDetails: FileDIDDetails[]): string[] {
+    return didDetails.map(d => d.pfn).filter(p => !!p) as string[];
+  }
+
+  private getFileDIDPath(didDetails: FileDIDDetails): string | undefined {
     return didDetails.path;
+  }
+
+  private getFileDIDPFN(didDetails: FileDIDDetails): string | undefined {
+    return didDetails.pfn;
   }
 
   private async resolveFileDIDDetails(did: string): Promise<FileDIDDetails> {

@@ -40,9 +40,10 @@ class MultipleItemDID(list):  # pragma: no cover
 
 
 class SingleItemDID(str):  # pragma: no cover
-    def __init__(self, path):
+    def __init__(self, path, pfn=None):
         super(SingleItemDID, self).__init__()
         self.path = path
+        self.pfn = pfn
         self.did_available = path is not None
 
     def __str__(self):

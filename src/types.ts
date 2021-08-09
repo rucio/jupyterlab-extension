@@ -53,6 +53,7 @@ export interface FileDIDDetails {
   status: FileStatus;
   did: string;
   path?: string;
+  pfn?: string;
   size: number;
 }
 
