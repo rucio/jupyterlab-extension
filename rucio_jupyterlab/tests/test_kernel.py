@@ -17,9 +17,15 @@ def test_handle_comm_message__action_inject__single_item(mocker):
             'data': {
                 'action': 'inject',
                 'dids': [
-                    {'variableName': 'var_1', 'path': '/eos/rucio/scope/name1'},
-                    {'variableName': 'var_2', 'path': '/eos/rucio/scope/name2'},
-                    {'variableName': 'var_3', 'path': '/eos/rucio/scope/name3'}
+                    {'type': 'file', 'variableName': 'var_1', 'files': [
+                        {'path': '/eos/rucio/scope/name1', 'pfn': "root://xrootd:1094//eos/rucio/scope/name1"}
+                    ]},
+                    {'type': 'file', 'variableName': 'var_2', 'files': [
+                        {'path': '/eos/rucio/scope/name2', 'pfn': "root://xrootd:1094//eos/rucio/scope/name2"}
+                    ]},
+                    {'type': 'file', 'variableName': 'var_3', 'files': [
+                        {'path': '/eos/rucio/scope/name3', 'pfn': "root://xrootd:1094//eos/rucio/scope/name3"}
+                    ]}
                 ]
             }
         }
@@ -69,11 +75,12 @@ def test_handle_comm_message__action_inject__multiple_item(mocker):
                 'action': 'inject',
                 'dids': [
                     {
+                        'type': 'collection',
                         'variableName': 'var_1',
-                        'path': [
-                            '/eos/rucio/scope/name1',
-                            '/eos/rucio/scope/name2',
-                            '/eos/rucio/scope/name3'
+                        'files': [
+                            {'path': '/eos/rucio/scope/name1', 'pfn': "root://xrootd:1094//eos/rucio/scope/name1"},
+                            {'path': '/eos/rucio/scope/name2', 'pfn': "root://xrootd:1094//eos/rucio/scope/name2"},
+                            {'path': '/eos/rucio/scope/name3', 'pfn': "root://xrootd:1094//eos/rucio/scope/name3"}
                         ]
                     }
                 ]
