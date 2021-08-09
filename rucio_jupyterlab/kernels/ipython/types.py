@@ -41,12 +41,13 @@ class MultipleItemDID(list):  # pragma: no cover
         return super().__iter__()
 
 
-class SingleItemDID(str):  # pragma: no cover
-    def __init__(self, path, pfn=None):
-        super(SingleItemDID, self).__init__()
-        self.path = path
-        self.pfn = pfn
-        self.did_available = path is not None
+class SingleItemDID(str):  # pragma: no cover=
+    def __new__(cls, path, pfn=None):
+        obj = str.__new__(cls, path)
+        obj.path = path
+        obj.pfn = pfn
+        obj.did_available = path is not None
+        return obj
 
     def __str__(self):
         if not self.did_available:
