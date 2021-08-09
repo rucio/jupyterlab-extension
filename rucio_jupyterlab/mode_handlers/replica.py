@@ -10,7 +10,7 @@
 import os
 from urllib.parse import urlparse
 from rucio_jupyterlab.db import get_db
-from rucio_jupyterlab.entity import AttachedFile, FileReplica, PfnFileReplica
+from rucio_jupyterlab.entity import AttachedFile, PfnFileReplica
 import rucio_jupyterlab.utils as utils
 
 
@@ -34,7 +34,7 @@ class ReplicaModeHandler:
 
     def get_did_details(self, scope, name, force_fetch=False):
         attached_file_replicas = self.get_attached_file_replicas(scope, name, force_fetch)
-        complete = utils.find(lambda x: x.path is None, attached_file_replicas) is None
+        complete = utils.find(lambda x: x.pfn is None, attached_file_replicas) is None
 
         status = ReplicaModeHandler.STATUS_NOT_AVAILABLE
         if not complete:
@@ -42,15 +42,16 @@ class ReplicaModeHandler:
 
         def result_mapper(file_replica, _):
             file_did = file_replica.did
-            path = file_replica.path
+            pfn = file_replica.pfn
+            path = self.translate_pfn_to_path(pfn) if pfn else None
             size = file_replica.size
 
             if path is None:
                 # This is to handle newly-attached files in which the replication rule hasn't been reevaluated by the judger daemon.
                 result_status = status if status != ReplicaModeHandler.STATUS_OK else ReplicaModeHandler.STATUS_REPLICATING
-                return dict(status=result_status, did=file_did, path=None, size=size)
+                return dict(status=result_status, did=file_did, path=None, size=size, pfn=pfn)
 
-            return dict(status=ReplicaModeHandler.STATUS_OK, did=file_did, path=path, size=size)
+            return dict(status=ReplicaModeHandler.STATUS_OK, did=file_did, path=path, size=size, pfn=pfn)
 
         results = utils.map(attached_file_replicas, result_mapper)
         return results
@@ -64,16 +65,7 @@ class ReplicaModeHandler:
         if pfn_file_replicas is None:
             pfn_file_replicas = self.fetch_attached_pfn_file_replicas(scope, name)
 
-        def file_replica_mapper(pfn_file_replica, _):
-            file_did = pfn_file_replica.did
-            pfn = pfn_file_replica.pfn
-            size = pfn_file_replica.size
-
-            path = self.translate_pfn_to_path(pfn) if pfn else None
-            return FileReplica(did=file_did, path=path, size=size)
-
-        file_replicas = utils.map(pfn_file_replicas, file_replica_mapper)
-        return file_replicas
+        return pfn_file_replicas
 
     def get_all_pfn_file_replicas_from_db(self, attached_files):
         pfn_file_replicas = []
