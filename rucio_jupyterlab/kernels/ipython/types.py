@@ -13,11 +13,9 @@ class DIDNotAvailableException(BaseException):
 
 
 class MultipleItemDID(list):  # pragma: no cover
-    def __init__(self, items, pfns=None, did_available=True):
+    def __init__(self, items, did_available=True):
         super(MultipleItemDID, self).__init__(items)
         self.items = items
-        self.pfn = pfns
-        self.pfns = pfns
         self.did_available = did_available
 
     def __str__(self):

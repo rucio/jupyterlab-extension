@@ -21,12 +21,17 @@ import { actions } from '../utils/Actions';
 import { InjectNotebookToolbar } from '../InjectNotebookToolbar';
 import { computeCollectionState } from './Helpers';
 
+type InjectedFile = {
+  path: string;
+  pfn: string;
+};
+
 interface NotebookVariableInjection {
+  type: 'file' | 'collection';
   variableName: string;
-  path: string | string[] | null;
-  pfn: string | string[] | null;
+  files: Array<InjectedFile> | null;
   did: string;
-  didAvailable?: boolean;
+  didAvailable: boolean;
 }
 
 type StatusMap = { [notebookId: string]: { [did: string]: ResolveStatus } };
@@ -286,23 +291,24 @@ export class NotebookListener {
     try {
       if (type === 'collection') {
         const didDetails = await this.resolveCollectionDIDDetails(did);
-        const path = this.getCollectionDIDPaths(didDetails);
-        const pfn = this.getCollectionDIDPFNs(didDetails);
+        const files = this.getCollectionFiles(didDetails);
 
         this.setResolveStatus(kernelConnectionId, did, 'PENDING_INJECTION');
 
         const collectionStatus = computeCollectionState(didDetails);
         const didAvailable = collectionStatus === 'AVAILABLE';
 
-        return { variableName, path, pfn, did, didAvailable };
+        return { type: 'collection', variableName, files, did, didAvailable };
       } else {
         const didDetails = await this.resolveFileDIDDetails(did);
-        const path = this.getFileDIDPath(didDetails);
-        const pfn = this.getFileDIDPFN(didDetails);
+        const file = this.getFile(didDetails);
 
         this.setResolveStatus(kernelConnectionId, did, 'PENDING_INJECTION');
 
-        return { variableName, path: path ?? null, pfn: pfn ?? null, did };
+        const fileStatus = didDetails.status;
+        const didAvailable = fileStatus === 'OK';
+
+        return { type: 'file', variableName, files: file ? [file] : null, did, didAvailable };
       }
     } catch (e) {
       this.setResolveStatus(kernelConnectionId, did, 'FAILED');
@@ -321,20 +327,16 @@ export class NotebookListener {
     });
   }
 
-  private getCollectionDIDPaths(didDetails: FileDIDDetails[]): string[] {
-    return didDetails.map(d => d.path).filter(p => !!p) as string[];
+  private getCollectionFiles(didDetails: FileDIDDetails[]): InjectedFile[] {
+    return didDetails.map(d => this.getFile(d)).filter(p => !!p) as InjectedFile[];
   }
 
-  private getCollectionDIDPFNs(didDetails: FileDIDDetails[]): string[] {
-    return didDetails.map(d => d.pfn).filter(p => !!p) as string[];
-  }
+  private getFile(didDetails: FileDIDDetails): InjectedFile | null {
+    if (!didDetails.path || !didDetails.pfn) {
+      return null;
+    }
 
-  private getFileDIDPath(didDetails: FileDIDDetails): string | undefined {
-    return didDetails.path;
-  }
-
-  private getFileDIDPFN(didDetails: FileDIDDetails): string | undefined {
-    return didDetails.pfn;
+    return { path: didDetails.path, pfn: didDetails.pfn };
   }
 
   private async resolveFileDIDDetails(did: string): Promise<FileDIDDetails> {
