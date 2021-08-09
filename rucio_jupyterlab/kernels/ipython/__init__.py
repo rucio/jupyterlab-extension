@@ -52,9 +52,9 @@ class RucioDIDAttachmentConnector:
             pfn = did.get('pfn')
             if isinstance(path, (list, tuple)):
                 did_available = did.get('didAvailable', True)
-                injected_obj = MultipleItemDID(path=path, pfns=pfn, did_available=did_available)
+                injected_obj = MultipleItemDID(path, pfns=pfn, did_available=did_available)
             else:
-                injected_obj = SingleItemDID(path=path, pfn=pfn)
+                injected_obj = SingleItemDID(path, pfn=pfn)
 
             injected_variable_names.append(variable_name)
             self.ipython.push({variable_name: injected_obj})
