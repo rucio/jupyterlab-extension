@@ -23,7 +23,7 @@ import { computeCollectionState } from './Helpers';
 
 type InjectedFile = {
   path: string;
-  pfn: string;
+  pfn?: string;
 };
 
 interface NotebookVariableInjection {
@@ -332,7 +332,7 @@ export class NotebookListener {
   }
 
   private getFile(didDetails: FileDIDDetails): InjectedFile | null {
-    if (!didDetails.path || !didDetails.pfn) {
+    if (!didDetails.path) {
       return null;
     }
 

@@ -52,14 +52,14 @@ class RucioDIDAttachmentConnector:
             files = did.get('files')
             if did_type == 'collection':
                 did_available = did.get('didAvailable', True)
-                items = [SingleItemDID(path=x['path'], pfn=x['pfn']) for x in files]
+                items = [SingleItemDID(path=x.get('path'), pfn=x.get('pfn')) for x in files]
                 injected_obj = MultipleItemDID(items=items, did_available=did_available)
             else:
                 if files is None:
                     injected_obj = SingleItemDID(path=None)
                 else:
                     item = files[0]
-                    injected_obj = SingleItemDID(path=item['path'], pfn=item['pfn'])
+                    injected_obj = SingleItemDID(path=item.get('path'), pfn=item.get('pfn'))
 
             injected_variable_names.append(variable_name)
             self.ipython.push({variable_name: injected_obj})
