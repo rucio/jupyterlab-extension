@@ -72,11 +72,11 @@ const useStyles = createUseStyles({
 });
 
 const searchByOptions = [
-  { title: 'Datasets or Containers', value: 'collection' },
+  { title: 'Everything', value: 'all' },
+  { title: 'Datasets and Containers', value: 'collection' },
   { title: 'Datasets', value: 'dataset' },
   { title: 'Containers', value: 'container' },
-  { title: 'Files', value: 'file' },
-  { title: 'All', value: 'all' }
+  { title: 'Files', value: 'file' }
 ];
 
 const _Explore: React.FunctionComponent = props => {
@@ -85,7 +85,7 @@ const _Explore: React.FunctionComponent = props => {
   const { actions } = props as WithRequestAPIProps;
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchType, setSearchType] = useState<DIDSearchType>('collection');
+  const [searchType, setSearchType] = useState<DIDSearchType>('all');
   const [searchResult, setSearchResult] = useState<DIDSearchResult[]>();
   const [didExpanded, setDidExpanded] = useState<{ [index: number]: boolean }>({});
   const [error, setError] = useState<string>();
