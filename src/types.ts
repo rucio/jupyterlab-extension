@@ -14,6 +14,7 @@ export interface Instance {
   name: string;
   mode: 'replica' | 'download';
   oidcEnabled: boolean;
+  webuiUrl?: string;
 }
 
 interface RucioAuth {

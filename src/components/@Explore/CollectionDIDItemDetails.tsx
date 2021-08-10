@@ -12,6 +12,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useStoreState } from 'pullstate';
+import { URLExt } from '@jupyterlab/coreutils';
+import { ServerConnection } from '@jupyterlab/services';
+import { EXTENSION_ID } from '../../const';
 import { UIStore } from '../../stores/UIStore';
 import { Spinning } from '../Spinning';
 import { withRequestAPI, WithRequestAPIProps } from '../../utils/Actions';
@@ -42,6 +45,13 @@ const useStyles = createUseStyles({
     textOverflow: 'ellipsis',
     overflow: 'hidden',
     whiteSpace: 'nowrap'
+  },
+  clickableStatusText: {
+    extend: 'statusText',
+    '&:hover': {
+      textDecoration: 'underline',
+      cursor: 'pointer'
+    }
   },
   statusContainer: {
     display: 'flex',
@@ -122,6 +132,12 @@ const _CollectionDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
     return collectionAttachedFiles ? computeCollectionState(collectionAttachedFiles) : undefined;
   }, [collectionAttachedFiles]);
 
+  const settings = ServerConnection.makeSettings();
+  const redirectorUrl = URLExt.join(settings.baseUrl, EXTENSION_ID, 'open-replication-rule');
+  const showReplicationRuleUrl = activeInstance?.webuiUrl
+    ? `${redirectorUrl}?namespace=${activeInstance?.name}&did=${did}`
+    : undefined;
+
   return (
     <div className={classes.container}>
       {!collectionAttachedFiles && (
@@ -130,25 +146,41 @@ const _CollectionDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
           <span className={classes.statusText}>Loading...</span>
         </div>
       )}
-      {collectionState === 'AVAILABLE' && <FileAvailable did={did} />}
-      {collectionState === 'PARTIALLY_AVAILABLE' && <FilePartiallyAvailable onMakeAvailableClicked={makeAvailable} />}
+      {collectionState === 'AVAILABLE' && <FileAvailable did={did} showReplicationRuleUrl={showReplicationRuleUrl} />}
+      {collectionState === 'PARTIALLY_AVAILABLE' && (
+        <FilePartiallyAvailable onMakeAvailableClicked={makeAvailable} showReplicationRuleUrl={showReplicationRuleUrl} />
+      )}
       {collectionState === 'NOT_AVAILABLE' && <FileNotAvailable onMakeAvailableClicked={makeAvailable} />}
-      {collectionState === 'REPLICATING' && <FileReplicating did={did} />}
+      {collectionState === 'REPLICATING' && <FileReplicating did={did} showReplicationRuleUrl={showReplicationRuleUrl} />}
       {collectionState === 'STUCK' && (
-        <FileStuck onMakeAvailableClicked={activeInstance?.mode === 'download' ? makeAvailable : undefined} />
+        <FileStuck
+          onMakeAvailableClicked={activeInstance?.mode === 'download' ? makeAvailable : undefined}
+          showReplicationRuleUrl={showReplicationRuleUrl}
+        />
       )}
       {collectionState === 'EMPTY' && <FileEmpty />}
     </div>
   );
 };
 
-const FileAvailable: React.FC<{ did: string }> = ({ did }) => {
+const FileAvailable: React.FC<{ did: string; showReplicationRuleUrl?: string }> = ({ did, showReplicationRuleUrl }) => {
   const classes = useStyles();
 
   return (
     <div className={classes.statusAvailable}>
       <i className={`${classes.icon} material-icons`}>check_circle</i>
-      <div className={classes.statusText}>All files available</div>
+      {showReplicationRuleUrl && (
+        <a
+          href={showReplicationRuleUrl}
+          className={classes.clickableStatusText}
+          target="_blank"
+          rel="noreferrer"
+          title="Show replication rule"
+        >
+          All files available
+        </a>
+      )}
+      {!showReplicationRuleUrl && <div className={classes.statusText}>All files available</div>}
       <div className={classes.action}>
         <AddToNotebookPopover did={did} type="collection">
           Add to Notebook
@@ -158,7 +190,7 @@ const FileAvailable: React.FC<{ did: string }> = ({ did }) => {
   );
 };
 
-const FileNotAvailable: React.FC<{ onMakeAvailableClicked?: { (): void } }> = ({ onMakeAvailableClicked }) => {
+const FileNotAvailable: React.FC<{ onMakeAvailableClicked?: () => void }> = ({ onMakeAvailableClicked }) => {
   const classes = useStyles();
 
   return (
@@ -173,14 +205,26 @@ const FileNotAvailable: React.FC<{ onMakeAvailableClicked?: { (): void } }> = ({
 };
 
 const FilePartiallyAvailable: React.FC<{
-  onMakeAvailableClicked?: { (): void };
-}> = ({ onMakeAvailableClicked }) => {
+  onMakeAvailableClicked?: () => void;
+  showReplicationRuleUrl?: string;
+}> = ({ onMakeAvailableClicked, showReplicationRuleUrl }) => {
   const classes = useStyles();
 
   return (
     <div className={classes.statusPartiallyAvailable}>
       <i className={`${classes.icon} material-icons`}>lens</i>
-      <div className={classes.statusText}>Partially available</div>
+      {showReplicationRuleUrl && (
+        <a
+          href={showReplicationRuleUrl}
+          className={classes.clickableStatusText}
+          target="_blank"
+          rel="noreferrer"
+          title="Show replication rule"
+        >
+          Partially available
+        </a>
+      )}
+      {!showReplicationRuleUrl && <div className={classes.statusText}>Partially available</div>}
       <div className={classes.action} onClick={onMakeAvailableClicked}>
         Make Available
       </div>
@@ -188,13 +232,24 @@ const FilePartiallyAvailable: React.FC<{
   );
 };
 
-const FileReplicating: React.FC<{ did: string }> = ({ did }) => {
+const FileReplicating: React.FC<{ did: string; showReplicationRuleUrl?: string }> = ({ did, showReplicationRuleUrl }) => {
   const classes = useStyles();
 
   return (
     <div className={classes.statusReplicating}>
       <Spinning className={`${classes.icon} material-icons`}>hourglass_top</Spinning>
-      <div className={classes.statusText}>Replicating files...</div>
+      {showReplicationRuleUrl && (
+        <a
+          href={showReplicationRuleUrl}
+          className={classes.clickableStatusText}
+          target="_blank"
+          rel="noreferrer"
+          title="Show replication rule"
+        >
+          Replicating files...
+        </a>
+      )}
+      {!showReplicationRuleUrl && <div className={classes.statusText}>Replicating files...</div>}
       <div className={classes.action}>
         <AddToNotebookPopover did={did} type="collection">
           Add to Notebook
@@ -204,13 +259,27 @@ const FileReplicating: React.FC<{ did: string }> = ({ did }) => {
   );
 };
 
-const FileStuck: React.FC<{ onMakeAvailableClicked?: { (): void } }> = ({ onMakeAvailableClicked }) => {
+const FileStuck: React.FC<{ onMakeAvailableClicked?: () => void; showReplicationRuleUrl?: string }> = ({
+  onMakeAvailableClicked,
+  showReplicationRuleUrl
+}) => {
   const classes = useStyles();
 
   return (
     <div className={classes.statusNotAvailable}>
       <i className={`${classes.icon} material-icons`}>error</i>
-      <div className={classes.statusText}>Something went wrong</div>
+      {showReplicationRuleUrl && (
+        <a
+          href={showReplicationRuleUrl}
+          className={classes.clickableStatusText}
+          target="_blank"
+          rel="noreferrer"
+          title="Show replication rule"
+        >
+          Something went wrong
+        </a>
+      )}
+      {!showReplicationRuleUrl && <div className={classes.statusText}>Something went wrong</div>}
       {onMakeAvailableClicked && (
         <div className={classes.action} onClick={onMakeAvailableClicked}>
           Make Available
