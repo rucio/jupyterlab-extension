@@ -69,7 +69,8 @@ class Config:
                 'name': instance_name,
                 'display_name': self.instances[instance_name]['display_name'],
                 'mode': instance_config.get('mode', 'replica'),
-                'oidc_enabled': self._is_oidc_enabled(instance_name)
+                'oidc_enabled': self._is_oidc_enabled(instance_name),
+                'webui_configured': self._is_webui_url_configured(instance_name)
             })
 
         return instances
@@ -85,6 +86,11 @@ class Config:
         oidc_auth = instance_config.get('oidc_auth')
         oidc_auth_source = instance_config.get('oidc_env_name') if oidc_auth == 'env' else instance_config.get('oidc_file_name')
         return get_oidc_token(oidc_auth, oidc_auth_source) is not None
+
+    def _is_webui_url_configured(self, instance_name):
+        instance_config = self.get_instance_config(instance_name)
+        rucio_webui_url = instance_config.get('rucio_webui_url')
+        return rucio_webui_url is not None
 
     def _preprocess_remote_config(self, remote_config):
         instance = self._retrieve_remote_config(remote_config['$url'])

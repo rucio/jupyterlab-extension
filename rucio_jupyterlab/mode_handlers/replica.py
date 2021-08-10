@@ -36,12 +36,9 @@ class ReplicaModeHandler:
         attached_file_replicas = self.get_attached_file_replicas(scope, name, force_fetch)
         complete = utils.find(lambda x: x.pfn is None, attached_file_replicas) is None
 
-        replication_rule = self.fetch_replication_rule_by_did(scope, name)
-        if replication_rule is None:
-            status = ReplicaModeHandler.STATUS_NOT_AVAILABLE
-            rule_id = None
-        else:
-            rule_id, status = replication_rule
+        status = ReplicaModeHandler.STATUS_NOT_AVAILABLE
+        if not complete:
+            status = self.get_did_status(scope, name)
 
         def result_mapper(file_replica, _):
             file_did = file_replica.did
@@ -52,9 +49,9 @@ class ReplicaModeHandler:
             if path is None:
                 # This is to handle newly-attached files in which the replication rule hasn't been reevaluated by the judger daemon.
                 result_status = status if status != ReplicaModeHandler.STATUS_OK else ReplicaModeHandler.STATUS_REPLICATING
-                return dict(status=result_status, did=file_did, path=None, size=size, pfn=pfn, rule_id=rule_id)
+                return dict(status=result_status, did=file_did, path=None, size=size, pfn=pfn)
 
-            return dict(status=ReplicaModeHandler.STATUS_OK, did=file_did, path=path, size=size, pfn=pfn, rule_id=rule_id)
+            return dict(status=ReplicaModeHandler.STATUS_OK, did=file_did, path=path, size=size, pfn=pfn)
 
         results = utils.map(attached_file_replicas, result_mapper)
         return results
