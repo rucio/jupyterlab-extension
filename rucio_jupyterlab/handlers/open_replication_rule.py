@@ -34,7 +34,7 @@ class OpenReplicationRuleHandler(RucioAPIHandler):
             self.finish("Extension is not in Replica mode")
             return
 
-        replication_rule = self._fetch_replication_rule(rucio_instance, scope, name)
+        replication_rule = self._resolve_did_replication_rule(rucio_instance, scope, name)
         if not replication_rule:
             self.set_status(404)
             self.finish('DID has no replication rule')
@@ -44,6 +44,23 @@ class OpenReplicationRuleHandler(RucioAPIHandler):
 
         url = f"{rucio_webui_url}/rule?rule_id={rule_id}"
         self.redirect(url)
+
+    def _resolve_did_replication_rule(self, rucio_instance, scope, name):
+        replication_rule = self._fetch_replication_rule(rucio_instance, scope, name)
+
+        if replication_rule is not None:
+            return replication_rule
+
+        parents = rucio_instance.get_parents(scope, name)
+        if len(parents) == 0:
+            return None
+
+        for parent in parents:
+            replication_rule = self._fetch_replication_rule(rucio_instance, scope=parent['scope'], name=parent['name'])
+            if replication_rule is not None:
+                return replication_rule
+
+        return None
 
     def _fetch_replication_rule(self, rucio_instance, scope, name):
         destination_rse = rucio_instance.instance_config.get('destination_rse')

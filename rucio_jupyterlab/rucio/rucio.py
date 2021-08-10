@@ -72,6 +72,22 @@ class RucioAPI:
         files = [json.loads(l) for l in lines]
         return files
 
+    def get_parents(self, scope, name):
+        token = self._get_auth_token()
+        headers = {'X-Rucio-Auth-Token': token}
+
+        scope = quote(scope)
+        name = quote(name)
+
+        response = requests.get(url=f'{self.base_url}/dids/{scope}/{name}/parents', headers=headers, verify=self.rucio_ca_cert)
+
+        if response.text == '':
+            return []
+
+        lines = response.text.rstrip('\n').splitlines()
+        files = [json.loads(l) for l in lines]
+        return files
+
     def get_rules(self, scope, name):
         token = self._get_auth_token()
         headers = {'X-Rucio-Auth-Token': token}
