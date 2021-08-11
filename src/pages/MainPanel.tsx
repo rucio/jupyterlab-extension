@@ -57,7 +57,7 @@ export const MainPanel: React.FC<React.HTMLAttributes<HTMLElement>> = props => {
     {
       title: (
         <div className={classes.instanceOption}>
-          <i className={`${classes.infoIcon} material-icons`}>info</i>
+          <i className={`${classes.infoIcon} material-icons`}>settings</i>
         </div>
       ),
       value: 3,
