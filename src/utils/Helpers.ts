@@ -17,7 +17,7 @@ export const computeCollectionState = (files?: FileDIDDetails[]): CollectionStat
   }
 
   if (files.length === 0) {
-    return 'AVAILABLE';
+    return 'EMPTY';
   }
 
   const available = files.find(file => file.status === 'OK');

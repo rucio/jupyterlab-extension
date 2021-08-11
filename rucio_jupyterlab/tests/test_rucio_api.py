@@ -101,6 +101,36 @@ def test_get_rules_empty_result(rucio, mocker, requests_mock):
     assert response == [], "Invalid response"
 
 
+def test_get_parents_non_empty_result(rucio, mocker, requests_mock):
+    mocker.patch('rucio_jupyterlab.rucio.rucio.authenticate_userpass', return_value=(MOCK_AUTH_TOKEN, 1368440583))
+    scope, name = "scope", "name"
+
+    request_headers = {'X-Rucio-Auth-Token': MOCK_AUTH_TOKEN}
+    mock_response_json = [
+        {'scope': 'scope1', 'name': 'name1'},
+        {'scope': 'scope2', 'name': 'name2'},
+        {'scope': 'scope3', 'name': 'name3'}
+    ]
+    mock_response = '\n'.join([json.dumps(x) for x in mock_response_json])
+
+    requests_mock.get(f"{MOCK_BASE_URL}/dids/{scope}/{name}/parents", request_headers=request_headers, text=mock_response)
+    response = rucio.get_parents(scope, name)
+
+    assert response == mock_response_json, "Invalid response"
+
+
+def test_get_parents_empty_result(rucio, mocker, requests_mock):
+    mocker.patch('rucio_jupyterlab.rucio.rucio.authenticate_userpass', return_value=(MOCK_AUTH_TOKEN, 1368440583))
+    scope, name = "scope", "name"
+
+    request_headers = {'X-Rucio-Auth-Token': MOCK_AUTH_TOKEN}
+
+    requests_mock.get(f"{MOCK_BASE_URL}/dids/{scope}/{name}/parents", request_headers=request_headers, text='')
+    response = rucio.get_parents(scope, name)
+
+    assert response == [], "Invalid response"
+
+
 def test_get_rule_details_ok(rucio, mocker, requests_mock):
     mocker.patch('rucio_jupyterlab.rucio.rucio.authenticate_userpass', return_value=(MOCK_AUTH_TOKEN, 1368440583))
     rule_id = 'rule_id'

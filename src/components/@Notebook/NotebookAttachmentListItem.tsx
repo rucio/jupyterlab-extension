@@ -104,9 +104,9 @@ const _NotebookAttachmentListItem: React.FC<NotebookAttachmentListItemProps> = (
   const { actions } = props as WithRequestAPIProps;
   const { did } = attachment;
 
-  const activeInstance = useStoreState(UIStore, s => s.activeInstance);
   const fileDetails = useStoreState(UIStore, s => s.fileDetails[did]);
   const collectionDetails = useStoreState(UIStore, s => s.collectionDetails[did]);
+  const activeInstance = useStoreState(UIStore, s => s.activeInstance);
 
   useEffect(() => {
     if (!activeInstance) {
@@ -131,9 +131,13 @@ const _NotebookAttachmentListItem: React.FC<NotebookAttachmentListItemProps> = (
 
   const shouldDisplayMakeAvailableButton = (() => {
     if (fileDetails) {
-      return fileDetails.status === 'STUCK' || fileDetails.status === 'NOT_AVAILABLE';
+      return fileDetails.status === 'NOT_AVAILABLE' || (fileDetails.status === 'STUCK' && activeInstance?.mode === 'download');
     } else if (collectionState) {
-      return collectionState === 'STUCK' || collectionState === 'NOT_AVAILABLE' || collectionState === 'PARTIALLY_AVAILABLE';
+      return (
+        collectionState === 'NOT_AVAILABLE' ||
+        collectionState === 'PARTIALLY_AVAILABLE' ||
+        (collectionState === 'STUCK' && activeInstance?.mode === 'download')
+      );
     }
 
     return false;

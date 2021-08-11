@@ -169,9 +169,9 @@ def test_get_did_details__no_force_fetch__attached_files_cached__all_replicas_ca
     result = handler.get_did_details(mock_scope, mock_name, False)
 
     expected_result = [
-        {'status': 'OK', 'did': 'scope:name1', 'path': '/eos/user/rucio/scope:name1', 'size': 123},
-        {'status': 'OK', 'did': 'scope:name2', 'path': '/eos/user/rucio/scope:name2', 'size': 123},
-        {'status': 'OK', 'did': 'scope:name3', 'path': '/eos/user/rucio/scope:name3', 'size': 123}
+        {'status': 'OK', 'did': 'scope:name1', 'path': '/eos/user/rucio/scope:name1', 'size': 123, 'pfn': 'root://xrd1:1094//test/scope:name1'},
+        {'status': 'OK', 'did': 'scope:name2', 'path': '/eos/user/rucio/scope:name2', 'size': 123, 'pfn': 'root://xrd1:1094//test/scope:name2'},
+        {'status': 'OK', 'did': 'scope:name3', 'path': '/eos/user/rucio/scope:name3', 'size': 123, 'pfn': 'root://xrd1:1094//test/scope:name3'}
     ]
 
     assert result == expected_result, "Invalid return value"
@@ -192,9 +192,9 @@ def test_get_did_details__no_force_fetch__attached_files_cached__all_replicas_ca
     rucio.get_rules.assert_called_once()
 
     expected_result = [
-        {'status': 'REPLICATING', 'did': 'scope:name1', 'path': None, 'size': 123},
-        {'status': 'OK', 'did': 'scope:name2', 'path': '/eos/user/rucio/scope:name2', 'size': 123},
-        {'status': 'OK', 'did': 'scope:name3', 'path': '/eos/user/rucio/scope:name3', 'size': 123}
+        {'status': 'REPLICATING', 'did': 'scope:name1', 'path': None, 'size': 123, 'pfn': None},
+        {'status': 'OK', 'did': 'scope:name2', 'path': '/eos/user/rucio/scope:name2', 'size': 123, 'pfn': 'root://xrd1:1094//test/scope:name2'},
+        {'status': 'OK', 'did': 'scope:name3', 'path': '/eos/user/rucio/scope:name3', 'size': 123, 'pfn': 'root://xrd1:1094//test/scope:name3'}
     ]
 
     assert result == expected_result, "Invalid return value"
@@ -215,9 +215,9 @@ def test_get_did_details__no_force_fetch__attached_files_cached__all_replicas_ca
     rucio.get_rules.assert_called_once()
 
     expected_result = [
-        {'status': 'NOT_AVAILABLE', 'did': 'scope:name1', 'path': None, 'size': 123},
-        {'status': 'OK', 'did': 'scope:name2', 'path': '/eos/user/rucio/scope:name2', 'size': 123},
-        {'status': 'OK', 'did': 'scope:name3', 'path': '/eos/user/rucio/scope:name3', 'size': 123}
+        {'status': 'NOT_AVAILABLE', 'did': 'scope:name1', 'path': None, 'size': 123, 'pfn': None},
+        {'status': 'OK', 'did': 'scope:name2', 'path': '/eos/user/rucio/scope:name2', 'size': 123, 'pfn': 'root://xrd1:1094//test/scope:name2'},
+        {'status': 'OK', 'did': 'scope:name3', 'path': '/eos/user/rucio/scope:name3', 'size': 123, 'pfn': 'root://xrd1:1094//test/scope:name3'}
     ]
 
     assert result == expected_result, "Invalid return value"
@@ -238,9 +238,9 @@ def test_get_did_details__no_force_fetch__attached_files_cached__all_replicas_ca
     rucio.get_rules.assert_called_once()
 
     expected_result = [
-        {'status': 'REPLICATING', 'did': 'scope:name1', 'path': None, 'size': 123},
-        {'status': 'OK', 'did': 'scope:name2', 'path': '/eos/user/rucio/scope:name2', 'size': 123},
-        {'status': 'OK', 'did': 'scope:name3', 'path': '/eos/user/rucio/scope:name3', 'size': 123}
+        {'status': 'REPLICATING', 'did': 'scope:name1', 'path': None, 'size': 123, 'pfn': None},
+        {'status': 'OK', 'did': 'scope:name2', 'path': '/eos/user/rucio/scope:name2', 'size': 123, 'pfn': 'root://xrd1:1094//test/scope:name2'},
+        {'status': 'OK', 'did': 'scope:name3', 'path': '/eos/user/rucio/scope:name3', 'size': 123, 'pfn': 'root://xrd1:1094//test/scope:name3'}
     ]
 
     assert result == expected_result, "Invalid return value"
@@ -263,9 +263,9 @@ def test_get_did_details__no_force_fetch__attached_files_cached__some_replicas_c
     rucio.get_rules.assert_not_called()
 
     expected_result = [
-        {'status': 'OK', 'did': 'scope:name1', 'path': '/eos/user/rucio/scope:name1', 'size': 123},
-        {'status': 'OK', 'did': 'scope:name2', 'path': '/eos/user/rucio/scope:name2', 'size': 123},
-        {'status': 'OK', 'did': 'scope:name3', 'path': '/eos/user/rucio/scope:name3', 'size': 123}
+        {'status': 'OK', 'did': 'scope:name1', 'path': '/eos/user/rucio/scope:name1', 'size': 123, 'pfn': 'root://xrd1:1094//eos/docker/user/rucio/scope:name1'},
+        {'status': 'OK', 'did': 'scope:name2', 'path': '/eos/user/rucio/scope:name2', 'size': 123, 'pfn': 'root://xrd1:1094//eos/docker/user/rucio/scope:name2'},
+        {'status': 'OK', 'did': 'scope:name3', 'path': '/eos/user/rucio/scope:name3', 'size': 123, 'pfn': 'root://xrd1:1094//eos/docker/user/rucio/scope:name3'}
     ]
 
     assert result == expected_result, "Invalid return value"
@@ -288,9 +288,9 @@ def test_get_did_details__no_force_fetch__attached_files_cached__some_replicas_c
     rucio.get_rules.assert_called_once()
 
     expected_result = [
-        {'status': 'OK', 'did': 'scope:name1', 'path': '/eos/user/rucio/scope:name1', 'size': 123},
-        {'status': 'REPLICATING', 'did': 'scope:name2', 'path': None, 'size': 123},
-        {'status': 'REPLICATING', 'did': 'scope:name3', 'path': None, 'size': 123}
+        {'status': 'OK', 'did': 'scope:name1', 'path': '/eos/user/rucio/scope:name1', 'size': 123, 'pfn': 'root://xrd1:1094//eos/docker/user/rucio/scope:name1'},
+        {'status': 'REPLICATING', 'did': 'scope:name2', 'path': None, 'size': 123, 'pfn': None},
+        {'status': 'REPLICATING', 'did': 'scope:name3', 'path': None, 'size': 123, 'pfn': None}
     ]
 
     assert result == expected_result, "Invalid return value"
@@ -313,9 +313,9 @@ def test_get_did_details__no_force_fetch__attached_files_cached__no_replicas_cac
     rucio.get_rules.assert_not_called()
 
     expected_result = [
-        {'status': 'OK', 'did': 'scope:name1', 'path': '/eos/user/rucio/scope:name1', 'size': 123},
-        {'status': 'OK', 'did': 'scope:name2', 'path': '/eos/user/rucio/scope:name2', 'size': 123},
-        {'status': 'OK', 'did': 'scope:name3', 'path': '/eos/user/rucio/scope:name3', 'size': 123}
+        {'status': 'OK', 'did': 'scope:name1', 'path': '/eos/user/rucio/scope:name1', 'size': 123, 'pfn': 'root://xrd1:1094//eos/docker/user/rucio/scope:name1'},
+        {'status': 'OK', 'did': 'scope:name2', 'path': '/eos/user/rucio/scope:name2', 'size': 123, 'pfn': 'root://xrd1:1094//eos/docker/user/rucio/scope:name2'},
+        {'status': 'OK', 'did': 'scope:name3', 'path': '/eos/user/rucio/scope:name3', 'size': 123, 'pfn': 'root://xrd1:1094//eos/docker/user/rucio/scope:name3'}
     ]
 
     assert result == expected_result, "Invalid return value"
@@ -338,9 +338,9 @@ def test_get_did_details__no_force_fetch__attached_files_cached__no_replicas_cac
     rucio.get_rules.assert_called_once()
 
     expected_result = [
-        {'status': 'OK', 'did': 'scope:name1', 'path': '/eos/user/rucio/scope:name1', 'size': 123},
-        {'status': 'REPLICATING', 'did': 'scope:name2', 'path': None, 'size': 123},
-        {'status': 'REPLICATING', 'did': 'scope:name3', 'path': None, 'size': 123}
+        {'status': 'OK', 'did': 'scope:name1', 'path': '/eos/user/rucio/scope:name1', 'size': 123, 'pfn': 'root://xrd1:1094//eos/docker/user/rucio/scope:name1'},
+        {'status': 'REPLICATING', 'did': 'scope:name2', 'path': None, 'size': 123, 'pfn': None},
+        {'status': 'REPLICATING', 'did': 'scope:name3', 'path': None, 'size': 123, 'pfn': None}
     ]
 
     assert result == expected_result, "Invalid return value"
@@ -363,9 +363,9 @@ def test_get_did_details__no_force_fetch__attached_files_not_cached__no_replicas
     rucio.get_rules.assert_not_called()
 
     expected_result = [
-        {'status': 'OK', 'did': 'scope:name1', 'path': '/eos/user/rucio/scope:name1', 'size': 123},
-        {'status': 'OK', 'did': 'scope:name2', 'path': '/eos/user/rucio/scope:name2', 'size': 123},
-        {'status': 'OK', 'did': 'scope:name3', 'path': '/eos/user/rucio/scope:name3', 'size': 123}
+        {'status': 'OK', 'did': 'scope:name1', 'path': '/eos/user/rucio/scope:name1', 'size': 123, 'pfn': 'root://xrd1:1094//eos/docker/user/rucio/scope:name1'},
+        {'status': 'OK', 'did': 'scope:name2', 'path': '/eos/user/rucio/scope:name2', 'size': 123, 'pfn': 'root://xrd1:1094//eos/docker/user/rucio/scope:name2'},
+        {'status': 'OK', 'did': 'scope:name3', 'path': '/eos/user/rucio/scope:name3', 'size': 123, 'pfn': 'root://xrd1:1094//eos/docker/user/rucio/scope:name3'}
     ]
 
     assert result == expected_result, "Invalid return value"
@@ -388,9 +388,9 @@ def test_get_did_details__no_force_fetch__attached_files_not_cached__no_replicas
     rucio.get_rules.assert_called_once()
 
     expected_result = [
-        {'status': 'OK', 'did': 'scope:name1', 'path': '/eos/user/rucio/scope:name1', 'size': 123},
-        {'status': 'REPLICATING', 'did': 'scope:name2', 'path': None, 'size': 123},
-        {'status': 'REPLICATING', 'did': 'scope:name3', 'path': None, 'size': 123}
+        {'status': 'OK', 'did': 'scope:name1', 'path': '/eos/user/rucio/scope:name1', 'size': 123, 'pfn': 'root://xrd1:1094//eos/docker/user/rucio/scope:name1'},
+        {'status': 'REPLICATING', 'did': 'scope:name2', 'path': None, 'size': 123, 'pfn': None},
+        {'status': 'REPLICATING', 'did': 'scope:name3', 'path': None, 'size': 123, 'pfn': None}
     ]
 
     assert result == expected_result, "Invalid return value"
@@ -413,9 +413,9 @@ def test_get_did_details__force_fetch__all_dids_available___should_fetch_replica
     rucio.get_rules.assert_not_called()
 
     expected_result = [
-        {'status': 'OK', 'did': 'scope:name1', 'path': '/eos/user/rucio/scope:name1', 'size': 123},
-        {'status': 'OK', 'did': 'scope:name2', 'path': '/eos/user/rucio/scope:name2', 'size': 123},
-        {'status': 'OK', 'did': 'scope:name3', 'path': '/eos/user/rucio/scope:name3', 'size': 123}
+        {'status': 'OK', 'did': 'scope:name1', 'path': '/eos/user/rucio/scope:name1', 'size': 123, 'pfn': 'root://xrd1:1094//eos/docker/user/rucio/scope:name1'},
+        {'status': 'OK', 'did': 'scope:name2', 'path': '/eos/user/rucio/scope:name2', 'size': 123, 'pfn': 'root://xrd1:1094//eos/docker/user/rucio/scope:name2'},
+        {'status': 'OK', 'did': 'scope:name3', 'path': '/eos/user/rucio/scope:name3', 'size': 123, 'pfn': 'root://xrd1:1094//eos/docker/user/rucio/scope:name3'}
     ]
 
     assert result == expected_result, "Invalid return value"
@@ -438,9 +438,9 @@ def test_get_did_details__force_fetch__not_all_dids_available___should_fetch_rep
     rucio.get_rules.assert_called_once()
 
     expected_result = [
-        {'status': 'OK', 'did': 'scope:name1', 'path': '/eos/user/rucio/scope:name1', 'size': 123},
-        {'status': 'REPLICATING', 'did': 'scope:name2', 'path': None, 'size': 123},
-        {'status': 'REPLICATING', 'did': 'scope:name3', 'path': None, 'size': 123}
+        {'status': 'OK', 'did': 'scope:name1', 'path': '/eos/user/rucio/scope:name1', 'size': 123, 'pfn': 'root://xrd1:1094//eos/docker/user/rucio/scope:name1'},
+        {'status': 'REPLICATING', 'did': 'scope:name2', 'path': None, 'size': 123, 'pfn': None},
+        {'status': 'REPLICATING', 'did': 'scope:name3', 'path': None, 'size': 123, 'pfn': None}
     ]
 
     assert result == expected_result, "Invalid return value"

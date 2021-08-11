@@ -12,7 +12,9 @@
 export interface Instance {
   displayName: string;
   name: string;
+  mode: 'replica' | 'download';
   oidcEnabled: boolean;
+  webuiUrl?: string;
 }
 
 interface RucioAuth {
@@ -52,6 +54,7 @@ export interface FileDIDDetails {
   status: FileStatus;
   did: string;
   path?: string;
+  pfn?: string;
   size: number;
 }
 
@@ -68,7 +71,7 @@ export interface DirectoryItem {
 }
 
 export type FileStatus = 'OK' | 'REPLICATING' | 'NOT_AVAILABLE' | 'STUCK';
-export type CollectionStatus = 'NOT_AVAILABLE' | 'AVAILABLE' | 'PARTIALLY_AVAILABLE' | 'REPLICATING' | 'STUCK';
+export type CollectionStatus = 'NOT_AVAILABLE' | 'AVAILABLE' | 'PARTIALLY_AVAILABLE' | 'REPLICATING' | 'STUCK' | 'EMPTY';
 export type ResolveStatus = 'NOT_RESOLVED' | 'RESOLVING' | 'PENDING_INJECTION' | 'READY' | 'FAILED';
 
 export type DIDSearchType = 'collection' | 'dataset' | 'container' | 'file' | 'all';

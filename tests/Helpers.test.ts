@@ -35,11 +35,11 @@ describe('toHumanReadableSize', () => {
 })
 
 describe('computeCollectionState', () => {
-    test('empty files should return AVAILABLE', () => {
+    test('empty files should return EMPTY', () => {
         const mockFiles: FileDIDDetails[] = [];
     
         const computedState = computeCollectionState(mockFiles);
-        expect(computedState).toBe('AVAILABLE');
+        expect(computedState).toBe('EMPTY');
     })
     
     test('null files should return false', () => {

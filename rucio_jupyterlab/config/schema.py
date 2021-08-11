@@ -20,6 +20,9 @@ instance_properties = {
     "rucio_auth_url": {
         "type": "string"
     },
+    "rucio_webui_url": {
+        "type": "string"
+    },
     "rucio_ca_cert": {
         "type": "string"
     },

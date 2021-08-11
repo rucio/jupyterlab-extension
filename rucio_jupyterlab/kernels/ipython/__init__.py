@@ -47,13 +47,19 @@ class RucioDIDAttachmentConnector:
     def inject_dids(self, dids):
         injected_variable_names = []
         for did in dids:
+            did_type = did.get('type')
             variable_name = did.get('variableName')
-            path = did.get('path')
-            if isinstance(path, (list, tuple)):
+            files = did.get('files')
+            if did_type == 'collection':
                 did_available = did.get('didAvailable', True)
-                injected_obj = MultipleItemDID(path, did_available=did_available)
+                items = [SingleItemDID(path=x.get('path'), pfn=x.get('pfn')) for x in files]
+                injected_obj = MultipleItemDID(items=items, did_available=did_available)
             else:
-                injected_obj = SingleItemDID(path)
+                if files is None:
+                    injected_obj = SingleItemDID(path=None)
+                else:
+                    item = files[0]
+                    injected_obj = SingleItemDID(path=item.get('path'), pfn=item.get('pfn'))
 
             injected_variable_names.append(variable_name)
             self.ipython.push({variable_name: injected_obj})
