@@ -120,9 +120,10 @@ const _FileDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
 
   const settings = ServerConnection.makeSettings();
   const redirectorUrl = URLExt.join(settings.baseUrl, EXTENSION_ID, 'open-replication-rule');
-  const showReplicationRuleUrl = activeInstance?.webuiUrl
-    ? `${redirectorUrl}?namespace=${activeInstance?.name}&did=${did}`
-    : undefined;
+  const showReplicationRuleUrl =
+    activeInstance?.webuiUrl && activeInstance.mode === 'replica'
+      ? `${redirectorUrl}?namespace=${activeInstance?.name}&did=${did}`
+      : undefined;
 
   return (
     <div className={classes.container}>
