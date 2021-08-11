@@ -48,7 +48,7 @@ const useStyles = createUseStyles({
   },
   clickableStatusText: {
     extend: 'statusText',
-    '&:hover': {
+    '& a:hover': {
       textDecoration: 'underline',
       cursor: 'pointer'
     }
@@ -170,15 +170,11 @@ const FileAvailable: React.FC<{ did: string; showReplicationRuleUrl?: string }> 
     <div className={classes.statusAvailable}>
       <i className={`${classes.icon} material-icons`}>check_circle</i>
       {showReplicationRuleUrl && (
-        <a
-          href={showReplicationRuleUrl}
-          className={classes.clickableStatusText}
-          target="_blank"
-          rel="noreferrer"
-          title="Show replication rule"
-        >
-          All files available
-        </a>
+        <div className={classes.clickableStatusText}>
+          <a href={showReplicationRuleUrl} target="_blank" rel="noreferrer" title="Show replication rule">
+            All files available
+          </a>
+        </div>
       )}
       {!showReplicationRuleUrl && <div className={classes.statusText}>All files available</div>}
       <div className={classes.action}>
@@ -214,15 +210,11 @@ const FilePartiallyAvailable: React.FC<{
     <div className={classes.statusPartiallyAvailable}>
       <i className={`${classes.icon} material-icons`}>lens</i>
       {showReplicationRuleUrl && (
-        <a
-          href={showReplicationRuleUrl}
-          className={classes.clickableStatusText}
-          target="_blank"
-          rel="noreferrer"
-          title="Show replication rule"
-        >
-          Partially available
-        </a>
+        <div className={classes.clickableStatusText}>
+          <a href={showReplicationRuleUrl} target="_blank" rel="noreferrer" title="Show replication rule">
+            Partially available
+          </a>
+        </div>
       )}
       {!showReplicationRuleUrl && <div className={classes.statusText}>Partially available</div>}
       <div className={classes.action} onClick={onMakeAvailableClicked}>
@@ -239,15 +231,11 @@ const FileReplicating: React.FC<{ did: string; showReplicationRuleUrl?: string }
     <div className={classes.statusReplicating}>
       <Spinning className={`${classes.icon} material-icons`}>hourglass_top</Spinning>
       {showReplicationRuleUrl && (
-        <a
-          href={showReplicationRuleUrl}
-          className={classes.clickableStatusText}
-          target="_blank"
-          rel="noreferrer"
-          title="Show replication rule"
-        >
-          Replicating files...
-        </a>
+        <div className={classes.clickableStatusText}>
+          <a href={showReplicationRuleUrl} target="_blank" rel="noreferrer" title="Show replication rule">
+            Replicating files...
+          </a>
+        </div>
       )}
       {!showReplicationRuleUrl && <div className={classes.statusText}>Replicating files...</div>}
       <div className={classes.action}>
@@ -269,15 +257,11 @@ const FileStuck: React.FC<{ onMakeAvailableClicked?: () => void; showReplication
     <div className={classes.statusNotAvailable}>
       <i className={`${classes.icon} material-icons`}>error</i>
       {showReplicationRuleUrl && (
-        <a
-          href={showReplicationRuleUrl}
-          className={classes.clickableStatusText}
-          target="_blank"
-          rel="noreferrer"
-          title="Show replication rule"
-        >
-          Something went wrong
-        </a>
+        <div className={classes.clickableStatusText}>
+          <a href={showReplicationRuleUrl} target="_blank" rel="noreferrer" title="Show replication rule">
+            Something went wrong
+          </a>
+        </div>
       )}
       {!showReplicationRuleUrl && <div className={classes.statusText}>Something went wrong</div>}
       {onMakeAvailableClicked && (
