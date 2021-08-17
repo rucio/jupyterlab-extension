@@ -18,3 +18,7 @@ export const searchByOptions = [
   { title: 'Datasets or Containers', value: 'datasets' },
   { title: 'Files', value: 'files' }
 ];
+
+export namespace CommandIDs {
+  export const UploadFile = `${EXTENSION_ID}:upload-file`;
+}

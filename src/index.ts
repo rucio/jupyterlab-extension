@@ -11,7 +11,10 @@
 
 import { JupyterFrontEnd, JupyterFrontEndPlugin, ILabShell } from '@jupyterlab/application';
 import { INotebookTracker } from '@jupyterlab/notebook';
-import { EXTENSION_ID } from './const';
+import { fileUploadIcon } from '@jupyterlab/ui-components';
+import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
+import { toArray } from '@lumino/algorithm';
+import { CommandIDs, EXTENSION_ID } from './const';
 import { SidebarPanel } from './widgets/SidebarPanel';
 import { actions } from './utils/Actions';
 import { NotebookListener } from './utils/NotebookListener';
@@ -25,12 +28,18 @@ import { InstanceConfig } from './types';
 const extension: JupyterFrontEndPlugin<void> = {
   id: EXTENSION_ID,
   autoStart: true,
-  requires: [ILabShell, INotebookTracker],
-  activate: async (app: JupyterFrontEnd, labShell: ILabShell, notebookTracker: INotebookTracker) => {
+  requires: [ILabShell, INotebookTracker, IFileBrowserFactory],
+  activate: async (
+    app: JupyterFrontEnd,
+    labShell: ILabShell,
+    notebookTracker: INotebookTracker,
+    fileBrowserFactory: IFileBrowserFactory
+  ) => {
     try {
       const instanceConfig = await actions.fetchInstancesConfig();
       activateSidebarPanel(app, labShell, instanceConfig);
       activateNotebookListener(app, labShell, notebookTracker);
+      activateRucioUploadWidget(app, fileBrowserFactory);
     } catch (e) {
       console.log(e);
     }
@@ -59,6 +68,27 @@ function activateNotebookListener(app: JupyterFrontEnd, labShell: ILabShell, not
   });
 
   new NotebookPollingListener(notebookListener);
+}
+
+function activateRucioUploadWidget(app: JupyterFrontEnd, fileBrowserFactory: IFileBrowserFactory) {
+  app.commands.addCommand(CommandIDs.UploadFile, {
+    icon: fileUploadIcon,
+    label: 'Upload File(s) to Rucio',
+    execute: () => {
+      const widget = fileBrowserFactory.tracker.currentWidget;
+
+      if (widget) {
+        const selection = toArray(widget.selectedItems());
+        console.log(selection);
+      }
+    }
+  });
+
+  app.contextMenu.addItem({
+    command: CommandIDs.UploadFile,
+    selector: '.jp-DirListing-item[data-isdir="false"]',
+    rank: 2
+  });
 }
 
 export default extension;
