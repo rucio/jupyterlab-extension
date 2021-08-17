@@ -13,10 +13,10 @@ import React, { useMemo } from 'react';
 import { VDomRenderer } from '@jupyterlab/apputils';
 import { createUseStyles } from 'react-jss';
 import { NotebookPanel } from '@jupyterlab/notebook';
-import { useNotebookResolveStatusStore } from './utils/NotebookListener';
-import { ResolveStatus } from './types';
-import { Spinning } from './components/Spinning';
-import { rucioIcon } from './icons/RucioIcon';
+import { useNotebookResolveStatusStore } from '../utils/NotebookListener';
+import { ResolveStatus } from '../types';
+import { Spinning } from '../components/Spinning';
+import { rucioIcon } from '../icons/RucioIcon';
 
 const useStyles = createUseStyles({
   main: {

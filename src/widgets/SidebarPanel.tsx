@@ -13,17 +13,16 @@ import React, { useEffect, useState } from 'react';
 import { createUseStyles } from 'react-jss';
 
 import { VDomRenderer } from '@jupyterlab/apputils';
-import { JupyterFrontEnd, ILabShell } from '@jupyterlab/application';
-import { INotebookTracker } from '@jupyterlab/notebook';
-import { NotebookListener } from './utils/NotebookListener';
-import { ActiveNotebookListener } from './utils/ActiveNotebookListener';
-import { InstanceConfig } from './types';
-import { Header } from './components/Header';
-import { MainPanel } from './pages/MainPanel';
-import { Spinning } from './components/Spinning';
-import { UIStore } from './stores/UIStore';
-import { NotebookPollingListener } from './utils/NotebookPollingListener';
-import { rucioIcon } from './icons/RucioIcon';
+import { JupyterFrontEnd } from '@jupyterlab/application';
+import { NotebookListener } from '../utils/NotebookListener';
+import { ActiveNotebookListener } from '../utils/ActiveNotebookListener';
+import { InstanceConfig } from '../types';
+import { Header } from '../components/Header';
+import { MainPanel } from '../pages/MainPanel';
+import { Spinning } from '../components/Spinning';
+import { UIStore } from '../stores/UIStore';
+import { NotebookPollingListener } from '../utils/NotebookPollingListener';
+import { rucioIcon } from '../icons/RucioIcon';
 
 const useStyles = createUseStyles({
   panel: {
@@ -88,8 +87,6 @@ const ErrorPanel: React.FC<{ error: string }> = ({ error }) => {
 
 export interface SidebarPanelOptions {
   app: JupyterFrontEnd;
-  labShell: ILabShell;
-  notebookTracker: INotebookTracker;
   instanceConfig: InstanceConfig;
 }
 
@@ -114,25 +111,10 @@ export class SidebarPanel extends VDomRenderer {
       return;
     }
 
-    const { app, labShell, notebookTracker, instanceConfig } = options;
+    const { app, instanceConfig } = options;
 
     this.app = app;
     this.instanceConfig = instanceConfig;
-
-    this.notebookListener = new NotebookListener({
-      labShell,
-      notebookTracker,
-      sessionManager: app.serviceManager.sessions
-    });
-
-    this.activeNotebookListener = new ActiveNotebookListener({
-      labShell,
-      notebookTracker,
-      sessionManager: app.serviceManager.sessions,
-      notebookListener: this.notebookListener
-    });
-
-    this.notebookPollingListener = new NotebookPollingListener(this.notebookListener);
   }
 
   render(): React.ReactElement {

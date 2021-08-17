@@ -12,8 +12,12 @@
 import { JupyterFrontEnd, JupyterFrontEndPlugin, ILabShell } from '@jupyterlab/application';
 import { INotebookTracker } from '@jupyterlab/notebook';
 import { EXTENSION_ID } from './const';
-import { SidebarPanel } from './SidebarPanel';
+import { SidebarPanel } from './widgets/SidebarPanel';
 import { actions } from './utils/Actions';
+import { NotebookListener } from './utils/NotebookListener';
+import { ActiveNotebookListener } from './utils/ActiveNotebookListener';
+import { NotebookPollingListener } from './utils/NotebookPollingListener';
+import { InstanceConfig } from './types';
 
 /**
  * Initialization data for the rucio-jupyterlab extension.
@@ -23,25 +27,38 @@ const extension: JupyterFrontEndPlugin<void> = {
   autoStart: true,
   requires: [ILabShell, INotebookTracker],
   activate: async (app: JupyterFrontEnd, labShell: ILabShell, notebookTracker: INotebookTracker) => {
-    let options;
-
     try {
       const instanceConfig = await actions.fetchInstancesConfig();
-      options = {
-        app,
-        labShell,
-        notebookTracker,
-        instanceConfig
-      };
+      activateSidebarPanel(app, labShell, instanceConfig);
+      activateNotebookListener(app, labShell, notebookTracker);
     } catch (e) {
       console.log(e);
     }
-
-    const sidebarPanel = new SidebarPanel(options);
-    sidebarPanel.id = EXTENSION_ID + ':panel';
-    labShell.add(sidebarPanel, 'left', { rank: 900 });
-    labShell.activateById(sidebarPanel.id);
   }
 };
+
+function activateSidebarPanel(app: JupyterFrontEnd, labShell: ILabShell, instanceConfig: InstanceConfig) {
+  const sidebarPanel = new SidebarPanel({ app, instanceConfig });
+  sidebarPanel.id = EXTENSION_ID + ':panel';
+  labShell.add(sidebarPanel, 'left', { rank: 900 });
+  labShell.activateById(sidebarPanel.id);
+}
+
+function activateNotebookListener(app: JupyterFrontEnd, labShell: ILabShell, notebookTracker: INotebookTracker) {
+  const notebookListener = new NotebookListener({
+    labShell,
+    notebookTracker,
+    sessionManager: app.serviceManager.sessions
+  });
+
+  new ActiveNotebookListener({
+    labShell,
+    notebookTracker,
+    sessionManager: app.serviceManager.sessions,
+    notebookListener: notebookListener
+  });
+
+  new NotebookPollingListener(notebookListener);
+}
 
 export default extension;
