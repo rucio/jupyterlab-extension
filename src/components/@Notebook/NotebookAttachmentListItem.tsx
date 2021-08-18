@@ -102,7 +102,7 @@ export interface NotebookAttachmentListItemProps {
 const _NotebookAttachmentListItem: React.FC<NotebookAttachmentListItemProps> = ({ attachment, status, ...props }) => {
   const classes = useStyles();
   const { actions } = props as WithRequestAPIProps;
-  const { did } = attachment;
+  const { did, type } = attachment;
 
   const fileDetails = useStoreState(UIStore, s => s.fileDetails[did]);
   const collectionDetails = useStoreState(UIStore, s => s.collectionDetails[did]);
@@ -112,7 +112,7 @@ const _NotebookAttachmentListItem: React.FC<NotebookAttachmentListItemProps> = (
     if (!activeInstance) {
       return;
     }
-    if (attachment.type === 'file') {
+    if (type === 'file') {
       actions.getFileDIDDetails(activeInstance.name, did);
     } else {
       actions.getCollectionDIDDetails(activeInstance.name, did);
@@ -130,13 +130,15 @@ const _NotebookAttachmentListItem: React.FC<NotebookAttachmentListItemProps> = (
   }, [collectionDetails]);
 
   const shouldDisplayMakeAvailableButton = (() => {
-    if (fileDetails) {
-      return fileDetails.status === 'NOT_AVAILABLE' || (fileDetails.status === 'STUCK' && activeInstance?.mode === 'download');
-    } else if (collectionState) {
+    const isExtensionInDownloadMode = activeInstance?.mode === 'download';
+
+    if (type === 'file') {
+      return fileDetails?.status === 'NOT_AVAILABLE' || (fileDetails?.status === 'STUCK' && isExtensionInDownloadMode);
+    } else if (type === 'collection') {
       return (
         collectionState === 'NOT_AVAILABLE' ||
         collectionState === 'PARTIALLY_AVAILABLE' ||
-        (collectionState === 'STUCK' && activeInstance?.mode === 'download')
+        (collectionState === 'STUCK' && isExtensionInDownloadMode)
       );
     }
 
@@ -160,8 +162,10 @@ const _NotebookAttachmentListItem: React.FC<NotebookAttachmentListItemProps> = (
     <div className={classes.listItemContainer}>
       <div className={classes.listItemIconContainer}>
         {!fileDetails && !collectionDetails && <ResolverStatusIcon status={status} />}
-        {!!fileDetails && <FileStatusIcon status={fileDetails.status} resolverStatus={status} />}
-        {!!collectionState && <CollectionStatusIcon status={collectionState} resolverStatus={status} />}
+        {!!fileDetails && type === 'file' && <FileStatusIcon status={fileDetails.status} resolverStatus={status} />}
+        {!!collectionState && type === 'collection' && (
+          <CollectionStatusIcon status={collectionState} resolverStatus={status} />
+        )}
       </div>
       <div className={classes.listItemContent}>
         <div className={classes.did}>{attachment.did}</div>
