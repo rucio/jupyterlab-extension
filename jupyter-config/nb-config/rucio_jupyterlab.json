@@ -1,0 +1,7 @@
+{
+  "NotebookApp": {
+    "nbserver_extensions": {
+      "rucio_jupyterlab.server": true
+    }
+  }
+}

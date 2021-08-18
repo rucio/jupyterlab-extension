@@ -120,9 +120,9 @@ export class ActiveNotebookListener {
     return !!widget && widget === nbWidget;
   }
 
-  private setActiveNotebook(activeNotebook?: NotebookPanel): void {
+  private setActiveNotebook(activeNotebook?: NotebookPanel) {
     ExtensionStore.update(s => {
-      s.activeNotebookPanel = activeNotebook;
+      s.activeNotebookPanel = activeNotebook as any;
     });
   }
 
