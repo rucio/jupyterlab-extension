@@ -1,18 +1,22 @@
 include LICENSE
-include README.md
+include *.md
+include *.js
 include pyproject.toml
-
-include jupyter-config/rucio_jupyterlab.json
+recursive-include jupyter-config *.json
 
 include package.json
+include install.json
 include ts*.json
-include rucio_jupyterlab/labextension/*.tgz
+include yarn.lock
+
+graft rucio_jupyterlab/labextension
 
 # Javascript files
 graft src
 graft style
 prune **/node_modules
 prune lib
+prune binder
 
 # Patterns to exclude from any directory
 global-exclude *~
@@ -20,3 +24,12 @@ global-exclude *.pyc
 global-exclude *.pyo
 global-exclude .git
 global-exclude .ipynb_checkpoints
+
+exclude Dockerfile
+exclude docker/*
+exclude jest.config.js
+exclude requirements.txt
+exclude rucio_jupyterlab/tests/*
+exclude rucio_jupyterlab/tests/**/*
+exclude tests/*
+exclude yarn-error.log

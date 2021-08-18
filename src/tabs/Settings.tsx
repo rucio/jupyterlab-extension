@@ -116,10 +116,10 @@ const _Settings: React.FunctionComponent = props => {
 
   const [selectedInstance, setSelectedInstance] = useState<string | undefined>(activeInstance?.name);
 
-  const selectedInstanceObject = useMemo(() => instances.find(i => i.name === activeInstance?.name), [
-    instances,
-    activeInstance
-  ]);
+  const selectedInstanceObject = useMemo(
+    () => instances.find(i => i.name === activeInstance?.name),
+    [instances, activeInstance]
+  );
 
   const authTypeOptions = selectedInstanceObject ? getEnabledAuthTypes(selectedInstanceObject) : [];
   const authTypeDefaultValue = activeAuthType ? authTypeOptions.find(o => o.value === activeAuthType) : undefined;
