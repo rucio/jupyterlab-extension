@@ -44,7 +44,7 @@ jobs:
           python -m pip install -U jupyterlab~=3.1 check-manifest
           python -m pip install -r requirements.txt
       - name: Run Pytest
-        run: python -m pytest rucio_jupyterlab/tests/
+        run: pytest rucio_jupyterlab/tests/
       - name: Run Pylint
         run: pylint-fail-under --fail_under 8.5 rucio_jupyterlab/
       - name: Install JS dependencies
