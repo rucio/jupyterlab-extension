@@ -1,6 +1,5 @@
 include LICENSE
-include README.md
-include RELEASE.md
+include *.md
 include pyproject.toml
 recursive-include jupyter-config *.json
 
@@ -32,5 +31,4 @@ exclude requirements.txt
 exclude rucio_jupyterlab/tests/*
 exclude rucio_jupyterlab/tests/**/*
 exclude tests/*
-exclude webpack.config.js
 exclude yarn-error.log
