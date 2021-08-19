@@ -22,6 +22,7 @@ import { Spinning } from '../components/Spinning';
 import { withRequestAPI, WithRequestAPIProps } from '../utils/Actions';
 import { DIDSearchType, DIDSearchResult } from '../types';
 import { InlineDropdown } from '../components/@Explore/InlineDropdown';
+import { ListScopesPopover } from '../components/@Explore/ListScopesPopover';
 
 const useStyles = createUseStyles({
   mainContainer: {
@@ -42,12 +43,27 @@ const useStyles = createUseStyles({
   },
   searchButton: {
     alignItems: 'center',
-    padding: '4px',
+    padding: '8px 8px 8px 4px',
     lineHeight: 0,
     cursor: 'pointer'
   },
   searchIcon: {
+    fontSize: '18px',
     color: 'var(--jp-rucio-primary-blue-color)',
+    opacity: 0.5,
+    '&:hover': {
+      opacity: 1
+    }
+  },
+  listScopesButton: {
+    alignItems: 'center',
+    padding: '8px 4px 8px 4px',
+    lineHeight: 0,
+    cursor: 'pointer'
+  },
+  listScopesIcon: {
+    fontSize: '18px',
+    color: 'var(--jp-layout-color4)',
     opacity: 0.5,
     '&:hover': {
       opacity: 1
@@ -140,6 +156,20 @@ const _Explore: React.FunctionComponent = props => {
       .finally(() => setLoading(false));
   }, [lastQuery, searchType]);
 
+  const searchBoxRef = useRef<any>(null);
+  const onScopeClicked = (scope: string) => {
+    setSearchQuery(scope + ':');
+    searchBoxRef?.current?.focus();
+  };
+
+  const listScopesButton = (
+    <ListScopesPopover onScopeClicked={onScopeClicked}>
+      <div className={classes.listScopesButton}>
+        <i className={`${classes.listScopesIcon} material-icons`}>topic</i>
+      </div>
+    </ListScopesPopover>
+  );
+
   const searchButton = (
     <div className={classes.searchButton} onClick={() => setLastQuery(searchQuery)}>
       <i className={`${classes.searchIcon} material-icons`}>search</i>
@@ -187,10 +217,12 @@ const _Explore: React.FunctionComponent = props => {
       <div className={classes.searchContainer}>
         <TextField
           placeholder="Enter a Data Identifier (DID)"
-          after={searchButton}
+          after={[listScopesButton, searchButton]}
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
           onKeyPress={handleKeyPress}
+          autoComplete="off"
+          ref={searchBoxRef}
         />
       </div>
       <div className={classes.filterContainer}>

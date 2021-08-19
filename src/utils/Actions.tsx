@@ -64,6 +64,11 @@ export class Actions {
     return requestAPI<DIDSearchResult[]>(`did-search?${qs.encode(query)}`);
   }
 
+  async fetchScopes(namespace: string): Promise<string[]> {
+    const query = { namespace };
+    return requestAPI<string[]>(`list-scopes?${qs.encode(query)}`);
+  }
+
   async fetchAttachedFileDIDs(namespace: string, did: string): Promise<AttachedFile[]> {
     const query = { namespace, did };
     return requestAPI<AttachedFile[]>(`files?${qs.encode(query)}`);

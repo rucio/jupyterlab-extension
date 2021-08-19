@@ -114,6 +114,25 @@ describe('putAuthConfig', () => {
     })
 })
 
+describe('fetchScopes', () => {
+    test('should call /list-scopes endpoint with query', async () => {
+        const mockRequestAPI = requestAPI as jest.MockedFunction<typeof requestAPI>;
+        const mockScopes = ['scope1', 'scope2', 'scope3']
+
+        mockRequestAPI.mockClear();
+        mockRequestAPI.mockReturnValue(Promise.resolve(mockScopes));
+
+        const actions = new Actions();
+        const scopes = await actions.fetchScopes('atlas');
+
+        expect(mockRequestAPI).toBeCalledWith(
+            expect.stringMatching(/(\b(list-scopes|namespace=atlas)\b.*){2,}/)
+        )
+
+        expect(scopes).toEqual(mockScopes);
+    })
+})
+
 
 describe('fetchAttachedFileDIDs', () => {
     test('should call /files endpoint with query', async () => {

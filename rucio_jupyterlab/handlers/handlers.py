@@ -20,6 +20,7 @@ from .file_browser import FileBrowserHandler
 from .purge_cache import PurgeCacheHandler
 from .oidc_auth_check import OIDCAuthCheckHandler
 from .open_replication_rule import OpenReplicationRuleHandler
+from .list_scopes import ListScopesHandler
 
 
 def setup_handlers(web_app):  # pragma: no cover
@@ -44,5 +45,6 @@ def setup_handlers(web_app):  # pragma: no cover
         (url_path_join(base_path, 'purge-cache'), PurgeCacheHandler, handler_params),
         (url_path_join(base_path, 'oidc-auth-check'), OIDCAuthCheckHandler, handler_params),
         (url_path_join(base_path, 'open-replication-rule'), OpenReplicationRuleHandler, handler_params),
+        (url_path_join(base_path, 'list-scopes'), ListScopesHandler, handler_params),
     ]
     web_app.add_handlers(host_pattern, handlers)
