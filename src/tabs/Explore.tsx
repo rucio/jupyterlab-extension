@@ -63,7 +63,7 @@ const useStyles = createUseStyles({
   },
   listScopesIcon: {
     fontSize: '18px',
-    color: 'var(--jp-ui-font-color1)',
+    color: 'var(--jp-layout-color4)',
     opacity: 0.5,
     '&:hover': {
       opacity: 1

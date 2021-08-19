@@ -98,7 +98,7 @@ const useStyles = createUseStyles({
   },
   scopeIcon: {
     extend: 'icon',
-    color: '#66B100'
+    color: 'var(--jp-layout-color4)'
   },
   loadingIcon: {
     fontSize: '9pt',
