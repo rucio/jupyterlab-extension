@@ -10,7 +10,7 @@
  */
 
 import { JupyterFrontEnd, JupyterFrontEndPlugin, ILabShell } from '@jupyterlab/application';
-import { InputDialog, Dialog } from '@jupyterlab/apputils';
+import { Dialog, showDialog } from '@jupyterlab/apputils';
 import { INotebookTracker } from '@jupyterlab/notebook';
 import { fileUploadIcon } from '@jupyterlab/ui-components';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
@@ -22,6 +22,7 @@ import { NotebookListener } from './utils/NotebookListener';
 import { ActiveNotebookListener } from './utils/ActiveNotebookListener';
 import { NotebookPollingListener } from './utils/NotebookPollingListener';
 import { InstanceConfig } from './types';
+import { ScopeSelectorWidget } from './widgets/ScopeSelectorWidget';
 
 /**
  * Initialization data for the rucio-jupyterlab extension.
@@ -84,13 +85,18 @@ function activateRucioUploadWidget(app: JupyterFrontEnd, fileBrowserFactory: IFi
           return;
         }
 
-        const scope = await InputDialog.getText({
+        const result = await showDialog({
           title: selection.length > 1 ? `Upload ${selection.length} files to Rucio` : `Upload ${selection[0].name} to Rucio`,
-          label: 'Scope',
-          okLabel: 'Upload'
+          body: new ScopeSelectorWidget(),
+          buttons: [
+            Dialog.cancelButton(),
+            Dialog.okButton({
+              label: 'Upload'
+            })
+          ]
         });
 
-        console.log('Scope', scope.value);
+        console.log('Scope', result.value);
       }
     }
   });
