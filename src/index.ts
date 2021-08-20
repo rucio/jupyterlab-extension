@@ -10,6 +10,7 @@
  */
 
 import { JupyterFrontEnd, JupyterFrontEndPlugin, ILabShell } from '@jupyterlab/application';
+import { InputDialog, Dialog } from '@jupyterlab/apputils';
 import { INotebookTracker } from '@jupyterlab/notebook';
 import { fileUploadIcon } from '@jupyterlab/ui-components';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
@@ -74,12 +75,22 @@ function activateRucioUploadWidget(app: JupyterFrontEnd, fileBrowserFactory: IFi
   app.commands.addCommand(CommandIDs.UploadFile, {
     icon: fileUploadIcon,
     label: 'Upload File(s) to Rucio',
-    execute: () => {
+    execute: async () => {
       const widget = fileBrowserFactory.tracker.currentWidget;
 
       if (widget) {
-        const selection = toArray(widget.selectedItems());
-        console.log(selection);
+        const selection = toArray(widget.selectedItems()).filter(s => s.type !== 'directory');
+        if (selection.length === 0) {
+          return;
+        }
+
+        const scope = await InputDialog.getText({
+          title: selection.length > 1 ? `Upload ${selection.length} files to Rucio` : `Upload ${selection[0].name} to Rucio`,
+          label: 'Scope',
+          okLabel: 'Upload'
+        });
+
+        console.log('Scope', scope.value);
       }
     }
   });
