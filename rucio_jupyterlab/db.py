@@ -10,7 +10,7 @@
 import os
 import time
 import json
-from peewee import SqliteDatabase, Model, TextField, IntegerField, DateTimeField, CompositeKey
+from peewee import SqliteDatabase, Model, TextField, IntegerField, DateTimeField, CompositeKey, BooleanField
 from .entity import AttachedFile
 
 
@@ -29,7 +29,7 @@ db = prepare_db(dir_path)
 
 
 def get_db():
-    db.create_tables([UserConfig, RucioAuthCredentials, AttachedFilesListCache, FileReplicasCache])
+    db.create_tables([UserConfig, RucioAuthCredentials, AttachedFilesListCache, FileReplicasCache, FileUploadJob])
     return DatabaseInstance()
 
 
@@ -102,9 +102,22 @@ class DatabaseInstance:
         FileReplicasCache.replace(
             namespace=namespace, did=file_did, pfn=pfn, size=size, expiry=cache_expires).execute()
 
+    def get_upload_jobs(self, namespace):
+        upload_jobs = FileUploadJob.select().where(FileUploadJob.namespace == namespace).execute()
+        return upload_jobs
+
+    def add_upload_job(self, namespace, did, rse, pid):
+        FileUploadJob.replace(namespace=namespace, did=did, rse=rse, pid=pid, uploaded=False)
+
+    def delete_upload_job(self, namespace, did):
+        job = FileUploadJob.get_or_none(FileUploadJob.namespace == namespace & FileUploadJob.did == did)
+        if job is not None:
+            job.delete_instance()
+
     def purge_cache(self):
         FileReplicasCache.delete().execute(database=None)
         AttachedFilesListCache.delete().execute(database=None)
+        FileUploadJob.delete().execute(database=None)
 
 
 class UserConfig(Model):
@@ -142,6 +155,18 @@ class FileReplicasCache(Model):
     pfn = TextField(null=True)
     size = IntegerField()
     expiry = DateTimeField()
+
+    class Meta:
+        database = db
+        primary_key = CompositeKey('namespace', 'did')
+
+
+class FileUploadJob(Model):
+    namespace = TextField()
+    did = TextField()
+    rse = TextField()
+    uploaded = BooleanField()
+    pid = IntegerField()
 
     class Meta:
         database = db
