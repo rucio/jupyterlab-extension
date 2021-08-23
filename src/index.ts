@@ -22,7 +22,7 @@ import { NotebookListener } from './utils/NotebookListener';
 import { ActiveNotebookListener } from './utils/ActiveNotebookListener';
 import { NotebookPollingListener } from './utils/NotebookPollingListener';
 import { InstanceConfig } from './types';
-import { ScopeSelectorWidget } from './widgets/ScopeSelectorWidget';
+import { RucioUploadDialogWidget } from './widgets/RucioUploadDialog';
 
 /**
  * Initialization data for the rucio-jupyterlab extension.
@@ -86,8 +86,8 @@ function activateRucioUploadWidget(app: JupyterFrontEnd, fileBrowserFactory: IFi
         }
 
         const result = await showDialog({
-          title: selection.length > 1 ? `Upload ${selection.length} files to Rucio` : `Upload ${selection[0].name} to Rucio`,
-          body: new ScopeSelectorWidget(),
+          // title: selection.length > 1 ? `Upload ${selection.length} files to Rucio` : `Upload ${selection[0].name} to Rucio`,
+          body: new RucioUploadDialogWidget(selection),
           buttons: [
             Dialog.cancelButton(),
             Dialog.okButton({
