@@ -18,6 +18,39 @@ logger.setLevel(logging.DEBUG)
 
 
 class RucioClientEnvironment:
+    def __init__(self, rucio):
+        self.rucio = rucio
+        self.instance_config = self.rucio.instance_config
+        self.base_url = self.rucio.base_url
+        self.auth_config = self.rucio.auth_config
+        self.auth_type = self.rucio.auth_type
+        self.auth_url = self.rucio.auth_url
+
+    def __enter__(self):
+        self.tempdir = tempfile.TemporaryDirectory()
+        logger.debug("Created temporary directory: %s", self.tempdir.name)
+
+        rucio_home = self.tempdir.name
+
+        config = self._get_config()
+        RucioClientEnvironment.write_temp_config_file(self.tempdir.name, config)
+        os.environ['RUCIO_HOME'] = rucio_home
+
+        site_name = self.instance_config.get("site_name")
+        if site_name is not None:
+            os.environ['SITE_NAME'] = site_name
+
+        if self.auth_config is not None:
+            if self.auth_type == 'x509':
+                RucioClientEnvironment.prepare_x509_user_authentication(rucio_home, instance_config=self.instance_config, auth_config=self.auth_config)
+            elif self.auth_type == 'x509_proxy':
+                RucioClientEnvironment.prepare_x509_proxy_authentication(rucio_home, auth_config=self.auth_config)
+
+        return self.tempdir.name
+
+    def __exit__(self, *args, **kwargs):
+        self.tempdir.cleanup()
+
     @staticmethod
     def prepare_x509_user_authentication(rucio_home, instance_config, auth_config):
         cert_path = auth_config.get('certificate')
@@ -135,3 +168,29 @@ class RucioClientEnvironment:
         except subprocess.SubprocessError:
             traceback.print_exc()
             return None
+
+    def _get_config(self):
+        auth_config = self.auth_config
+        cert_path = auth_config.get('certificate') if auth_config else None
+        key_path = auth_config.get('key') if auth_config else None
+        username = auth_config.get('username') if auth_config else None
+        password = auth_config.get('password') if auth_config else None
+        account = auth_config.get('account') if auth_config else None
+
+        config = {
+            'rucio_host': self.base_url,
+            'auth_host': self.auth_url,
+            'auth_type': self.auth_type,
+            'username': username,
+            'password': password,
+            'client_cert': cert_path,
+            'client_key': key_path,
+            'account': account,
+            'ca_cert': self.instance_config.get('rucio_ca_cert')
+        }
+
+        vo = self.instance_config.get('vo')  # pylint: disable=invalid-name
+        if vo is not None:
+            config['vo'] = vo
+
+        return config

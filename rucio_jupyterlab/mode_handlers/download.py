@@ -47,11 +47,7 @@ class DownloadModeHandler:
             if unavailable_did is None:
                 return
 
-        config = self._get_config()
-        auth_type = self.rucio.auth_type
-        auth_config = self.rucio.auth_config
-        instance_config = self.rucio.instance_config
-        process = mp.Process(target=DIDDownloader.start_download_target, args=(self.namespace, did, config, instance_config, auth_type, auth_config))
+        process = mp.Process(target=DIDDownloader.start_download_target, args=(self.namespace, did, self.rucio))
         process.start()
 
     def get_did_details(self, scope, name, force_fetch=False):
@@ -95,37 +91,6 @@ class DownloadModeHandler:
 
         return attached_files
 
-    def _get_config(self):
-        instance_config = self.rucio.instance_config
-        base_url = self.rucio.base_url
-        auth_config = self.rucio.auth_config
-        auth_type = self.rucio.auth_type
-        auth_url = self.rucio.auth_url
-
-        cert_path = auth_config.get('certificate') if auth_config else None
-        key_path = auth_config.get('key') if auth_config else None
-        username = auth_config.get('username') if auth_config else None
-        password = auth_config.get('password') if auth_config else None
-        account = auth_config.get('account') if auth_config else None
-
-        config = {
-            'rucio_host': base_url,
-            'auth_host': auth_url,
-            'auth_type': auth_type,
-            'username': username,
-            'password': password,
-            'client_cert': cert_path,
-            'client_key': key_path,
-            'account': account,
-            'ca_cert': instance_config.get('rucio_ca_cert')
-        }
-
-        vo = instance_config.get('vo')  # pylint: disable=invalid-name
-        if vo is not None:
-            config['vo'] = vo
-
-        return config
-
     def _is_downloading(self, did):
         dest_path = DIDDownloader.get_dest_folder(self.namespace, did)
         return DIDDownloader.is_downloading(dest_path)
@@ -154,31 +119,16 @@ class DownloadModeHandler:
 
 class DIDDownloader:
     @staticmethod
-    def start_download_target(namespace, did, config, instance_config, auth_type=None, auth_config=None):
+    def start_download_target(namespace, did, rucio):
         dest_folder = DIDDownloader.get_dest_folder(namespace, did)
 
         if DIDDownloader.is_downloading(dest_folder):
             download_logger.debug("Other process is downloading this DID")
             return
 
-        with tempfile.TemporaryDirectory() as rucio_home:
-            download_logger.debug("Creating temporary directory: %s", rucio_home)
-
-            site_name = instance_config.get("site_name")
-            if site_name is not None:
-                os.environ['SITE_NAME'] = site_name
-
-            os.environ['RUCIO_HOME'] = rucio_home
-            RucioClientEnvironment.write_temp_config_file(rucio_home, config)
-
+        with RucioClientEnvironment(rucio) as rucio_home:
             os.makedirs(dest_folder, exist_ok=True)
             DIDDownloader.write_lockfile(dest_folder)
-
-            if auth_config is not None:
-                if auth_type == 'x509':
-                    RucioClientEnvironment.prepare_x509_user_authentication(rucio_home, instance_config=instance_config, auth_config=auth_config)
-                elif auth_type == 'x509_proxy':
-                    RucioClientEnvironment.prepare_x509_proxy_authentication(rucio_home, auth_config=auth_config)
 
             try:
                 results = DIDDownloader.download(dest_folder, did)
