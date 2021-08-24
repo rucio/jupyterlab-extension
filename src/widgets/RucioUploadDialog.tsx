@@ -9,20 +9,40 @@ import { TextField } from '../components/TextField';
 
 namespace RucioUpload {
   export type DialogValue = {
+    rse: string;
+    lifetime?: string;
     fileScope: string;
-    fileName?: string;
     datasetScope?: string;
     datasetName?: string;
     addToDataset?: boolean;
   };
   export class Model extends VDomModel {
+    _rse = '';
+    _lifetime = '';
     _scopes: string[] = [];
     _selectedScope = '';
     _selectedDatasetScope = '';
-    _name = '';
     _datasetName = '';
     _loading = false;
     _addToDataset = false;
+
+    set rse(rse: string) {
+      this._rse = rse;
+      this.stateChanged.emit(void 0);
+    }
+
+    get rse(): string {
+      return this._rse;
+    }
+
+    set lifetime(lifetime: string) {
+      this._lifetime = lifetime;
+      this.stateChanged.emit(void 0);
+    }
+
+    get lifetime(): string {
+      return this._lifetime;
+    }
 
     get scopes(): string[] {
       return this._scopes;
@@ -48,15 +68,6 @@ namespace RucioUpload {
 
     set selectedDatasetScope(selectedDatasetScope: string) {
       this._selectedDatasetScope = selectedDatasetScope;
-      this.stateChanged.emit(void 0);
-    }
-
-    get name(): string {
-      return this._name;
-    }
-
-    set name(name: string) {
-      this._name = name;
       this.stateChanged.emit(void 0);
     }
 
@@ -149,6 +160,23 @@ namespace RucioUpload {
           <p>Please make sure that the necessary credentials are configured.</p>
           <p>You can see the upload status on the Rucio sidebar.</p>
 
+          <p style={{ marginTop: '16px' }}>Destination RSE Expression:</p>
+          <TextField
+            value={this.model.rse}
+            placeholder="Required"
+            onChange={e => (this.model.rse = e.target.value)}
+            containerStyle={{ marginTop: '4px', marginBottom: '8px' }}
+          />
+
+          <p style={{ marginTop: '16px' }}>Lifetime (in seconds):</p>
+          <TextField
+            type="number"
+            value={this.model.lifetime}
+            placeholder="Leave empty for indefinite"
+            onChange={e => (this.model.lifetime = e.target.value)}
+            containerStyle={{ marginTop: '4px', marginBottom: '8px' }}
+          />
+
           <p style={{ marginTop: '16px' }}>Scope:</p>
           <div style={{ marginTop: '4px', marginBottom: '8px' }}>
             <Select
@@ -161,17 +189,6 @@ namespace RucioUpload {
             />
           </div>
 
-          {this.files.length === 1 && (
-            <React.Fragment>
-              <p style={{ marginTop: '16px' }}>Name:</p>
-              <TextField
-                value={this.model.name}
-                onChange={e => (this.model.name = e.target.value)}
-                placeholder={this.files[0].name}
-                containerStyle={{ marginTop: '4px', marginBottom: '8px' }}
-              />
-            </React.Fragment>
-          )}
           <React.Fragment>
             <label>
               <input
@@ -209,8 +226,9 @@ namespace RucioUpload {
 
     getValue(): RucioUpload.DialogValue {
       return {
+        rse: this.model.rse,
+        lifetime: this.model.lifetime,
         fileScope: this.model.selectedScope,
-        fileName: this.model.name,
         datasetScope: this.model.selectedDatasetScope,
         datasetName: this.model.datasetName,
         addToDataset: this.model.addToDataset
