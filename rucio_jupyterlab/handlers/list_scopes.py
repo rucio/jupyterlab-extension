@@ -9,9 +9,7 @@
 
 import json
 import tornado
-from rucio_jupyterlab.db import get_db
 from rucio_jupyterlab.rucio.authenticators import RucioAuthenticationException
-import rucio_jupyterlab.utils as utils
 from .base import RucioAPIHandler
 
 

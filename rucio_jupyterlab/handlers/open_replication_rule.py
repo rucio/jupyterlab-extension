@@ -7,7 +7,6 @@
 # Authors:
 # - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
 
-import json
 import tornado
 import rucio_jupyterlab.utils as utils
 from .base import RucioAPIHandler

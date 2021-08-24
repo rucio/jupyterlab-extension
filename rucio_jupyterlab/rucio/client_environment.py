@@ -1,16 +1,9 @@
 import os
 import tempfile
 import logging
-import multiprocessing as mp
 import traceback
-import base64
-import json
 from shutil import copyfile, which
 import subprocess
-import psutil
-from rucio_jupyterlab.db import get_db
-from rucio_jupyterlab.entity import AttachedFile
-import rucio_jupyterlab.utils as utils
 
 
 logger = logging.getLogger('RucioClientEnvironmentLogger')
