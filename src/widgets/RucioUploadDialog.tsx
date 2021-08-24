@@ -9,16 +9,20 @@ import { TextField } from '../components/TextField';
 
 namespace RucioUpload {
   export type DialogValue = {
-    scope: string;
-    groupAsDataset?: boolean;
-    name?: string;
+    fileScope: string;
+    fileName?: string;
+    datasetScope?: string;
+    datasetName?: string;
+    addToDataset?: boolean;
   };
   export class Model extends VDomModel {
     _scopes: string[] = [];
     _selectedScope = '';
+    _selectedDatasetScope = '';
     _name = '';
+    _datasetName = '';
     _loading = false;
-    _groupAsDataset = false;
+    _addToDataset = false;
 
     get scopes(): string[] {
       return this._scopes;
@@ -38,12 +42,30 @@ namespace RucioUpload {
       this.stateChanged.emit(void 0);
     }
 
+    get selectedDatasetScope(): string {
+      return this._selectedDatasetScope;
+    }
+
+    set selectedDatasetScope(selectedDatasetScope: string) {
+      this._selectedDatasetScope = selectedDatasetScope;
+      this.stateChanged.emit(void 0);
+    }
+
     get name(): string {
       return this._name;
     }
 
     set name(name: string) {
       this._name = name;
+      this.stateChanged.emit(void 0);
+    }
+
+    get datasetName(): string {
+      return this._datasetName;
+    }
+
+    set datasetName(datasetName: string) {
+      this._datasetName = datasetName;
       this.stateChanged.emit(void 0);
     }
 
@@ -56,12 +78,12 @@ namespace RucioUpload {
       this.stateChanged.emit(void 0);
     }
 
-    get groupAsDataset(): boolean {
-      return this._groupAsDataset;
+    get addToDataset(): boolean {
+      return this._addToDataset;
     }
 
-    set groupAsDataset(groupAsDataset: boolean) {
-      this._groupAsDataset = groupAsDataset;
+    set addToDataset(addToDataset: boolean) {
+      this._addToDataset = addToDataset;
       this.stateChanged.emit(void 0);
     }
   }
@@ -150,37 +172,48 @@ namespace RucioUpload {
               />
             </React.Fragment>
           )}
-          {this.files.length > 1 && (
-            <React.Fragment>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={this.model.groupAsDataset}
-                  onChange={e => (this.model.groupAsDataset = e.target.checked)}
-                />
-                Upload files as a dataset
-              </label>
-              {this.model.groupAsDataset && (
-                <>
-                  <p style={{ marginTop: '16px' }}>Dataset Name:</p>
-                  <TextField
-                    value={this.model.name}
-                    onChange={e => (this.model.name = e.target.value)}
-                    containerStyle={{ marginTop: '4px', marginBottom: '8px' }}
+          <React.Fragment>
+            <label>
+              <input
+                type="checkbox"
+                checked={this.model.addToDataset}
+                onChange={e => (this.model.addToDataset = e.target.checked)}
+              />
+              Add files to a dataset
+            </label>
+            {this.model.addToDataset && (
+              <div style={{ marginTop: '16px' }}>
+                <p>Dataset Scope:</p>
+                <div style={{ marginTop: '4px', marginBottom: '8px' }}>
+                  <Select
+                    isLoading={this.model.loading}
+                    menuPortalTarget={document.body}
+                    styles={selectStyles}
+                    options={this.model.scopes.map(scope => ({ value: scope, label: scope }))}
+                    defaultValue={{ value: this.model.selectedDatasetScope, label: this.model.selectedDatasetScope }}
+                    onChange={(value: any) => (this.model.selectedDatasetScope = value.value)}
                   />
-                </>
-              )}
-            </React.Fragment>
-          )}
+                </div>
+                <p style={{ marginTop: '16px' }}>Dataset Name:</p>
+                <TextField
+                  value={this.model.datasetName}
+                  onChange={e => (this.model.datasetName = e.target.value)}
+                  containerStyle={{ marginTop: '4px', marginBottom: '8px' }}
+                />
+              </div>
+            )}
+          </React.Fragment>
         </div>
       );
     }
 
     getValue(): RucioUpload.DialogValue {
       return {
-        scope: this.model.selectedScope,
-        groupAsDataset: this.model.groupAsDataset,
-        name: this.model.name
+        fileScope: this.model.selectedScope,
+        fileName: this.model.name,
+        datasetScope: this.model.selectedDatasetScope,
+        datasetName: this.model.datasetName,
+        addToDataset: this.model.addToDataset
       };
     }
   }
