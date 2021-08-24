@@ -10,7 +10,6 @@
  */
 
 import { JupyterFrontEnd, JupyterFrontEndPlugin, ILabShell } from '@jupyterlab/application';
-import { Dialog, showDialog } from '@jupyterlab/apputils';
 import { INotebookTracker } from '@jupyterlab/notebook';
 import { fileUploadIcon } from '@jupyterlab/ui-components';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
@@ -22,7 +21,7 @@ import { NotebookListener } from './utils/NotebookListener';
 import { ActiveNotebookListener } from './utils/ActiveNotebookListener';
 import { NotebookPollingListener } from './utils/NotebookPollingListener';
 import { InstanceConfig } from './types';
-import { RucioUploadDialogWidget } from './widgets/RucioUploadDialog';
+import { RucioUploadDialog } from './widgets/RucioUploadDialog';
 
 /**
  * Initialization data for the rucio-jupyterlab extension.
@@ -85,16 +84,19 @@ function activateRucioUploadWidget(app: JupyterFrontEnd, fileBrowserFactory: IFi
           return;
         }
 
-        const result = await showDialog({
-          // title: selection.length > 1 ? `Upload ${selection.length} files to Rucio` : `Upload ${selection[0].name} to Rucio`,
-          body: new RucioUploadDialogWidget(selection),
-          buttons: [
-            Dialog.cancelButton(),
-            Dialog.okButton({
-              label: 'Upload'
-            })
-          ]
-        });
+        const dialog = new RucioUploadDialog(selection);
+        const result = await dialog.launch();
+
+        // const result = await showDialog({
+        //   // title: selection.length > 1 ? `Upload ${selection.length} files to Rucio` : `Upload ${selection[0].name} to Rucio`,
+        //   body: new RucioUploadDialogWidget(selection),
+        //   buttons: [
+        //     Dialog.cancelButton(),
+        //     Dialog.okButton({
+        //       label: 'Upload'
+        //     })
+        //   ]
+        // });
 
         console.log('Scope', result.value);
       }
