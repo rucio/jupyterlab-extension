@@ -9,7 +9,6 @@
 
 import os
 import tempfile
-import logging
 import multiprocessing as mp
 import traceback
 import base64
@@ -20,10 +19,7 @@ import psutil
 from rucio_jupyterlab.db import get_db
 from rucio_jupyterlab.entity import AttachedFile
 import rucio_jupyterlab.utils as utils
-from rucio_jupyterlab.rucio.client_environment import RucioClientEnvironment
-
-download_logger = logging.getLogger('DownloadLogger')
-download_logger.setLevel(logging.DEBUG)
+from rucio_jupyterlab.rucio.download import RucioFileDownloader
 
 BASE_DIR = '~/rucio/downloads'
 
@@ -47,7 +43,7 @@ class DownloadModeHandler:
             if unavailable_did is None:
                 return
 
-        process = mp.Process(target=DIDDownloader.start_download_target, args=(self.namespace, did, self.rucio))
+        process = mp.Process(target=RucioFileDownloader.start_download_target, args=(self.namespace, did, self.rucio))
         process.start()
 
     def get_did_details(self, scope, name, force_fetch=False):
@@ -92,19 +88,19 @@ class DownloadModeHandler:
         return attached_files
 
     def _is_downloading(self, did):
-        dest_path = DIDDownloader.get_dest_folder(self.namespace, did)
-        return DIDDownloader.is_downloading(dest_path)
+        dest_path = RucioFileDownloader.get_dest_folder(self.namespace, did)
+        return RucioFileDownloader.is_downloading(dest_path)
 
     def _dest_dir_exists(self, did):
-        dest_path = DIDDownloader.get_dest_folder(self.namespace, did)
+        dest_path = RucioFileDownloader.get_dest_folder(self.namespace, did)
         return os.path.isdir(dest_path)
 
     def _did_path_exists(self, did):
-        dest_path = DIDDownloader.get_dest_folder(self.namespace, did)
+        dest_path = RucioFileDownloader.get_dest_folder(self.namespace, did)
         return os.path.isdir(dest_path)
 
     def _get_file_paths(self, did):
-        dest_path = DIDDownloader.get_dest_folder(self.namespace, did)
+        dest_path = RucioFileDownloader.get_dest_folder(self.namespace, did)
         donefile_path = os.path.join(dest_path, '.donefile')
 
         if not os.path.isfile(donefile_path):
@@ -115,89 +111,3 @@ class DownloadModeHandler:
             data = json.loads(content)
             paths = data.get('paths')
             return paths
-
-
-class DIDDownloader:
-    @staticmethod
-    def start_download_target(namespace, did, rucio):
-        dest_folder = DIDDownloader.get_dest_folder(namespace, did)
-
-        if DIDDownloader.is_downloading(dest_folder):
-            download_logger.debug("Other process is downloading this DID")
-            return
-
-        with RucioClientEnvironment(rucio) as rucio_home:
-            os.makedirs(dest_folder, exist_ok=True)
-            DIDDownloader.write_lockfile(dest_folder)
-
-            try:
-                results = DIDDownloader.download(dest_folder, did)
-                DIDDownloader.write_donefile(dest_folder, results)
-            finally:
-                DIDDownloader.delete_lockfile(dest_folder)
-
-    @staticmethod
-    def is_downloading(dest_path):
-        lockfile_path = os.path.join(dest_path, '.lockfile')
-
-        if not os.path.isfile(lockfile_path):
-            return False
-
-        with open(lockfile_path, 'r') as lockfile:
-            pid = int(lockfile.read())
-            pid_exists = psutil.pid_exists(pid)
-
-            if not pid_exists:
-                return False
-
-            process = psutil.Process(pid=pid)
-            return process.is_running() and process.status() != 'zombie'
-
-    @staticmethod
-    def download(dest_path, did):
-        from rucio.client import Client
-        from rucio.client.downloadclient import DownloadClient
-
-        client = Client()
-        download_client = DownloadClient(client=client, logger=download_logger)
-
-        results = download_client.download_dids([{'did': did, 'base_dir': dest_path}])
-
-        return results
-
-    @staticmethod
-    def get_dest_folder(namespace, did):
-        did_folder_name = str(base64.b32encode(did.encode('utf-8')), 'utf-8').lower().replace('=', '')
-        dest_path = os.path.expanduser(os.path.join('~', 'rucio', namespace, 'downloads', did_folder_name))
-        return dest_path
-
-    @staticmethod
-    def write_lockfile(dest_folder):
-        file_path = os.path.join(dest_folder, '.lockfile')
-        with open(file_path, 'w') as lockfile:
-            content = str(os.getpid())
-            lockfile.write(content)
-
-    @staticmethod
-    def delete_lockfile(dest_folder):
-        file_path = os.path.join(dest_folder, '.lockfile')
-        os.unlink(file_path)
-
-    @staticmethod
-    def write_donefile(dest_folder, results):
-        file_path = os.path.join(dest_folder, '.donefile')
-        paths = {}
-
-        for result in results:
-            scope = result['scope']
-            name = result['name']
-            did = scope + ':' + name
-            dest_path = result['dest_file_paths'][0]
-            paths[did] = dest_path
-
-        content = json.dumps({
-            'paths': paths
-        })
-
-        with open(file_path, 'w') as donefile:
-            donefile.write(content)
