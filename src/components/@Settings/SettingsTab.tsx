@@ -6,21 +6,21 @@
  * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
  * Authors:
- * - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
+ * - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020-2021
  */
 
 import React, { useMemo, useState, useEffect } from 'react';
 import { createUseStyles } from 'react-jss';
 import Select from 'react-select';
 import { useStoreState } from 'pullstate';
-import { UIStore, resetRucioCaches } from '../stores/UIStore';
-import { Button } from '../components/Button';
-import { withRequestAPI, WithRequestAPIProps } from '../utils/Actions';
-import { UserPassAuth } from '../components/@Settings/UserPassAuth';
-import { X509Auth } from '../components/@Settings/X509Auth';
-import { X509ProxyAuth } from '../components/@Settings/X509ProxyAuth';
-import { Instance, RucioAuthType, RucioUserpassAuth, RucioX509Auth, RucioX509ProxyAuth } from '../types';
-import { HorizontalHeading } from '../components/HorizontalHeading';
+import { UIStore, resetRucioCaches } from '../../stores/UIStore';
+import { Button } from '../Button';
+import { withRequestAPI, WithRequestAPIProps } from '../../utils/Actions';
+import { UserPassAuth } from './UserPassAuth';
+import { X509Auth } from './X509Auth';
+import { X509ProxyAuth } from './X509ProxyAuth';
+import { Instance, RucioAuthType, RucioUserpassAuth, RucioX509Auth, RucioX509ProxyAuth } from '../../types';
+import { HorizontalHeading } from '../HorizontalHeading';
 
 const getEnabledAuthTypes = (instance: Instance) =>
   [
@@ -365,4 +365,4 @@ const _Settings: React.FunctionComponent = props => {
   );
 };
 
-export const Settings = withRequestAPI(_Settings);
+export const SettingsTab = withRequestAPI(_Settings);

@@ -14,9 +14,9 @@ import { createUseStyles } from 'react-jss';
 import { useStoreState } from 'pullstate';
 import { UIStore } from '../stores/UIStore';
 import { MenuBar } from '../components/MenuBar';
-import { Explore } from '../tabs/Explore';
-import { Notebook } from '../tabs/Notebook';
-import { Settings } from '../tabs/Settings';
+import { NotebookTab } from '../components/@Notebook/NotebookTab';
+import { ExploreTab } from '../components/@Explore/ExploreTab';
+import { SettingsTab } from '../components/@Settings/SettingsTab';
 
 const useStyles = createUseStyles({
   container: {
@@ -71,10 +71,10 @@ export const MainPanel: React.FC<React.HTMLAttributes<HTMLElement>> = props => {
         <MenuBar menus={menus} value={activeMenu} onChange={setActiveMenu} />
       </div>
       <div className={classes.content}>
-        <div className={activeMenu !== 1 ? classes.hidden : ''}>{activeInstance && <Explore />}</div>
-        <div className={activeMenu !== 2 ? classes.hidden : ''}>{activeInstance && <Notebook />}</div>
+        <div className={activeMenu !== 1 ? classes.hidden : ''}>{activeInstance && <ExploreTab />}</div>
+        <div className={activeMenu !== 2 ? classes.hidden : ''}>{activeInstance && <NotebookTab />}</div>
         <div className={activeMenu !== 3 ? classes.hidden : ''}>
-          <Settings />
+          <SettingsTab />
         </div>
       </div>
     </div>

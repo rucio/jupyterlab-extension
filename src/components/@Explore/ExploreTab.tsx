@@ -6,7 +6,7 @@
  * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
  * Authors:
- * - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
+ * - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020-2021
  */
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -14,15 +14,15 @@ import { createUseStyles } from 'react-jss';
 import { VariableSizeList } from 'react-window';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import { useStoreState } from 'pullstate';
-import { UIStore } from '../stores/UIStore';
-import { TextField } from '../components/TextField';
-import { HorizontalHeading } from '../components/HorizontalHeading';
-import { DIDListItem } from '../components/@Explore/DIDListItem';
-import { Spinning } from '../components/Spinning';
-import { withRequestAPI, WithRequestAPIProps } from '../utils/Actions';
-import { DIDSearchType, DIDSearchResult } from '../types';
-import { InlineDropdown } from '../components/@Explore/InlineDropdown';
-import { ListScopesPopover } from '../components/@Explore/ListScopesPopover';
+import { UIStore } from '../../stores/UIStore';
+import { TextField } from '../../components/TextField';
+import { HorizontalHeading } from '../../components/HorizontalHeading';
+import { DIDListItem } from '../../components/@Explore/DIDListItem';
+import { Spinning } from '../../components/Spinning';
+import { withRequestAPI, WithRequestAPIProps } from '../../utils/Actions';
+import { DIDSearchType, DIDSearchResult } from '../../types';
+import { InlineDropdown } from '../components/../@Explore/InlineDropdown';
+import { ListScopesPopover } from '../components/../@Explore/ListScopesPopover';
 
 const useStyles = createUseStyles({
   mainContainer: {
@@ -268,4 +268,4 @@ const _Explore: React.FunctionComponent = props => {
   );
 };
 
-export const Explore = withRequestAPI(_Explore);
+export const ExploreTab = withRequestAPI(_Explore);
