@@ -17,14 +17,25 @@ namespace RucioUpload {
     addToDataset?: boolean;
   };
   export class Model extends VDomModel {
+    _rses: string[] = [];
     _rse = '';
     _lifetime = '';
     _scopes: string[] = [];
     _selectedScope = '';
     _selectedDatasetScope = '';
     _datasetName = '';
-    _loading = false;
+    _scopesLoading = false;
+    _rsesLoading = false;
     _addToDataset = false;
+
+    get rses(): string[] {
+      return this._rses;
+    }
+
+    set rses(rses: string[]) {
+      this._rses = rses;
+      this.stateChanged.emit(void 0);
+    }
 
     set rse(rse: string) {
       this._rse = rse;
@@ -80,12 +91,21 @@ namespace RucioUpload {
       this.stateChanged.emit(void 0);
     }
 
-    get loading(): boolean {
-      return this._loading;
+    get scopesLoading(): boolean {
+      return this._scopesLoading;
     }
 
-    set loading(loading: boolean) {
-      this._loading = loading;
+    set scopesLoading(loading: boolean) {
+      this._scopesLoading = loading;
+      this.stateChanged.emit(void 0);
+    }
+
+    get rsesLoading(): boolean {
+      return this._rsesLoading;
+    }
+
+    set rsesLoading(loading: boolean) {
+      this._rsesLoading = loading;
       this.stateChanged.emit(void 0);
     }
 
@@ -111,14 +131,23 @@ namespace RucioUpload {
       const { activeInstance } = UIStore.getRawState();
 
       if (activeInstance) {
-        this.model.loading = true;
+        this.model.scopesLoading = true;
         actions
           .fetchScopes(activeInstance.name)
           .then(result => {
             result.sort((a, b) => a.localeCompare(b));
             this.model.scopes = result;
           })
-          .finally(() => (this.model.loading = false));
+          .finally(() => (this.model.scopesLoading = false));
+
+        this.model.rsesLoading = true;
+        actions
+          .fetchRSEs(activeInstance.name, 'availability_write=True')
+          .then(result => {
+            result.sort((a, b) => a.localeCompare(b));
+            this.model.rses = result;
+          })
+          .finally(() => (this.model.rsesLoading = false));
       }
     }
 
@@ -160,13 +189,17 @@ namespace RucioUpload {
           <p>Please make sure that the necessary credentials are configured.</p>
           <p>You can see the upload status on the Rucio sidebar.</p>
 
-          <p style={{ marginTop: '16px' }}>Destination RSE Expression:</p>
-          <TextField
-            value={this.model.rse}
-            placeholder="Required"
-            onChange={e => (this.model.rse = e.target.value)}
-            containerStyle={{ marginTop: '4px', marginBottom: '8px' }}
-          />
+          <p style={{ marginTop: '16px' }}>Destination RSE:</p>
+          <div style={{ marginTop: '4px', marginBottom: '8px' }}>
+            <Select
+              isLoading={this.model.rsesLoading}
+              menuPortalTarget={document.body}
+              styles={selectStyles}
+              options={this.model.rses.map(rse => ({ value: rse, label: rse }))}
+              defaultValue={{ value: this.model.rse, label: this.model.rse }}
+              onChange={(value: any) => (this.model.rse = value.value)}
+            />
+          </div>
 
           <p style={{ marginTop: '16px' }}>Lifetime (in seconds):</p>
           <TextField
@@ -180,7 +213,7 @@ namespace RucioUpload {
           <p style={{ marginTop: '16px' }}>Scope:</p>
           <div style={{ marginTop: '4px', marginBottom: '8px' }}>
             <Select
-              isLoading={this.model.loading}
+              isLoading={this.model.scopesLoading}
               menuPortalTarget={document.body}
               styles={selectStyles}
               options={this.model.scopes.map(scope => ({ value: scope, label: scope }))}
@@ -203,7 +236,7 @@ namespace RucioUpload {
                 <p>Dataset Scope:</p>
                 <div style={{ marginTop: '4px', marginBottom: '8px' }}>
                   <Select
-                    isLoading={this.model.loading}
+                    isLoading={this.model.scopesLoading}
                     menuPortalTarget={document.body}
                     styles={selectStyles}
                     options={this.model.scopes.map(scope => ({ value: scope, label: scope }))}

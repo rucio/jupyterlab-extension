@@ -31,11 +31,29 @@ class RucioAPI:
         self.auth_url = instance_config.get('rucio_auth_url', self.base_url)
         self.rucio_ca_cert = instance_config.get('rucio_ca_cert', False)    # TODO default should be True
 
-    def get_scopes(self, account=None):
+    def get_scopes(self):
         token = self._get_auth_token()
         headers = {'X-Rucio-Auth-Token': token}
         response = requests.get(url=f'{self.base_url}/scopes/', headers=headers, verify=self.rucio_ca_cert)
         return response.json()
+
+    def get_rses(self, rse_expression=None):
+        token = self._get_auth_token()
+        headers = {'X-Rucio-Auth-Token': token}
+
+        urlencoded_params = urlencode({
+            'expression': rse_expression
+        })
+
+        response = requests.get(url=f'{self.base_url}/rses?{urlencoded_params}', headers=headers, verify=self.rucio_ca_cert)
+
+        if response.text == '':
+            return []
+
+        lines = response.text.rstrip('\n').splitlines()
+        results = [json.loads(l)['rse']  for l in lines]
+
+        return results
 
     def search_did(self, scope, name, search_type='collection', limit=None):
         token = self._get_auth_token()

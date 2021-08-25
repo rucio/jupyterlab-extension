@@ -69,6 +69,11 @@ export class Actions {
     return requestAPI<string[]>(`list-scopes?${qs.encode(query)}`);
   }
 
+  async fetchRSEs(namespace: string, expression?: string): Promise<string[]> {
+    const query = { namespace, expression };
+    return requestAPI<string[]>(`list-rses?${qs.encode(query)}`);
+  }
+
   async fetchAttachedFileDIDs(namespace: string, did: string): Promise<AttachedFile[]> {
     const query = { namespace, did };
     return requestAPI<AttachedFile[]>(`files?${qs.encode(query)}`);
