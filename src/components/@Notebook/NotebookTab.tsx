@@ -6,16 +6,16 @@
  * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
  * Authors:
- * - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
+ * - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020-2021
  */
 
 import React from 'react';
 import { createUseStyles } from 'react-jss';
 import { useStoreState } from 'pullstate';
-import { ExtensionStore } from '../stores/ExtensionStore';
-import { NotebookAttachmentListItem } from '../components/@Notebook/NotebookAttachmentListItem';
-import { HorizontalHeading } from '../components/HorizontalHeading';
-import { useNotebookResolveStatusStore } from '../utils/NotebookListener';
+import { ExtensionStore } from '../../stores/ExtensionStore';
+import { NotebookAttachmentListItem } from './NotebookAttachmentListItem';
+import { HorizontalHeading } from '../HorizontalHeading';
+import { useNotebookResolveStatusStore } from '../../utils/NotebookListener';
 
 const useStyles = createUseStyles({
   container: {
@@ -26,7 +26,7 @@ const useStyles = createUseStyles({
   }
 });
 
-export const Notebook: React.FunctionComponent = () => {
+export const NotebookTab: React.FunctionComponent = () => {
   const classes = useStyles();
   const activeNotebookPanel = useStoreState(ExtensionStore, s => s.activeNotebookPanel);
   const activeNotebookAttachments = useStoreState(ExtensionStore, s => s.activeNotebookAttachment);
