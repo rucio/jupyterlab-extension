@@ -103,11 +103,11 @@ class DatabaseInstance:
             namespace=namespace, did=file_did, pfn=pfn, size=size, expiry=cache_expires).execute()
 
     def get_upload_jobs(self, namespace):
-        upload_jobs = FileUploadJob.select().where(FileUploadJob.namespace == namespace).execute()
+        upload_jobs = FileUploadJob.select().dicts().where(FileUploadJob.namespace == namespace).execute()
         return upload_jobs
 
     def add_upload_job(self, namespace, did, rse, pid):
-        return FileUploadJob.insert(namespace=namespace, did=did, rse=rse, pid=pid, uploaded=False)
+        return FileUploadJob.insert(namespace=namespace, did=did, rse=rse, pid=pid, uploaded=False).execute()
 
     def delete_upload_job(self, id):
         job = FileUploadJob.get_or_none(id)

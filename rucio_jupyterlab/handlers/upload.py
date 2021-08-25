@@ -23,16 +23,27 @@ class UploadHandler(RucioAPIHandler):
         scope = json_body['scope']
         add_to_dataset = json_body.get('add_to_dataset', False)
         dataset_name = json_body.get('dataset_name') if add_to_dataset else None
+        dataset_scope = json_body.get('dataset_scope') if add_to_dataset else None
         lifetime = json_body.get('lifetime')
 
         rucio_instance = self.rucio.for_instance(namespace)
-        UploadHandlerImpl.upload(namespace=namespace, rucio=rucio_instance, file_paths=file_paths, rse=rse, scope=scope, dataset_name=dataset_name, lifetime=lifetime)
+        UploadHandlerImpl.upload(
+            namespace=namespace,
+            rucio=rucio_instance,
+            file_paths=file_paths,
+            rse=rse,
+            scope=scope,
+            dataset_scope=dataset_scope,
+            dataset_name=dataset_name,
+            lifetime=lifetime
+        )
 
         self.finish({'success': True})
 
 
 class UploadHandlerImpl:
     @staticmethod
-    def upload(namespace, rucio, file_paths, rse, scope, dataset_name=None, lifetime=None):
-        process = mp.Process(target=RucioFileUploader.start_upload_target, args=(namespace, rucio, file_paths, rse, scope, dataset_name, lifetime))
+    def upload(namespace, rucio, file_paths, rse, scope, dataset_scope=None, dataset_name=None, lifetime=None):
+        args = (namespace, rucio, file_paths, rse, scope, dataset_scope, dataset_name, lifetime)
+        process = mp.Process(target=RucioFileUploader.start_upload_target, args=args)
         process.start()

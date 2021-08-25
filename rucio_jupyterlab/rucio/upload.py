@@ -28,10 +28,10 @@ class RucioFileUploader:
         self.db = get_db()  # pylint: disable=invalid-name
 
     @staticmethod
-    def start_upload_target(namespace, rucio, file_paths, rse, scope, dataset_name=None, lifetime=None):
+    def start_upload_target(namespace, rucio, file_paths, rse, scope, dataset_scope=None, dataset_name=None, lifetime=None):
         with RucioClientEnvironment(rucio) as rucio_home:
             uploader = RucioFileUploader(namespace, rucio)
-            uploader.upload(scope, file_paths, rse, lifetime)
+            uploader.upload(file_paths=file_paths, rse=rse, scope=scope, dataset_scope=dataset_scope, dataset_name=dataset_name, lifetime=lifetime)
 
     def get_upload_jobs(self):
         upload_jobs = self.db.get_upload_jobs(self.namespace)
@@ -39,38 +39,35 @@ class RucioFileUploader:
         for upload_job in upload_jobs:
             output.append({
                 **upload_job,
-                'status': self._get_job_status(pid=upload_job.pid, uploaded=upload_job.uploaded)
+                'status': self._get_job_status(pid=upload_job['pid'], uploaded=upload_job['uploaded'])
             })
         return output
 
     def _get_job_status(self, pid, uploaded):
         if uploaded:
-            return STATUS_OK
+            return RucioFileUploader.STATUS_OK
 
         pid_exists = psutil.pid_exists(pid)
         if pid_exists:
             process = psutil.Process(pid=pid)
             if process.is_running() and process.status() != 'zombie':
-                return STATUS_UPLOADING
+                return RucioFileUploader.STATUS_UPLOADING
 
-        return STATUS_FAILED
+        return RucioFileUploader.STATUS_FAILED
 
-    def upload(self, file_paths, rse, scope, dataset_name=None, lifetime=None):
-        from rucio.client import Client
+    def upload(self, file_paths, rse, scope, dataset_scope=None, dataset_name=None, lifetime=None):
         from rucio.client.uploadclient import UploadClient
 
-        client = Client()
-        upload_client = UploadClient(client=client, logger=upload_logger)
-
+        upload_client = UploadClient(logger=upload_logger)
         upload_job_ids = self.add_upload_jobs(file_paths, rse, scope)
 
         items = []
         for path in file_paths:
             items.append({
-                'path': path,
+                'path': os.path.abspath(path),
                 'rse': rse,
                 'did_scope': scope,
-                'dataset_scope': scope if dataset_name else None,
+                'dataset_scope': dataset_scope,
                 'dataset_name': dataset_name,
                 'lifetime': lifetime
             })
@@ -87,8 +84,8 @@ class RucioFileUploader:
         for path in file_paths:
             file_name = path.strip('/').split('/')[-1]
             did = scope + ':' + file_name
-            upload_job = self.db.add_upload_job(namespace=namespace, did=did, rse=rse, pid=os.getpid())
-            job_ids.append(upload_job.id)
+            upload_job_id = self.db.add_upload_job(namespace=self.namespace, did=did, rse=rse, pid=os.getpid())
+            job_ids.append(upload_job_id)
 
         return job_ids
 
