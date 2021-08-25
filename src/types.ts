@@ -81,3 +81,13 @@ export interface DIDSearchResult {
   type: 'dataset' | 'container' | 'file';
   size?: number;
 }
+
+export type FileUploadParam = {
+  paths: string[];
+  rse: string;
+  fileScope: string;
+  addToDataset?: boolean;
+  datasetScope?: string;
+  datasetName?: string;
+  lifetime?: number;
+};

@@ -21,7 +21,8 @@ import {
   InstanceConfig,
   DirectoryItem,
   DIDSearchType,
-  DIDSearchResult
+  DIDSearchResult,
+  FileUploadParam
 } from '../types';
 
 export class Actions {
@@ -161,6 +162,25 @@ export class Actions {
     };
 
     return requestAPI('purge-cache', init);
+  }
+
+  async uploadFile(namespace: string, params: FileUploadParam): Promise<void> {
+    const { paths, rse, fileScope, datasetName, addToDataset, datasetScope, lifetime } = params;
+
+    const init = {
+      method: 'POST',
+      body: JSON.stringify({
+        file_paths: paths,
+        rse,
+        scope: fileScope,
+        add_to_dataset: !!addToDataset,
+        dataset_scope: datasetScope,
+        dataset_name: datasetName,
+        lifetime
+      })
+    };
+
+    return requestAPI('upload?namespace=' + encodeURIComponent(namespace), init);
   }
 }
 

@@ -22,6 +22,7 @@ import { ActiveNotebookListener } from './utils/ActiveNotebookListener';
 import { NotebookPollingListener } from './utils/NotebookPollingListener';
 import { InstanceConfig } from './types';
 import { RucioUploadDialog } from './widgets/RucioUploadDialog';
+import { UIStore } from './stores/UIStore';
 
 /**
  * Initialization data for the rucio-jupyterlab extension.
@@ -98,7 +99,25 @@ function activateRucioUploadWidget(app: JupyterFrontEnd, fileBrowserFactory: IFi
         //   ]
         // });
 
+        console.log('Selection', selection);
         console.log('Scope', result.value);
+
+        const { activeInstance } = UIStore.getRawState();
+        if (activeInstance && result.value) {
+          const { rse, lifetime, fileScope, datasetScope, datasetName, addToDataset } = result.value;
+
+          actions
+            .uploadFile(activeInstance.name, {
+              paths: selection.map(s => s.path),
+              rse,
+              lifetime: lifetime ? parseInt(lifetime) : undefined,
+              fileScope,
+              datasetScope,
+              datasetName,
+              addToDataset
+            })
+            .then(r => console.log(r));
+        }
       }
     }
   });
