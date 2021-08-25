@@ -107,12 +107,20 @@ class DatabaseInstance:
         return upload_jobs
 
     def add_upload_job(self, namespace, did, rse, pid):
-        FileUploadJob.replace(namespace=namespace, did=did, rse=rse, pid=pid, uploaded=False)
+        return FileUploadJob.insert(namespace=namespace, did=did, rse=rse, pid=pid, uploaded=False)
 
-    def delete_upload_job(self, namespace, did):
-        job = FileUploadJob.get_or_none(FileUploadJob.namespace == namespace & FileUploadJob.did == did)
+    def delete_upload_job(self, id):
+        job = FileUploadJob.get_or_none(id)
         if job is not None:
             job.delete_instance()
+
+    def mark_upload_job_finished(self, id):
+        job = FileUploadJob.get_or_none(id)
+        if job is not None:
+            job.uploaded = True
+            job.save()
+
+        return job
 
     def purge_cache(self):
         FileReplicasCache.delete().execute(database=None)
@@ -170,4 +178,4 @@ class FileUploadJob(Model):
 
     class Meta:
         database = db
-        primary_key = CompositeKey('namespace', 'did')
+        # primary_key = CompositeKey('namespace', 'did')
