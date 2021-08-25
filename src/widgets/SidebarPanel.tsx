@@ -14,14 +14,11 @@ import { createUseStyles } from 'react-jss';
 
 import { VDomRenderer } from '@jupyterlab/apputils';
 import { JupyterFrontEnd } from '@jupyterlab/application';
-import { NotebookListener } from '../utils/NotebookListener';
-import { ActiveNotebookListener } from '../utils/ActiveNotebookListener';
 import { InstanceConfig } from '../types';
 import { Header } from '../components/Header';
 import { MainPanel } from '../pages/MainPanel';
 import { Spinning } from '../components/Spinning';
 import { UIStore } from '../stores/UIStore';
-import { NotebookPollingListener } from '../utils/NotebookPollingListener';
 import { rucioIcon } from '../icons/RucioIcon';
 
 const useStyles = createUseStyles({
@@ -95,9 +92,6 @@ const PANEL_CLASS = 'jp-RucioExtensionPanel';
 export class SidebarPanel extends VDomRenderer {
   error?: string;
   app?: JupyterFrontEnd;
-  notebookListener?: NotebookListener;
-  activeNotebookListener?: ActiveNotebookListener;
-  notebookPollingListener?: NotebookPollingListener;
   instanceConfig?: InstanceConfig;
 
   constructor(options?: SidebarPanelOptions, error?: string) {
