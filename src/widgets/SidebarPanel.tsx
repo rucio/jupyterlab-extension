@@ -9,17 +9,20 @@
  * - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { createUseStyles } from 'react-jss';
 
 import { VDomRenderer } from '@jupyterlab/apputils';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { InstanceConfig } from '../types';
 import { Header } from '../components/Header';
-import { MainPanel } from '../pages/MainPanel';
-import { Spinning } from '../components/Spinning';
 import { UIStore } from '../stores/UIStore';
 import { rucioIcon } from '../icons/RucioIcon';
+import { MenuBar } from '../components/MenuBar';
+import { ExploreTab } from '../components/@Explore/ExploreTab';
+import { NotebookTab } from '../components/@Notebook/NotebookTab';
+import { SettingsTab } from '../components/@Settings/SettingsTab';
+import { useStoreState } from 'pullstate';
 
 const useStyles = createUseStyles({
   panel: {
@@ -30,9 +33,6 @@ const useStyles = createUseStyles({
   section: {
     flex: 1
   },
-  content: {
-    padding: '16px'
-  },
   icon: {
     fontSize: '10pt',
     verticalAlign: 'middle'
@@ -40,38 +40,69 @@ const useStyles = createUseStyles({
   iconText: {
     verticalAlign: 'middle',
     paddingLeft: '4px'
+  },
+  container: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'auto'
+  },
+  menuBar: {
+    marginTop: '16px'
+  },
+  content: {
+    flex: 1,
+    overflow: 'auto',
+    '& > div': {
+      height: '100%'
+    }
+  },
+  instanceOption: {
+    lineHeight: 0
+  },
+  infoIcon: {
+    fontSize: '15px'
+  },
+  hidden: {
+    display: 'none'
   }
 });
 
-interface PanelProps {
-  instanceConfig: InstanceConfig;
-}
-
-const Panel: React.FC<PanelProps> = ({ instanceConfig }) => {
+const Panel: React.FC = () => {
   const classes = useStyles();
-  const { activeInstance, authType, instances } = instanceConfig;
-  const [configLoaded, setConfigLoaded] = useState(false);
+  const activeInstance = useStoreState(UIStore, s => s.activeInstance);
 
-  useEffect(() => {
-    const objActiveInstance = instances.find(i => i.name === activeInstance);
-    UIStore.update(s => {
-      s.activeInstance = objActiveInstance;
-      s.activeAuthType = authType;
-      s.instances = instances;
-    });
-    setConfigLoaded(true);
-  }, [instanceConfig]);
+  const [activeMenu, setActiveMenu] = useState(activeInstance ? 1 : 3);
+
+  const menus = [
+    { title: 'Explore', value: 1, right: false, disabled: !activeInstance },
+    { title: 'Notebook', value: 2, right: false, disabled: !activeInstance },
+    {
+      title: (
+        <div className={classes.instanceOption}>
+          <i className={`${classes.infoIcon} material-icons`}>settings</i>
+        </div>
+      ),
+      value: 3,
+      right: true
+    }
+  ];
 
   return (
     <div className={classes.panel}>
       <Header />
-      {!!configLoaded && <MainPanel />}
-      {!configLoaded && (
-        <div className={classes.content}>
-          <Spinning className={`${classes.icon} material-icons`}>hourglass_top</Spinning>
-          <span className={classes.iconText}>Loading...</span>
+      <div className={classes.container}>
+        <div className={classes.menuBar}>
+          <MenuBar menus={menus} value={activeMenu} onChange={setActiveMenu} />
         </div>
-      )}
+        <div className={classes.content}>
+          <div className={activeMenu !== 1 ? classes.hidden : ''}>{activeInstance && <ExploreTab />}</div>
+          <div className={activeMenu !== 2 ? classes.hidden : ''}>{activeInstance && <NotebookTab />}</div>
+          <div className={activeMenu !== 3 ? classes.hidden : ''}>
+            <SettingsTab />
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
@@ -91,7 +122,6 @@ const PANEL_CLASS = 'jp-RucioExtensionPanel';
 
 export class SidebarPanel extends VDomRenderer {
   error?: string;
-  app?: JupyterFrontEnd;
   instanceConfig?: InstanceConfig;
 
   constructor(options?: SidebarPanelOptions, error?: string) {
@@ -101,14 +131,23 @@ export class SidebarPanel extends VDomRenderer {
     super.title.icon = rucioIcon;
 
     if (!options || error) {
-      this.error = error || 'Failed to activate extension. Make sure that the extension is configured and installed properly.';
+      this.error = error ?? 'Failed to activate extension. Make sure that the extension is configured and installed properly.';
       return;
     }
 
-    const { app, instanceConfig } = options;
-
-    this.app = app;
+    const { instanceConfig } = options;
     this.instanceConfig = instanceConfig;
+    this.populateUIStore(instanceConfig);
+  }
+
+  private populateUIStore(instanceConfig: InstanceConfig) {
+    const { activeInstance, authType, instances } = instanceConfig;
+    const objActiveInstance = instances.find(i => i.name === activeInstance);
+    UIStore.update(s => {
+      s.activeInstance = objActiveInstance;
+      s.activeAuthType = authType;
+      s.instances = instances;
+    });
   }
 
   render(): React.ReactElement {
@@ -120,6 +159,6 @@ export class SidebarPanel extends VDomRenderer {
       return <ErrorPanel error="Extension is not configured properly." />;
     }
 
-    return <Panel instanceConfig={this.instanceConfig} />;
+    return <Panel />;
   }
 }
