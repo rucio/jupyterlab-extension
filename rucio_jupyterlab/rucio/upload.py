@@ -105,10 +105,13 @@ class RucioFileUploader:
             'lifetime': lifetime
         }
 
-        status = upload_client.upload(items=[item])
-        if status == 0:
-            self.db.mark_upload_job_finished(upload_job_id)
-            os.remove(logfile_path)
+        try:
+            status = upload_client.upload(items=[item])
+            if status == 0:
+                self.db.mark_upload_job_finished(upload_job_id)
+                os.remove(logfile_path)
+        except:
+            upload_logger.exception("Upload failed")
 
     def add_upload_job(self, path, rse, scope, lifetime=None, dataset_scope=None, dataset_name=None):
         file_name = path.strip('/').split('/')[-1]
