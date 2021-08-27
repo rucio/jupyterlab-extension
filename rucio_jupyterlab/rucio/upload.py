@@ -56,6 +56,11 @@ class RucioFileUploader:
 
     def delete_upload_job(self, job_id):
         self.db.delete_upload_job(job_id)
+        try:
+            logfile_path = os.path.join(LOGFILE_DIR, f"{job_id}.log")
+            os.remove(logfile_path)
+        except OSError:
+            pass
 
     def _get_job_status(self, pid, uploaded):
         if uploaded:
