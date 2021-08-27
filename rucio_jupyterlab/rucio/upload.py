@@ -43,6 +43,16 @@ class RucioFileUploader:
             })
         return output
 
+    def get_upload_job(self, job_id):
+        upload_job = self.db.get_upload_job(job_id)
+        return {
+            **upload_job,
+            'status': self._get_job_status(pid=upload_job['pid'], uploaded=upload_job['uploaded'])
+        }
+
+    def delete_upload_job(self, job_id):
+        self.db.delete_upload_job(job_id)
+
     def _get_job_status(self, pid, uploaded):
         if uploaded:
             return RucioFileUploader.STATUS_OK

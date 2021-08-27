@@ -23,6 +23,7 @@ from .open_replication_rule import OpenReplicationRuleHandler
 from .list_scopes import ListScopesHandler
 from .list_rses import ListRSEsHandler
 from .upload_jobs import UploadJobsHandler
+from .upload_jobs_details import UploadJobsDetailsHandler
 from .upload import UploadHandler
 
 
@@ -51,6 +52,7 @@ def setup_handlers(web_app):  # pragma: no cover
         (url_path_join(base_path, 'list-scopes'), ListScopesHandler, handler_params),
         (url_path_join(base_path, 'list-rses'), ListRSEsHandler, handler_params),
         (url_path_join(base_path, 'upload', 'jobs'), UploadJobsHandler, handler_params),
+        (url_path_join(base_path, 'upload', 'jobs', 'details'), UploadJobsDetailsHandler, handler_params),
         (url_path_join(base_path, 'upload'), UploadHandler, handler_params),
 
     ]

@@ -106,6 +106,10 @@ class DatabaseInstance:
         upload_jobs = FileUploadJob.select().dicts().where(FileUploadJob.namespace == namespace).execute()
         return upload_jobs
 
+    def get_upload_job(self, job_id):
+        upload_jobs = FileUploadJob.select().dicts().where(FileUploadJob.id == job_id).execute()
+        return upload_jobs[0]
+
     def add_upload_job(self, namespace, did, dataset_did, path, rse, lifetime, pid):
         return FileUploadJob.insert(namespace=namespace, did=did, dataset_did=dataset_did, path=path, rse=rse, lifetime=lifetime, pid=pid, uploaded=False).execute()
 
