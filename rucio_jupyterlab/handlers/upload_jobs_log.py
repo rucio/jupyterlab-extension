@@ -26,4 +26,4 @@ class UploadJobsLogHandler(RucioAPIHandler):
             log_text = "Logfile does not exist"
             self.set_status(404)
 
-        self.finish(log_text)
+        self.finish({'text': log_text})

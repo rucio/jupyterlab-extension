@@ -8,6 +8,8 @@
  * Authors:
  * - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
  */
+import { JupyterFrontEnd } from '@jupyterlab/application';
+import React from 'react';
 
 export const EXTENSION_ID = 'rucio-jupyterlab';
 export const METADATA_ATTACHMENTS_KEY = 'rucio_attachments';
@@ -21,4 +23,7 @@ export const searchByOptions = [
 
 export namespace CommandIDs {
   export const UploadFile = `${EXTENSION_ID}:upload-file`;
+  export const OpenUploadLog = `${EXTENSION_ID}:open-upload-log`;
 }
+
+export const JupyterLabAppContext = React.createContext<JupyterFrontEnd | undefined>(undefined);

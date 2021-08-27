@@ -105,3 +105,7 @@ export type FileUploadJob = {
   pid: number;
   status: FileUploadStatus;
 };
+
+export type FileUploadLog = {
+  text: string;
+};

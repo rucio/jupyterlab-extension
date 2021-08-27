@@ -9,11 +9,13 @@
  * - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020-2021
  */
 
-import React from 'react';
+import React, { useContext } from 'react';
 import { createUseStyles } from 'react-jss';
 import { Spinning } from '../Spinning';
 import { withRequestAPI } from '../../utils/Actions';
 import { FileUploadJob, FileUploadStatus } from '../../types';
+import { JupyterLabAppContext } from '../../const';
+import { UploadLogViewerWidget } from '../../widgets/UploadLogViewerWidget';
 
 const useStyles = createUseStyles({
   listItemContainer: {
@@ -98,6 +100,12 @@ export interface UploadJobListItemProps {
 const _UploadJobListItem: React.FC<UploadJobListItemProps> = ({ job, onDeleteClick }) => {
   const classes = useStyles();
 
+  const app = useContext(JupyterLabAppContext);
+  const showLog = () => {
+    const widget = new UploadLogViewerWidget(job.id);
+    app?.shell.add(widget, 'main');
+  };
+
   return (
     <div className={classes.listItemContainer}>
       <div className={classes.listItemIconContainer}>
@@ -108,6 +116,11 @@ const _UploadJobListItem: React.FC<UploadJobListItemProps> = ({ job, onDeleteCli
         <div className={classes.variableName}>
           {job.path} &rarr; {job.rse}
         </div>
+        {job.status === 'FAILED' && (
+          <div className={classes.action} onClick={showLog}>
+            Show Log
+          </div>
+        )}
       </div>
       <div className={classes.actionContainer}>
         {job.status !== 'UPLOADING' && !!onDeleteClick && (

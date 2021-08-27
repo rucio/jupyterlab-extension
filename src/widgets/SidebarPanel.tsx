@@ -23,6 +23,7 @@ import { ExploreTab } from '../components/@Explore/ExploreTab';
 import { NotebookTab } from '../components/@Notebook/NotebookTab';
 import { SettingsTab } from '../components/@Settings/SettingsTab';
 import { UploadsTab } from '../components/@Uploads/UploadsTab';
+import { JupyterLabAppContext } from '../const';
 
 const useStyles = createUseStyles({
   panel: {
@@ -135,19 +136,22 @@ const PANEL_CLASS = 'jp-RucioExtensionPanel';
 export class SidebarPanel extends VDomRenderer {
   error?: string;
   instanceConfig?: InstanceConfig;
+  app: JupyterFrontEnd;
 
-  constructor(options?: SidebarPanelOptions, error?: string) {
+  constructor(options: SidebarPanelOptions, error?: string) {
     super();
     super.addClass(PANEL_CLASS);
     super.title.closable = true;
     super.title.icon = rucioIcon;
 
-    if (!options || error) {
+    const { app, instanceConfig } = options;
+    this.app = app;
+
+    if (error) {
       this.error = error ?? 'Failed to activate extension. Make sure that the extension is configured and installed properly.';
       return;
     }
 
-    const { instanceConfig } = options;
     this.instanceConfig = instanceConfig;
     this.populateUIStore(instanceConfig);
   }
@@ -171,6 +175,10 @@ export class SidebarPanel extends VDomRenderer {
       return <ErrorPanel error="Extension is not configured properly." />;
     }
 
-    return <Panel />;
+    return (
+      <JupyterLabAppContext.Provider value={this.app}>
+        <Panel />
+      </JupyterLabAppContext.Provider>
+    );
   }
 }

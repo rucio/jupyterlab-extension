@@ -23,7 +23,8 @@ import {
   DIDSearchType,
   DIDSearchResult,
   FileUploadParam,
-  FileUploadJob
+  FileUploadJob,
+  FileUploadLog
 } from '../types';
 
 export class Actions {
@@ -187,6 +188,11 @@ export class Actions {
   async fetchUploadJobs(namespace: string): Promise<FileUploadJob[]> {
     const query = { namespace };
     return requestAPI<FileUploadJob[]>('upload/jobs?' + qs.encode(query));
+  }
+
+  async fetchUploadJobLog(namespace: string, id: string): Promise<FileUploadLog> {
+    const query = { namespace, id };
+    return requestAPI<FileUploadLog>('upload/jobs/log?' + qs.encode(query));
   }
 
   async deleteUploadJob(namespace: string, id: string): Promise<void> {
