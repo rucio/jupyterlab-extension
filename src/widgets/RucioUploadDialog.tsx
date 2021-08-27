@@ -6,6 +6,7 @@ import RucioLogo from '../components/RucioLogo';
 import { UIStore } from '../stores/UIStore';
 import { actions } from '../utils/Actions';
 import { TextField } from '../components/TextField';
+import { Alert } from '../components/Alert';
 
 namespace RucioUpload {
   export type DialogValue = {
@@ -181,13 +182,19 @@ namespace RucioUpload {
         })
       };
 
+      const { activeAuthType } = UIStore.getRawState();
+
       return (
         <div>
           {this.files.length > 1 && <h2 style={{ marginTop: 0 }}>Upload {this.files.length} files to Rucio</h2>}
           {this.files.length === 1 && <h2 style={{ marginTop: 0 }}>Upload {this.files[0].name} to Rucio</h2>}
 
-          <p>Please make sure that the necessary credentials are configured.</p>
-          <p>You can see the upload status on the Rucio sidebar.</p>
+          {!(activeAuthType === 'x509' || activeAuthType === 'x509_proxy') && (
+            <Alert style={{ marginTop: '8px', marginBottom: '8px' }}>
+              You are not using X509 as the authentication method, upload may fail if the destination RSE does not support your
+              authentication method.
+            </Alert>
+          )}
 
           <p style={{ marginTop: '16px' }}>Destination RSE:</p>
           <div style={{ marginTop: '4px', marginBottom: '8px' }}>
