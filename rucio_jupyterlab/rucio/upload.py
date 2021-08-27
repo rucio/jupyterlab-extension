@@ -13,8 +13,7 @@ import logging
 from rucio_jupyterlab.db import get_db
 from rucio_jupyterlab.rucio.client_environment import RucioClientEnvironment
 
-upload_logger = logging.getLogger('UploadLogger')
-upload_logger.setLevel(logging.DEBUG)
+LOGFILE_DIR = os.path.expanduser('~/.rucio_jupyterlab/logs/upload')
 
 
 class RucioFileUploader:
@@ -50,6 +49,11 @@ class RucioFileUploader:
             'status': self._get_job_status(pid=upload_job['pid'], uploaded=upload_job['uploaded'])
         }
 
+    def get_upload_job_log(self, job_id):
+        logfile_path = os.path.join(LOGFILE_DIR, f"{job_id}.log")
+        with open(logfile_path, 'r') as f:
+            return f.read()
+
     def delete_upload_job(self, job_id):
         self.db.delete_upload_job(job_id)
 
@@ -68,7 +72,6 @@ class RucioFileUploader:
     def upload(self, file_path, rse, scope, dataset_scope=None, dataset_name=None, lifetime=None):
         from rucio.client.uploadclient import UploadClient
 
-        upload_client = UploadClient(logger=upload_logger)
         upload_job_id = self.add_upload_job(
             path=file_path,
             rse=rse,
@@ -77,6 +80,16 @@ class RucioFileUploader:
             dataset_scope=dataset_scope,
             dataset_name=dataset_name
         )
+
+        os.makedirs(LOGFILE_DIR, exist_ok=True)
+        logfile_path = os.path.join(LOGFILE_DIR, f"{upload_job_id}.log")
+
+        upload_logger = logging.getLogger('UploadLogger')
+        upload_logger.setLevel(logging.DEBUG)
+        upload_logger.addHandler(logging.FileHandler(logfile_path))
+        upload_logger.addHandler(logging.StreamHandler())
+
+        upload_client = UploadClient(logger=upload_logger)
 
         item = {
             'path': os.path.abspath(file_path),
@@ -89,10 +102,8 @@ class RucioFileUploader:
 
         status = upload_client.upload(items=[item])
         if status == 0:
-            upload_logger.debug("Upload successful")
             self.db.mark_upload_job_finished(upload_job_id)
-        else:
-            upload_logger.error("Upload failed, status: %s", status)
+            os.remove(logfile_path)
 
     def add_upload_job(self, path, rse, scope, lifetime=None, dataset_scope=None, dataset_name=None):
         file_name = path.strip('/').split('/')[-1]
