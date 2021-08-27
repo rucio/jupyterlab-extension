@@ -11,9 +11,9 @@
 
 import React, { useState } from 'react';
 import { createUseStyles } from 'react-jss';
-
 import { VDomRenderer } from '@jupyterlab/apputils';
 import { JupyterFrontEnd } from '@jupyterlab/application';
+import { useStoreState } from 'pullstate';
 import { InstanceConfig } from '../types';
 import { Header } from '../components/Header';
 import { UIStore } from '../stores/UIStore';
@@ -22,7 +22,7 @@ import { MenuBar } from '../components/MenuBar';
 import { ExploreTab } from '../components/@Explore/ExploreTab';
 import { NotebookTab } from '../components/@Notebook/NotebookTab';
 import { SettingsTab } from '../components/@Settings/SettingsTab';
-import { useStoreState } from 'pullstate';
+import { UploadsTab } from '../components/@Uploads/UploadsTab';
 
 const useStyles = createUseStyles({
   panel: {
@@ -85,6 +85,15 @@ const Panel: React.FC = () => {
       ),
       value: 3,
       right: true
+    },
+    {
+      title: (
+        <div className={classes.instanceOption}>
+          <i className={`${classes.infoIcon} material-icons`}>upload</i>
+        </div>
+      ),
+      value: 4,
+      right: true
     }
   ];
 
@@ -100,6 +109,9 @@ const Panel: React.FC = () => {
           <div className={activeMenu !== 2 ? classes.hidden : ''}>{activeInstance && <NotebookTab />}</div>
           <div className={activeMenu !== 3 ? classes.hidden : ''}>
             <SettingsTab />
+          </div>
+          <div className={activeMenu !== 4 ? classes.hidden : ''}>
+            <UploadsTab visible={activeMenu === 4} />
           </div>
         </div>
       </div>

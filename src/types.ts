@@ -91,3 +91,17 @@ export type FileUploadParam = {
   datasetName?: string;
   lifetime?: number;
 };
+
+export type FileUploadStatus = 'OK' | 'FAILED' | 'UPLOADING';
+
+export type FileUploadJob = {
+  id: string;
+  did: string;
+  datasetDid?: string;
+  path: string;
+  rse: string;
+  uploaded: boolean;
+  lifetime?: number;
+  pid: number;
+  status: FileUploadStatus;
+};

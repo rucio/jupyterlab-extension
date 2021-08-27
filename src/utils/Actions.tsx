@@ -22,7 +22,8 @@ import {
   DirectoryItem,
   DIDSearchType,
   DIDSearchResult,
-  FileUploadParam
+  FileUploadParam,
+  FileUploadJob
 } from '../types';
 
 export class Actions {
@@ -181,6 +182,19 @@ export class Actions {
     };
 
     return requestAPI('upload?namespace=' + encodeURIComponent(namespace), init);
+  }
+
+  async fetchUploadJobs(namespace: string): Promise<FileUploadJob[]> {
+    const query = { namespace };
+    return requestAPI<FileUploadJob[]>('upload/jobs?' + qs.encode(query));
+  }
+
+  async deleteUploadJob(namespace: string, id: string): Promise<void> {
+    const query = { namespace, id };
+    const init = {
+      method: 'DELETE'
+    };
+    return requestAPI<void>('upload/jobs/details?' + qs.encode(query), init);
   }
 }
 
