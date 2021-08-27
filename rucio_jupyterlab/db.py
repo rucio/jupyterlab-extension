@@ -106,8 +106,8 @@ class DatabaseInstance:
         upload_jobs = FileUploadJob.select().dicts().where(FileUploadJob.namespace == namespace).execute()
         return upload_jobs
 
-    def add_upload_job(self, namespace, did, rse, pid):
-        return FileUploadJob.insert(namespace=namespace, did=did, rse=rse, pid=pid, uploaded=False).execute()
+    def add_upload_job(self, namespace, did, dataset_did, path, rse, lifetime, pid):
+        return FileUploadJob.insert(namespace=namespace, did=did, dataset_did=dataset_did, path=path, rse=rse, lifetime=lifetime, pid=pid, uploaded=False).execute()
 
     def delete_upload_job(self, id):
         job = FileUploadJob.get_or_none(id)
@@ -172,8 +172,11 @@ class FileReplicasCache(Model):
 class FileUploadJob(Model):
     namespace = TextField()
     did = TextField()
+    dataset_did = TextField(null=True)
+    path = TextField()
     rse = TextField()
     uploaded = BooleanField()
+    lifetime = IntegerField(null=True)
     pid = IntegerField()
 
     class Meta:

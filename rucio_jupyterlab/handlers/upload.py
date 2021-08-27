@@ -44,6 +44,7 @@ class UploadHandler(RucioAPIHandler):
 class UploadHandlerImpl:
     @staticmethod
     def upload(namespace, rucio, file_paths, rse, scope, dataset_scope=None, dataset_name=None, lifetime=None):
-        args = (namespace, rucio, file_paths, rse, scope, dataset_scope, dataset_name, lifetime)
-        process = mp.Process(target=RucioFileUploader.start_upload_target, args=args)
-        process.start()
+        for file_path in file_paths:
+            args = (namespace, rucio, file_path, rse, scope, dataset_scope, dataset_name, lifetime)
+            process = mp.Process(target=RucioFileUploader.start_upload_target, args=args)
+            process.start()

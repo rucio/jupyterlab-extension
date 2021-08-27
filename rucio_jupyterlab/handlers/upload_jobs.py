@@ -8,6 +8,7 @@
 # - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020-2021
 
 import tornado
+import json
 from rucio_jupyterlab.rucio.upload import RucioFileUploader
 from .base import RucioAPIHandler
 
@@ -20,6 +21,4 @@ class UploadJobsHandler(RucioAPIHandler):
         uploader = RucioFileUploader(namespace=namespace, rucio=rucio_instance)
 
         upload_jobs = uploader.get_upload_jobs()
-        self.finish({
-            'upload_jobs': upload_jobs
-        })
+        self.finish(json.dumps(upload_jobs))

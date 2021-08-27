@@ -28,10 +28,10 @@ class RucioFileUploader:
         self.db = get_db()  # pylint: disable=invalid-name
 
     @staticmethod
-    def start_upload_target(namespace, rucio, file_paths, rse, scope, dataset_scope=None, dataset_name=None, lifetime=None):
+    def start_upload_target(namespace, rucio, file_path, rse, scope, dataset_scope=None, dataset_name=None, lifetime=None):
         with RucioClientEnvironment(rucio) as rucio_home:
             uploader = RucioFileUploader(namespace, rucio)
-            uploader.upload(file_paths=file_paths, rse=rse, scope=scope, dataset_scope=dataset_scope, dataset_name=dataset_name, lifetime=lifetime)
+            uploader.upload(file_path=file_path, rse=rse, scope=scope, dataset_scope=dataset_scope, dataset_name=dataset_name, lifetime=lifetime)
 
     def get_upload_jobs(self):
         upload_jobs = self.db.get_upload_jobs(self.namespace)
@@ -55,40 +55,49 @@ class RucioFileUploader:
 
         return RucioFileUploader.STATUS_FAILED
 
-    def upload(self, file_paths, rse, scope, dataset_scope=None, dataset_name=None, lifetime=None):
+    def upload(self, file_path, rse, scope, dataset_scope=None, dataset_name=None, lifetime=None):
         from rucio.client.uploadclient import UploadClient
 
         upload_client = UploadClient(logger=upload_logger)
-        upload_job_ids = self.add_upload_jobs(file_paths, rse, scope)
+        upload_job_id = self.add_upload_job(
+            path=file_path,
+            rse=rse,
+            scope=scope,
+            lifetime=lifetime,
+            dataset_scope=dataset_scope,
+            dataset_name=dataset_name
+        )
 
-        items = []
-        for path in file_paths:
-            items.append({
-                'path': os.path.abspath(path),
-                'rse': rse,
-                'did_scope': scope,
-                'dataset_scope': dataset_scope,
-                'dataset_name': dataset_name,
-                'lifetime': lifetime
-            })
+        item = {
+            'path': os.path.abspath(file_path),
+            'rse': rse,
+            'did_scope': scope,
+            'dataset_scope': dataset_scope,
+            'dataset_name': dataset_name,
+            'lifetime': lifetime
+        }
 
-        status = upload_client.upload(items=items)
+        status = upload_client.upload(items=[item])
         if status == 0:
             upload_logger.debug("Upload successful")
-            self.mark_upload_jobs_finished(upload_job_ids)
+            self.db.mark_upload_job_finished(upload_job_id)
         else:
             upload_logger.error("Upload failed, status: %s", status)
 
-    def add_upload_jobs(self, file_paths, rse, scope):
-        job_ids = []
-        for path in file_paths:
-            file_name = path.strip('/').split('/')[-1]
-            did = scope + ':' + file_name
-            upload_job_id = self.db.add_upload_job(namespace=self.namespace, did=did, rse=rse, pid=os.getpid())
-            job_ids.append(upload_job_id)
+    def add_upload_job(self, path, rse, scope, lifetime=None, dataset_scope=None, dataset_name=None):
+        file_name = path.strip('/').split('/')[-1]
+        did = scope + ':' + file_name
+        dataset_did = None
+        if dataset_scope and dataset_scope:
+            dataset_did = dataset_scope + ':' + dataset_name
 
-        return job_ids
-
-    def mark_upload_jobs_finished(self, upload_job_ids):
-        for job_id in upload_job_ids:
-            self.db.mark_upload_job_finished(job_id)
+        upload_job_id = self.db.add_upload_job(
+            namespace=self.namespace,
+            did=did,
+            dataset_did=dataset_did,
+            path=path,
+            rse=rse,
+            lifetime=lifetime,
+            pid=os.getpid()
+        )
+        return upload_job_id
