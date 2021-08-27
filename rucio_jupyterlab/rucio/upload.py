@@ -94,8 +94,6 @@ class RucioFileUploader:
         upload_logger.addHandler(logging.FileHandler(logfile_path))
         upload_logger.addHandler(logging.StreamHandler())
 
-        upload_client = UploadClient(logger=upload_logger)
-
         item = {
             'path': os.path.abspath(file_path),
             'rse': rse,
@@ -106,6 +104,7 @@ class RucioFileUploader:
         }
 
         try:
+            upload_client = UploadClient(logger=upload_logger)
             status = upload_client.upload(items=[item])
             if status == 0:
                 self.db.mark_upload_job_finished(upload_job_id)
