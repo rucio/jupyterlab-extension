@@ -50,10 +50,8 @@ namespace UploadLogViewer {
     render(): React.ReactElement {
       return (
         <div style={{ height: '100%', overflow: 'auto', flex: 1 }}>
-          <div style={{ padding: '8px' }}>
-            <code>
-              <pre>{this.model.log}</pre>
-            </code>
+          <div style={{ padding: '8px', color: 'var(--jp-ui-font-color0)' }}>
+            <code style={{ whiteSpace: 'pre' }}>{this.model.log}</code>
           </div>
         </div>
       );
