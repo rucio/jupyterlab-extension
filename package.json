@@ -1,6 +1,6 @@
 {
   "name": "rucio-jupyterlab",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "JupyterLab extension for integrating Rucio",
   "keywords": [
     "jupyter",
