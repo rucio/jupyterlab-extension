@@ -7,10 +7,17 @@
 # Authors:
 # - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
 
-from notebook.base.handlers import APIHandler   # pylint: disable=import-error
+from notebook.base.handlers import APIHandler, IPythonHandler   # pylint: disable=import-error
 
 
-class RucioAPIHandler(APIHandler): # pragma: no cover
+class RucioAPIHandler(APIHandler):  # pragma: no cover
+    def initialize(self, rucio_config, rucio, *args, **kwargs):
+        super().initialize(*args, **kwargs)
+        self.rucio_config = rucio_config
+        self.rucio = rucio
+
+
+class RucioHandler(IPythonHandler):  # pragma: no cover
     def initialize(self, rucio_config, rucio, *args, **kwargs):
         super().initialize(*args, **kwargs)
         self.rucio_config = rucio_config

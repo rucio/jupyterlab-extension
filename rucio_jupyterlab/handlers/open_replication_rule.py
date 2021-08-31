@@ -7,13 +7,12 @@
 # Authors:
 # - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
 
-import json
 import tornado
 import rucio_jupyterlab.utils as utils
-from .base import RucioAPIHandler
+from .base import RucioHandler
 
 
-class OpenReplicationRuleHandler(RucioAPIHandler):
+class OpenReplicationRuleHandler(RucioHandler):
     @tornado.web.authenticated
     def get(self):
         namespace = self.get_query_argument('namespace')
@@ -37,7 +36,9 @@ class OpenReplicationRuleHandler(RucioAPIHandler):
         replication_rule = self._resolve_did_replication_rule(rucio_instance, scope, name)
         if not replication_rule:
             self.set_status(404)
-            self.finish('DID has no replication rule')
+            did_page_url = f"{rucio_webui_url}/did?scope={scope}&name={name}"
+            destination_rse = rucio_instance.instance_config.get('destination_rse')
+            self.finish(self.render_template("rucio_jupyterlab/rule_not_found.html", rse_name=destination_rse, did=scope + ":" + name, did_page_url=did_page_url, **self.application.settings))
             return
 
         rule_id, _ = replication_rule
