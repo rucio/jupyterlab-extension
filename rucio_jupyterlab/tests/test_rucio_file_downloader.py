@@ -43,7 +43,7 @@ def test_rucio_file_downloader_is_downloading__lockfile_exists__pid_exists__proc
         def status(self):   # pylint: disable=no-self-use
             return 'running'
 
-    mocker.patch('rucio_jupyterlab.mode_handlers.download.psutil.Process', MockProcess)
+    mocker.patch('rucio_jupyterlab.rucio.download.psutil.Process', MockProcess)
 
     with patch("builtins.open", mock_open(read_data="123")) as mock_file:
         result = RucioFileDownloader.is_downloading('/path')
@@ -65,7 +65,7 @@ def test_rucio_file_downloader_is_downloading__lockfile_exists__pid_exists__proc
         def status(self):   # pylint: disable=no-self-use
             return 'running'
 
-    mocker.patch('rucio_jupyterlab.mode_handlers.download.psutil.Process', MockProcess)
+    mocker.patch('rucio_jupyterlab.rucio.download.psutil.Process', MockProcess)
 
     with patch("builtins.open", mock_open(read_data="123")) as mock_file:
         result = RucioFileDownloader.is_downloading('/path')
@@ -87,7 +87,7 @@ def test_rucio_file_downloader_is_downloading__lockfile_exists__pid_exists__proc
         def status(self):   # pylint: disable=no-self-use
             return 'zombie'
 
-    mocker.patch('rucio_jupyterlab.mode_handlers.download.psutil.Process', MockProcess)
+    mocker.patch('rucio_jupyterlab.rucio.download.psutil.Process', MockProcess)
 
     with patch("builtins.open", mock_open(read_data="123")) as mock_file:
         result = RucioFileDownloader.is_downloading('/path')
