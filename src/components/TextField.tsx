@@ -39,12 +39,13 @@ interface TextFieldProps {
   block?: boolean;
   before?: any;
   after?: any;
+  containerStyle?: React.CSSProperties;
 }
 
 type MyProps = TextFieldProps & React.InputHTMLAttributes<HTMLInputElement>;
 
 const _TextField = (props: MyProps, ref: React.Ref<HTMLInputElement>) => {
-  const { block, before, after, outlineColor, className, ...carriedProps } = props;
+  const { block, before, after, outlineColor, className, containerStyle, ...carriedProps } = props;
   const classes = useStyles({ outlineColor });
 
   const inputClasses = [classes.input];
@@ -52,7 +53,7 @@ const _TextField = (props: MyProps, ref: React.Ref<HTMLInputElement>) => {
     inputClasses.push(classes.block);
   }
   return (
-    <div className={classes.control}>
+    <div className={classes.control} style={containerStyle}>
       {before}
       <input ref={ref} type="text" className={inputClasses.join(' ') + ' ' + className || ''} {...carriedProps} />
       {after}

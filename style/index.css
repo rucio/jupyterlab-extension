@@ -25,6 +25,10 @@
     align-items: center;
 }
 
+.Popover {
+    z-index: 99999;
+}
+
 .Popover-body {
     display: inline-flex;
     flex-direction: column;

@@ -21,7 +21,10 @@ import {
   InstanceConfig,
   DirectoryItem,
   DIDSearchType,
-  DIDSearchResult
+  DIDSearchResult,
+  FileUploadParam,
+  FileUploadJob,
+  FileUploadLog
 } from '../types';
 
 export class Actions {
@@ -67,6 +70,11 @@ export class Actions {
   async fetchScopes(namespace: string): Promise<string[]> {
     const query = { namespace };
     return requestAPI<string[]>(`list-scopes?${qs.encode(query)}`);
+  }
+
+  async fetchRSEs(namespace: string, expression?: string): Promise<string[]> {
+    const query = { namespace, expression };
+    return requestAPI<string[]>(`list-rses?${qs.encode(query)}`);
   }
 
   async fetchAttachedFileDIDs(namespace: string, did: string): Promise<AttachedFile[]> {
@@ -156,6 +164,43 @@ export class Actions {
     };
 
     return requestAPI('purge-cache', init);
+  }
+
+  async uploadFile(namespace: string, params: FileUploadParam): Promise<void> {
+    const { paths, rse, fileScope, datasetName, addToDataset, datasetScope, lifetime } = params;
+
+    const init = {
+      method: 'POST',
+      body: JSON.stringify({
+        file_paths: paths,
+        rse,
+        scope: fileScope,
+        add_to_dataset: !!addToDataset,
+        dataset_scope: datasetScope,
+        dataset_name: datasetName,
+        lifetime
+      })
+    };
+
+    return requestAPI('upload?namespace=' + encodeURIComponent(namespace), init);
+  }
+
+  async fetchUploadJobs(namespace: string): Promise<FileUploadJob[]> {
+    const query = { namespace };
+    return requestAPI<FileUploadJob[]>('upload/jobs?' + qs.encode(query));
+  }
+
+  async fetchUploadJobLog(namespace: string, id: string): Promise<FileUploadLog> {
+    const query = { namespace, id };
+    return requestAPI<FileUploadLog>('upload/jobs/log?' + qs.encode(query));
+  }
+
+  async deleteUploadJob(namespace: string, id: string): Promise<void> {
+    const query = { namespace, id };
+    const init = {
+      method: 'DELETE'
+    };
+    return requestAPI<void>('upload/jobs/details?' + qs.encode(query), init);
   }
 }
 

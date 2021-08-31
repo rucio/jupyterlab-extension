@@ -18,7 +18,7 @@ import { UIStore } from '../stores/UIStore';
 import { NotebookDIDAttachment, FileDIDDetails, ResolveStatus } from '../types';
 import { COMM_NAME_KERNEL, COMM_NAME_FRONTEND, METADATA_ATTACHMENTS_KEY } from '../const';
 import { actions } from '../utils/Actions';
-import { InjectNotebookToolbar } from '../InjectNotebookToolbar';
+import { InjectNotebookToolbar } from '../widgets/InjectNotebookToolbar';
 import { computeCollectionState } from './Helpers';
 
 type InjectedFile = {

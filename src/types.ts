@@ -81,3 +81,31 @@ export interface DIDSearchResult {
   type: 'dataset' | 'container' | 'file';
   size?: number;
 }
+
+export type FileUploadParam = {
+  paths: string[];
+  rse: string;
+  fileScope: string;
+  addToDataset?: boolean;
+  datasetScope?: string;
+  datasetName?: string;
+  lifetime?: number;
+};
+
+export type FileUploadStatus = 'OK' | 'FAILED' | 'UPLOADING';
+
+export type FileUploadJob = {
+  id: string;
+  did: string;
+  datasetDid?: string;
+  path: string;
+  rse: string;
+  uploaded: boolean;
+  lifetime?: number;
+  pid: number;
+  status: FileUploadStatus;
+};
+
+export type FileUploadLog = {
+  text: string;
+};

@@ -10,7 +10,7 @@
 import os
 import time
 import json
-from peewee import SqliteDatabase, Model, TextField, IntegerField, DateTimeField, CompositeKey
+from peewee import SqliteDatabase, Model, TextField, IntegerField, DateTimeField, CompositeKey, BooleanField
 from .entity import AttachedFile
 
 
@@ -29,7 +29,7 @@ db = prepare_db(dir_path)
 
 
 def get_db():
-    db.create_tables([UserConfig, RucioAuthCredentials, AttachedFilesListCache, FileReplicasCache])
+    db.create_tables([UserConfig, RucioAuthCredentials, AttachedFilesListCache, FileReplicasCache, FileUploadJob])
     return DatabaseInstance()
 
 
@@ -102,9 +102,34 @@ class DatabaseInstance:
         FileReplicasCache.replace(
             namespace=namespace, did=file_did, pfn=pfn, size=size, expiry=cache_expires).execute()
 
+    def get_upload_jobs(self, namespace):
+        upload_jobs = FileUploadJob.select().dicts().where(FileUploadJob.namespace == namespace).execute()
+        return upload_jobs
+
+    def get_upload_job(self, job_id):
+        upload_jobs = FileUploadJob.select().dicts().where(FileUploadJob.id == job_id).execute()
+        return upload_jobs[0]
+
+    def add_upload_job(self, namespace, did, dataset_did, path, rse, lifetime, pid):
+        return FileUploadJob.insert(namespace=namespace, did=did, dataset_did=dataset_did, path=path, rse=rse, lifetime=lifetime, pid=pid, uploaded=False).execute()
+
+    def delete_upload_job(self, id):
+        job = FileUploadJob.get_or_none(id)
+        if job is not None:
+            job.delete_instance()
+
+    def mark_upload_job_finished(self, id):
+        job = FileUploadJob.get_or_none(id)
+        if job is not None:
+            job.uploaded = True
+            job.save()
+
+        return job
+
     def purge_cache(self):
         FileReplicasCache.delete().execute(database=None)
         AttachedFilesListCache.delete().execute(database=None)
+        FileUploadJob.delete().execute(database=None)
 
 
 class UserConfig(Model):
@@ -146,3 +171,18 @@ class FileReplicasCache(Model):
     class Meta:
         database = db
         primary_key = CompositeKey('namespace', 'did')
+
+
+class FileUploadJob(Model):
+    namespace = TextField()
+    did = TextField()
+    dataset_did = TextField(null=True)
+    path = TextField()
+    rse = TextField()
+    uploaded = BooleanField()
+    lifetime = IntegerField(null=True)
+    pid = IntegerField()
+
+    class Meta:
+        database = db
+        # primary_key = CompositeKey('namespace', 'did')
