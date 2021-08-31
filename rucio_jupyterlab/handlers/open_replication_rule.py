@@ -71,7 +71,6 @@ template = """
 def render_rule_not_found_html(**kwargs):
     rendered = f"{template}"
     for key in kwargs:
-        print(key, kwargs[key])
         rendered = rendered.replace("{{ " + key + " }}", html.escape(kwargs[key]))
     return rendered
 
