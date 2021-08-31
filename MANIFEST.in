@@ -3,6 +3,7 @@ include *.md
 include *.js
 include pyproject.toml
 recursive-include jupyter-config *.json
+recursive-include rucio_jupyterlab *.html
 
 include package.json
 include install.json
