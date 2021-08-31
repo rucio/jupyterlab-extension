@@ -7,6 +7,7 @@
 # Authors:
 # - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
 
+import html
 import tornado
 import rucio_jupyterlab.utils as utils
 from .base import RucioHandler
@@ -71,7 +72,7 @@ def render_rule_not_found_html(**kwargs):
     rendered = f"{template}"
     for key in kwargs:
         print(key, kwargs[key])
-        rendered = rendered.replace("{{ " + key + " }}", kwargs[key])
+        rendered = rendered.replace("{{ " + key + " }}", html.escape(kwargs[key]))
     return rendered
 
 
