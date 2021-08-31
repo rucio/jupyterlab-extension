@@ -161,9 +161,11 @@ def test_purge_cache(database_instance, mocker):  # pylint: disable=redefined-ou
 
     mock_replicas_cache = MockCacheEntity()
     mock_attached_files_list_cache = MockCacheEntity()
+    mock_file_upload_job = MockCacheEntity()
 
     mocker.patch('rucio_jupyterlab.db.FileReplicasCache', mock_replicas_cache)
     mocker.patch('rucio_jupyterlab.db.AttachedFilesListCache', mock_attached_files_list_cache)
+    mocker.patch('rucio_jupyterlab.db.FileUploadJob', mock_file_upload_job)
 
     database_instance.purge_cache()
 
