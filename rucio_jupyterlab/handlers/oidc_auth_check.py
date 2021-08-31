@@ -7,10 +7,7 @@
 # Authors:
 # - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
 
-import json
 import tornado
-from rucio_jupyterlab.db import get_db
-from rucio_jupyterlab.rucio import RucioAPI
 from .base import RucioAPIHandler
 from rucio_jupyterlab.rucio.authenticators import RucioAuthenticationException, authenticate_oidc
 
