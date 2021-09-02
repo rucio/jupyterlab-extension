@@ -103,13 +103,13 @@ class ReplicaModeHandler:
 
         def rucio_replica_mapper(rucio_replica, _):
             rses = rucio_replica['rses']
-            states = rucio_replica['states']
             scope = rucio_replica['scope']
             name = rucio_replica['name']
             size = rucio_replica['bytes']
+            states = rucio_replica.get('states')    # If there is no replica, states is omitted
 
             pfn = None
-            if (destination_rse in rses) and (destination_rse in states):
+            if (states is not None) and (destination_rse in rses) and (destination_rse in states):
                 if states[destination_rse] == 'AVAILABLE':
                     pfns = rses[destination_rse]
                     if len(pfns) > 0:
