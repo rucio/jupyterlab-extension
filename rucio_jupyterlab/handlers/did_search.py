@@ -37,13 +37,10 @@ class DIDSearchHandlerImpl:
 
 
         def mapper(entry, _):
-        # TESTING
-            print("TYPE: ", entry.get('did_type').lower())
-
             return {
                 'did': entry.get('scope') + ':' + entry.get('name'),
                 'size': entry.get('bytes'),
-                'type': (entry.get('did_type').lower()).split('.')[1]
+                'type': 'didtype.' + entry.get('did_type').lower()
             }
 
         result = utils.map(dids, mapper)
