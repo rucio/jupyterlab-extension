@@ -35,14 +35,15 @@ class DIDSearchHandlerImpl:
 
         dids = self.rucio.search_did(scope, name, search_type, limit)
 
+
+        def mapper(entry, _):
         # TESTING
         print(entry.get('did_type').lower())
 
-        def mapper(entry, _):
             return {
                 'did': entry.get('scope') + ':' + entry.get('name'),
                 'size': entry.get('bytes'),
-                'type': entry.get('did_type').lower()
+                'type': (entry.get('did_type').lower()).split('.')[1]
             }
 
         result = utils.map(dids, mapper)
