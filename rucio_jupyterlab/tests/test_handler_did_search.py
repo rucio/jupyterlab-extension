@@ -113,9 +113,9 @@ def test_get_handler__inputs_correct__should_not_error(mocker, rucio):
         @staticmethod
         def search_did(scope, name, search_type='all', limit=100):
             return [
-                {'did': 'scope:name1', 'size': None, 'type': 'container'},
-                {'did': 'scope:name2', 'size': None, 'type': 'dataset'},
-                {'did': 'scope:name3', 'size': 123, 'type': 'file'}
+                {'did': 'scope:name1', 'size': None, 'type': 'didtype.container'},
+                {'did': 'scope:name2', 'size': None, 'type': 'didtype.dataset'},
+                {'did': 'scope:name3', 'size': 123, 'type': 'didtype.file'}
             ]
 
     mocker.patch('rucio_jupyterlab.handlers.did_search.DIDSearchHandlerImpl', MockDIDSearchHandler)
