@@ -33,9 +33,9 @@ def test_search_did__with_wildcard__wildcard_enabled__should_return_correct_resp
     rucio.search_did.assert_called_once_with('scope', 'name*', 'all', 100)
 
     expected = [
-        {'did': 'scope:name1', 'size': None, 'type': 'container'},
-        {'did': 'scope:name2', 'size': None, 'type': 'dataset'},
-        {'did': 'scope:name3', 'size': 123, 'type': 'file'}
+        {'did': 'scope:name1', 'size': None, 'type': 'didtype.container'},
+        {'did': 'scope:name2', 'size': None, 'type': 'didtype.dataset'},
+        {'did': 'scope:name3', 'size': 123, 'type': 'didtype.file'}
     ]
 
     assert result == expected, "Invalid return value"
@@ -56,9 +56,9 @@ def test_search_did__without_wildcard__wildcard_disabled__should_return_correct_
     rucio.search_did.assert_called_once_with('scope', 'name', 'all', 100)
 
     expected = [
-        {'did': 'scope:name1', 'size': None, 'type': 'container'},
-        {'did': 'scope:name2', 'size': None, 'type': 'dataset'},
-        {'did': 'scope:name3', 'size': 123, 'type': 'file'}
+        {'did': 'scope:name1', 'size': None, 'type': 'didtype.container'},
+        {'did': 'scope:name2', 'size': None, 'type': 'didtype.dataset'},
+        {'did': 'scope:name3', 'size': 123, 'type': 'didtype.file'}
     ]
 
     assert result == expected, "Invalid return value"
@@ -123,9 +123,9 @@ def test_get_handler__inputs_correct__should_not_error(mocker, rucio):
     def finish_side_effect(output):
         finish_json = json.loads(output)
         expected = [
-            {'did': 'scope:name1', 'size': None, 'type': 'container'},
-            {'did': 'scope:name2', 'size': None, 'type': 'dataset'},
-            {'did': 'scope:name3', 'size': 123, 'type': 'file'}
+            {'did': 'scope:name1', 'size': None, 'type': 'didtype.container'},
+            {'did': 'scope:name2', 'size': None, 'type': 'didtype.dataset'},
+            {'did': 'scope:name3', 'size': 123, 'type': 'didtype.file'}
         ]
         assert finish_json == expected, "Invalid finish response"
 
