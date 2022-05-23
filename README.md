@@ -13,6 +13,7 @@ for the frontend extension.
 ## Requirements
 
 * JupyterLab >= 3.0
+* Rucio Server >= 1.28
 
 ## Install
 

@@ -40,7 +40,7 @@ class DIDSearchHandlerImpl:
             return {
                 'did': entry.get('scope') + ':' + entry.get('name'),
                 'size': entry.get('bytes'),
-                'type': 'didtype.' + entry.get('did_type').lower()
+                'type': (entry.get('did_type').lower()).split(".")[1]
             }
 
         result = utils.map(dids, mapper)
