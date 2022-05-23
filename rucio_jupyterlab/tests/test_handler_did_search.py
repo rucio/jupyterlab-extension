@@ -22,9 +22,9 @@ def test_search_did__with_wildcard__wildcard_enabled__should_return_correct_resp
     rucio.instance_config['wildcard_enabled'] = True
 
     mocker.patch.object(rucio, 'search_did', return_value=[
-        {'scope': 'scope', 'name': 'name1', 'bytes': None, 'did_type': 'CONTAINER'},
-        {'scope': 'scope', 'name': 'name2', 'bytes': None, 'did_type': 'DATASET'},
-        {'scope': 'scope', 'name': 'name3', 'bytes': 123, 'did_type': 'FILE'}
+        {'scope': 'scope', 'name': 'name1', 'bytes': None, 'did_type': 'DIDTYPE.CONTAINER'},
+        {'scope': 'scope', 'name': 'name2', 'bytes': None, 'did_type': 'DIDTYPE.DATASET'},
+        {'scope': 'scope', 'name': 'name3', 'bytes': 123, 'did_type': 'DIDTYPE.FILE'}
     ])
 
     handler = DIDSearchHandlerImpl(MOCK_ACTIVE_INSTANCE, rucio)
@@ -33,9 +33,9 @@ def test_search_did__with_wildcard__wildcard_enabled__should_return_correct_resp
     rucio.search_did.assert_called_once_with('scope', 'name*', 'all', 100)
 
     expected = [
-        {'did': 'scope:name1', 'size': None, 'type': 'didtype.container'},
-        {'did': 'scope:name2', 'size': None, 'type': 'didtype.dataset'},
-        {'did': 'scope:name3', 'size': 123, 'type': 'didtype.file'}
+        {'did': 'scope:name1', 'size': None, 'type': 'container'},
+        {'did': 'scope:name2', 'size': None, 'type': 'dataset'},
+        {'did': 'scope:name3', 'size': 123, 'type': 'file'}
     ]
 
     assert result == expected, "Invalid return value"
@@ -45,9 +45,9 @@ def test_search_did__without_wildcard__wildcard_disabled__should_return_correct_
     rucio.instance_config['wildcard_enabled'] = False
 
     mocker.patch.object(rucio, 'search_did', return_value=[
-        {'scope': 'scope', 'name': 'name1', 'bytes': None, 'did_type': 'CONTAINER'},
-        {'scope': 'scope', 'name': 'name2', 'bytes': None, 'did_type': 'DATASET'},
-        {'scope': 'scope', 'name': 'name3', 'bytes': 123, 'did_type': 'FILE'}
+        {'scope': 'scope', 'name': 'name1', 'bytes': None, 'did_type': 'DIDTYPE.CONTAINER'},
+        {'scope': 'scope', 'name': 'name2', 'bytes': None, 'did_type': 'DIDTYPE.DATASET'},
+        {'scope': 'scope', 'name': 'name3', 'bytes': 123, 'did_type': 'DIDTYPE.FILE'}
     ])
 
     handler = DIDSearchHandlerImpl(MOCK_ACTIVE_INSTANCE, rucio)
@@ -56,9 +56,9 @@ def test_search_did__without_wildcard__wildcard_disabled__should_return_correct_
     rucio.search_did.assert_called_once_with('scope', 'name', 'all', 100)
 
     expected = [
-        {'did': 'scope:name1', 'size': None, 'type': 'didtype.container'},
-        {'did': 'scope:name2', 'size': None, 'type': 'didtype.dataset'},
-        {'did': 'scope:name3', 'size': 123, 'type': 'didtype.file'}
+        {'did': 'scope:name1', 'size': None, 'type': 'container'},
+        {'did': 'scope:name2', 'size': None, 'type': 'dataset'},
+        {'did': 'scope:name3', 'size': 123, 'type': 'file'}
     ]
 
     assert result == expected, "Invalid return value"
@@ -68,9 +68,9 @@ def test_search_did__with_wildcard__wildcard_disabled__should_raise_exception(mo
     rucio.instance_config['wildcard_enabled'] = False
 
     mocker.patch.object(rucio, 'search_did', return_value=[
-        {'scope': 'scope', 'name': 'name1', 'bytes': None, 'did_type': 'CONTAINER'},
-        {'scope': 'scope', 'name': 'name2', 'bytes': None, 'did_type': 'DATASET'},
-        {'scope': 'scope', 'name': 'name3', 'bytes': 123, 'did_type': 'FILE'}
+        {'scope': 'scope', 'name': 'name1', 'bytes': None, 'did_type': 'DIDTYPE.CONTAINER'},
+        {'scope': 'scope', 'name': 'name2', 'bytes': None, 'did_type': 'DIDTYPE.DATASET'},
+        {'scope': 'scope', 'name': 'name3', 'bytes': 123, 'did_type': 'DIDTYPE.FILE'}
     ])
 
     handler = DIDSearchHandlerImpl(MOCK_ACTIVE_INSTANCE, rucio)
@@ -84,9 +84,9 @@ def test_search_did__with_percent_wildcard__wildcard_disabled__should_raise_exce
     rucio.instance_config['wildcard_enabled'] = False
 
     mocker.patch.object(rucio, 'search_did', return_value=[
-        {'scope': 'scope', 'name': 'name1', 'bytes': None, 'did_type': 'CONTAINER'},
-        {'scope': 'scope', 'name': 'name2', 'bytes': None, 'did_type': 'DATASET'},
-        {'scope': 'scope', 'name': 'name3', 'bytes': 123, 'did_type': 'FILE'}
+        {'scope': 'scope', 'name': 'name1', 'bytes': None, 'did_type': 'DIDTYPE.CONTAINER'},
+        {'scope': 'scope', 'name': 'name2', 'bytes': None, 'did_type': 'DIDTYPE.DATASET'},
+        {'scope': 'scope', 'name': 'name3', 'bytes': 123, 'did_type': 'DIDTYPE.FILE'}
     ])
 
     handler = DIDSearchHandlerImpl(MOCK_ACTIVE_INSTANCE, rucio)
@@ -113,9 +113,9 @@ def test_get_handler__inputs_correct__should_not_error(mocker, rucio):
         @staticmethod
         def search_did(scope, name, search_type='all', limit=100):
             return [
-                {'did': 'scope:name1', 'size': None, 'type': 'didtype.container'},
-                {'did': 'scope:name2', 'size': None, 'type': 'didtype.dataset'},
-                {'did': 'scope:name3', 'size': 123, 'type': 'didtype.file'}
+                {'did': 'scope:name1', 'size': None, 'type': 'container'},
+                {'did': 'scope:name2', 'size': None, 'type': 'dataset'},
+                {'did': 'scope:name3', 'size': 123, 'type': 'file'}
             ]
 
     mocker.patch('rucio_jupyterlab.handlers.did_search.DIDSearchHandlerImpl', MockDIDSearchHandler)
@@ -123,9 +123,9 @@ def test_get_handler__inputs_correct__should_not_error(mocker, rucio):
     def finish_side_effect(output):
         finish_json = json.loads(output)
         expected = [
-            {'did': 'scope:name1', 'size': None, 'type': 'didtype.container'},
-            {'did': 'scope:name2', 'size': None, 'type': 'didtype.dataset'},
-            {'did': 'scope:name3', 'size': 123, 'type': 'didtype.file'}
+            {'did': 'scope:name1', 'size': None, 'type': 'container'},
+            {'did': 'scope:name2', 'size': None, 'type': 'dataset'},
+            {'did': 'scope:name3', 'size': 123, 'type': 'file'}
         ]
         assert finish_json == expected, "Invalid finish response"
 
