@@ -40,7 +40,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       const instanceConfig = await actions.fetchInstancesConfig();
       activateSidebarPanel(app, labShell, instanceConfig);
       activateNotebookListener(app, labShell, notebookTracker);
-      activateRucioUploadWidget(app, fileBrowserFactory);
+//       activateRucioUploadWidget(app, fileBrowserFactory);
     } catch (e) {
       console.log(e);
     }
