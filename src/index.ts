@@ -71,7 +71,6 @@ function activateNotebookListener(app: JupyterFrontEnd, labShell: ILabShell, not
   new NotebookPollingListener(notebookListener);
 }
 
-
 function activateRucioUploadWidget(app: JupyterFrontEnd, fileBrowserFactory: IFileBrowserFactory) {
   app.commands.addCommand(CommandIDs.UploadFile, {
     icon: fileUploadIcon,
