@@ -192,6 +192,7 @@ c.IPKernelApp.extensions = ['rucio_jupyterlab.kernels.ipython']
 ```
 
 ## Enabling OpenID Connect Authentication
+
 Unlike the other authentication methods supported by the extension, which is configurable by users only, OIDC auth should be configured by the admins. Users won't see "OpenID Connect" option if OIDC auth is not configured properly.
 
 This extension does not provide a way for users to authenticate directly from the extension. Instead, the OIDC token must be obtained from an external mechanism.
@@ -199,3 +200,103 @@ This extension does not provide a way for users to authenticate directly from th
 In a multi-user setup with JupyterHub, admins must make the OIDC token accessible from the single user's container via either a file or an environment variable. Then, they need to configure the `oidc_auth` and `oidc_env_name` or `oidc_file_name` parameters (see above).
 
 Furthermore, the JupyterHub installation must have a mechanism of periodically refreshing the OIDC token so that an expired token is not used.
+
+See the following sections for more details, as well as the Rucio documentation for more information about OIDC authentication [here]().
+
+### Creating a custom Docker image
+
+The docker image for the single user container must have the rucio extension installed. You can use the following Dockerfile as a starting point `tbd` and add additonal configuration as follows:
+
+```dockerfile
+#tbd
+```
+
+### Configuring JupyterHub
+
+Taking Z2JH as an example, the `config.yaml` file of the helm chart could be configured as follows:
+
+```yaml
+hub:
+  config:
+    RucioAuthenticator:
+      # client_id: "" # set through secret
+      # client_secret: "" # set through secret
+      authorize_url: ''
+      token_url: ''
+      userdata_url: ''
+      username_key: preferred_username
+      scope:
+        - openid
+        - profile
+        - email
+  extraConfig:
+    00-first-config: |
+      import pprint
+      import os
+      import warnings
+      import requests
+
+      from oauthenticator.generic import GenericOAuthenticator
+
+      class RucioAuthenticator(GenericOAuthenticator):
+          def __init__(self, **kwargs):
+              super().__init__(**kwargs)
+              self.enable_auth_state = True
+
+          def exchange_token(self, token):
+              params = {
+                  'client_id': self.client_id,
+                  'client_secret': self.client_secret,
+                  'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
+                  'subject_token': token,
+                  'scope': 'openid email profile',
+                  'audience': 'rucio'
+              }
+              response = requests.post(self.token_url, data=params)
+              refresh_token = response.json()['access_token']
+              return refresh_token
+          
+          async def pre_spawn_start(self, user, spawner):
+              auth_state = await user.get_auth_state()
+              pprint.pprint(auth_state)
+              if not auth_state:
+                  # user has no auth state
+                  return
+              
+              # define some environment variables from auth_state
+              spawner.environment['ACCESS_TOKEN'] = auth_state['access_token']
+              spawner.environment['REFRESH_TOKEN'] = self.exchange_token(auth_state['access_token'])
+
+      c.JupyterHub.authenticator_class = RucioAuthenticator
+
+      # enable authentication state
+      c.GenericOAuthenticator.enable_auth_state = True
+
+      if 'JUPYTERHUB_CRYPT_KEY' not in os.environ:
+          warnings.warn(
+              "Need JUPYTERHUB_CRYPT_KEY env for persistent auth_state.\n"
+              "    export JUPYTERHUB_CRYPT_KEY=$(openssl rand -hex 32)"
+          )
+          c.CryptKeeper.keys = [os.urandom(32)]
+
+singleuser:
+  image:
+    name: your-docker-image-with-rucio-jupyterlab
+    tag: latest
+    pullPolicy: Always
+  cmd: null
+  extraEnv:
+    RUCIO_MODE: "download"
+    RUCIO_WILDCARD_ENABLED: "1"
+    RUCIO_BASE_URL: "https://my-rucio.cern.ch"
+    RUCIO_AUTH_URL: "https://my-rucio-auth.cern.ch"
+    RUCIO_DISPLAY_NAME: "My Rucio"
+    RUCIO_NAME: "my-rucio.cern.ch"
+    RUCIO_SITE_NAME: "ROAMING"
+    RUCIO_CA_CERT: "/certs/my_ca.pem"
+    RUCIO_OIDC_AUTH: "env"
+    RUCIO_OIDC_ENV_NAME: "REFRESH_TOKEN"
+    RUCIO_DEFAULT_AUTH_TYPE: "oidc"
+    RUCIO_OAUTH_ID: "rucio"
+    RUCIO_DEFAULT_INSTANCE: "my-rucio.cern.ch"
+```
