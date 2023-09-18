@@ -201,46 +201,39 @@ In a multi-user setup with JupyterHub, admins must make the OIDC token accessibl
 
 Furthermore, the JupyterHub installation must have a mechanism of periodically refreshing the OIDC token so that an expired token is not used.
 
-See the following sections for more details, as well as the Rucio documentation for more information about OIDC authentication [here]().
+See the following sections for more details.
 
-### Creating a custom Docker image
+### Configuring JupyterHub with OIDC: Single user Dockerfile and Variables
 
-The docker image for the single user container must have the rucio extension installed. You can use the following Dockerfile as a starting point `tbd` and add additonal configuration as follows:
+The Docker image for the single-user container must include the Rucio extension and the defined OpenID Connect variables. To install the extension, refer to the provided [Dockerfile](Dockerfile). Additionally, the [configure.py](docker/configure.py) script takes care of writing the variables from the environment to the Jupyter configuration.
 
-```dockerfile
-#tbd
+### Configuring JupyterHub with OIDC: JupyterHub Chart
+
+JupyterHub installation is possible through the use of the Helm Chart provided by [Zero to JupyterHub with Kubernetes](https://z2jh.jupyter.org/en/stable/). In order to enable the Rucio extension, add the following customisation to the values.
+
+1. Add the custom in `singleuser.image`:
+
+```yaml
+singleuser:
+  image: <image-url>:<image-tag>
 ```
 
-### Configuring JupyterHub
-
-Taking Z2JH as an example, the `config.yaml` file of the helm chart could be configured as follows:
+2. Add a custom authentication script to `hub.extraConfig'. For instance, label it as `token-exchange` and append the script in this format:
 
 ```yaml
 hub:
-  config:
-    RucioAuthenticator:
-      # client_id: "" # set through secret
-      # client_secret: "" # set through secret
-      authorize_url: ''
-      token_url: ''
-      userdata_url: ''
-      username_key: preferred_username
-      scope:
-        - openid
-        - profile
-        - email
   extraConfig:
-    00-first-config: |
+    token-exchange: |
       import pprint
       import os
       import warnings
       import requests
-
       from oauthenticator.generic import GenericOAuthenticator
 
+      # custom authenticator to enable auth_state and get access token to set as env var for rucio extension
       class RucioAuthenticator(GenericOAuthenticator):
           def __init__(self, **kwargs):
-              super().__init__(**kwargs)
+            super().__init__(**kwargs)
               self.enable_auth_state = True
 
           def exchange_token(self, token):
@@ -249,24 +242,25 @@ hub:
                   'client_secret': self.client_secret,
                   'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
                   'subject_token': token,
-                  'scope': 'openid email profile',
+                  'scope': 'openid profile',
                   'audience': 'rucio'
               }
               response = requests.post(self.token_url, data=params)
-              refresh_token = response.json()['access_token']
-              return refresh_token
-          
+              rucio_token = response.json()['access_token']
+              return rucio_token
+        
           async def pre_spawn_start(self, user, spawner):
               auth_state = await user.get_auth_state()
               pprint.pprint(auth_state)
               if not auth_state:
                   # user has no auth state
                   return
-              
-              # define some environment variables from auth_state
-              spawner.environment['ACCESS_TOKEN'] = auth_state['access_token']
-              spawner.environment['REFRESH_TOKEN'] = self.exchange_token(auth_state['access_token'])
+            
+              # define token environment variable from auth_state
+              spawner.environment['RUCIO_ACCESS_TOKEN'] = self.exchange_token(auth_state['access_token'])
+              spawner.environment['EOS_ACCESS_TOKEN'] = auth_state['access_token']
 
+      # set the above authenticator as the default
       c.JupyterHub.authenticator_class = RucioAuthenticator
 
       # enable authentication state
@@ -278,25 +272,51 @@ hub:
               "    export JUPYTERHUB_CRYPT_KEY=$(openssl rand -hex 32)"
           )
           c.CryptKeeper.keys = [os.urandom(32)]
-
-singleuser:
-  image:
-    name: your-docker-image-with-rucio-jupyterlab
-    tag: latest
-    pullPolicy: Always
-  cmd: null
-  extraEnv:
-    RUCIO_MODE: "download"
-    RUCIO_WILDCARD_ENABLED: "1"
-    RUCIO_BASE_URL: "https://my-rucio.cern.ch"
-    RUCIO_AUTH_URL: "https://my-rucio-auth.cern.ch"
-    RUCIO_DISPLAY_NAME: "My Rucio"
-    RUCIO_NAME: "my-rucio.cern.ch"
-    RUCIO_SITE_NAME: "ROAMING"
-    RUCIO_CA_CERT: "/certs/my_ca.pem"
-    RUCIO_OIDC_AUTH: "env"
-    RUCIO_OIDC_ENV_NAME: "REFRESH_TOKEN"
-    RUCIO_DEFAULT_AUTH_TYPE: "oidc"
-    RUCIO_OAUTH_ID: "rucio"
-    RUCIO_DEFAULT_INSTANCE: "my-rucio.cern.ch"
 ```
+
+3. Add the configuration parameters for the custom authenticator to the `hub.config`:
+
+```yaml
+hub:
+  config:
+    RucioAuthenticator:
+      client_id: <your-client-id>
+      client_secret: <your-client-secret>
+      authorize_url: <your-auth-url>
+      token_url: <your-token-url>
+      userdata_url: <your-userinfo-url>
+      username_key: preferred_username
+      scope:
+        - openid
+        - profile
+        - email
+```
+
+4. Add the required extension parameters to the `singleuser.extraEnv`:
+
+```yaml
+singleuser:
+  extraEnv:
+    RUCIO_MODE: "replica"
+    RUCIO_WILDCARD_ENABLED: "1"
+    RUCIO_BASE_URL: "<your-rucio-url>"
+    RUCIO_AUTH_URL: "<your-rucio-auth-url>"
+    RUCIO_WEBUI_URL: "<your-rucio-ui-url>"
+    RUCIO_DISPLAY_NAME: "<your-rucio-instance-display-name>"
+    RUCIO_NAME: "<your-rucio-instance-name>"
+    RUCIO_SITE_NAME: "<your-rucio-instance-site-name>"
+    RUCIO_OIDC_AUTH: "env"
+    RUCIO_OIDC_ENV_NAME: "RUCIO_ACCESS_TOKEN"
+    RUCIO_DEFAULT_AUTH_TYPE: "oidc"
+    RUCIO_OAUTH_ID: "<your-rucio-oauth-id>" # audience
+    RUCIO_DEFAULT_INSTANCE: "<your-rucio-instance-name>""
+    RUCIO_DESTINATION_RSE: "EOS RSE"
+    RUCIO_RSE_MOUNT_PATH: "/eos/eos-rse"
+    RUCIO_PATH_BEGINS_AT: "4"
+    RUCIO_CA_CERT: "<your-rucio-ca-file-path>"
+    OAUTH2_TOKEN: "FILE:/tmp/eos_oauth.token"
+```
+
+5. Build the Docker image and install the Helm Chart with the specified values.
+
+*Note: This configuration works in replica mode and maps an EOS RSE as the target RSE, which is FUSE mounted on the nodes where Jupyterhub is running.*
