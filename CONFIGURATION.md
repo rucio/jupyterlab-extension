@@ -218,7 +218,7 @@ singleuser:
   image: <image-url>:<image-tag>
 ```
 
-2. Add a custom authentication script to `hub.extraConfig'. For instance, label it as `token-exchange` and append the script in this format:
+2. Add a custom authentication script to `hub.extraConfig`. For instance, label it as `token-exchange` and append the script in this format:
 
 ```yaml
 hub:
