@@ -1,6 +1,7 @@
 # Rucio JupyterLab Extension
 
-![Github Actions Status](https://github.com/rucio/jupyterlab-extension/workflows/Build/badge.svg)
+[![Test](https://github.com/rucio/jupyterlab-extension/actions/workflows/test.yml/badge.svg)](https://github.com/rucio/jupyterlab-extension/actions/workflows/test.yml)
+[![Build and Publish Extension](https://github.com/rucio/jupyterlab-extension/actions/workflows/build-and-publish-tagged.yml/badge.svg)](https://github.com/rucio/jupyterlab-extension/actions/workflows/build-and-publish-tagged.yml)
 
 This is a JupyterLab extension that integrates with [Rucio - Scientific Data Management](https://github.com/rucio/rucio) to allow users to access some of Rucio's capabilities directly from the JupyterLab interface.
 
@@ -34,6 +35,14 @@ $ conda install -c conda-forge python-gfal2
 $ yum install epel-release
 $ yum install gfal2-all gfal2-python voms-clients-java
 ```
+
+To be able to access the paths from within the notebook, you need to add the following snippet in your IPython configuration (e.g. `~/.ipython/profile_default/ipython_kernel_config.py`).
+
+```python
+c.IPKernelApp.extensions = ['rucio_jupyterlab.kernels.ipython']
+```
+
+More details in the [IPython Kernel configuration](CONFIGURATION.md#ipython-kernel)
 
 Restart your JupyterLab instance afterwards to load the server extension.
 
