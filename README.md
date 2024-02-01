@@ -1,6 +1,7 @@
 # Rucio JupyterLab Extension
 
-![Github Actions Status](https://github.com/rucio/jupyterlab-extension/workflows/Build/badge.svg)
+[![Test](https://github.com/rucio/jupyterlab-extension/actions/workflows/test.yml/badge.svg)](https://github.com/rucio/jupyterlab-extension/actions/workflows/test.yml)
+[![Build and Publish Extension](https://github.com/rucio/jupyterlab-extension/actions/workflows/build-and-publish-tagged.yml/badge.svg)](https://github.com/rucio/jupyterlab-extension/actions/workflows/build-and-publish-tagged.yml)
 
 This is a JupyterLab extension that integrates with [Rucio - Scientific Data Management](https://github.com/rucio/rucio) to allow users to access some of Rucio's capabilities directly from the JupyterLab interface.
 
