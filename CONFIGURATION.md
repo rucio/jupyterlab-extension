@@ -179,7 +179,7 @@ Specifies the environment variable name containing the OIDC access token.
 ## IPython Kernel
 To allow users to access the paths from within the notebook, a kernel extension must be enabled. The kernel resides in module `rucio_jupyterlab.kernels.ipython`.
 
-To enable the extension, use `load_ext` IPython magic:
+To enable the kernel extension from inside a notebook, use `load_ext` IPython magic:
 
 ```py
 %load_ext rucio_jupyterlab.kernels.ipython

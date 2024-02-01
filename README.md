@@ -35,6 +35,14 @@ $ yum install epel-release
 $ yum install gfal2-all gfal2-python voms-clients-java
 ```
 
+To be able to access the paths from within the notebook, you need to add the following snippet in your IPython configuration (e.g. `~/.ipython/profile_default/ipython_kernel_config.py`).
+
+```python
+c.IPKernelApp.extensions = ['rucio_jupyterlab.kernels.ipython']
+```
+
+More details in the [IPython Kernel configuration](CONFIGURATION.md#ipython-kernel)
+
 Restart your JupyterLab instance afterwards to load the server extension.
 
 ## Configuration
