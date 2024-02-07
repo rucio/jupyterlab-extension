@@ -1,0 +1,3 @@
+[submodule "rucio"]
+	path = test_env/rucio
+	url = git@github.com:rucio/rucio.git

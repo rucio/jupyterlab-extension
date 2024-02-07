@@ -1,0 +1,1 @@
+c.IPKernelApp.extensions = ['rucio_jupyterlab.kernels.ipython']
