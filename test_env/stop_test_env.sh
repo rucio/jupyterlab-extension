@@ -2,7 +2,8 @@
 
 docker_compose_file="rucio/etc/docker/dev/docker-compose.yml"
 
-docker compose -f $docker_compose_file --profile storage stop
-docker compose -f $docker_compose_file --profile storage rm --force
+# stop the cluster
+docker compose -f $docker_compose_file --file docker-compose-extension.yml --profile storage stop
 
-docker stop rucio-jupyterlab
+# remove all containers
+docker compose -f $docker_compose_file --file docker-compose-extension.yml --profile storage rm --force
