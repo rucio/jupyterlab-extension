@@ -13,9 +13,16 @@ services:
       - ../../certs/ruciouser.pem:/opt/rucio/etc/usercert.pem:z
       - ../../certs/ruciouser.key.pem:/opt/rucio/etc/userkey.pem:z
       - ../../../../..:/rucio-jupyterlab:Z
+      - /tmp/rucio_xrd1:/tmp/rucio_xrd1:z
     environment:
       - X509_USER_CERT=/opt/rucio/etc/usercert.pem
       - X509_USER_KEY=/opt/rucio/etc/userkey.pem
       - RUCIO_CA_CERT=/opt/rucio/etc/rucio_ca.pem
     ports:
       - "8888:8888"
+  xrd1:
+    extends:
+      file: docker-compose.yml
+      service: xrd1
+    volumes:
+      - /tmp/rucio_xrd1:/rucio:z 

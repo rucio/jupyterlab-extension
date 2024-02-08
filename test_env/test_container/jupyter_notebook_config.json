@@ -7,10 +7,10 @@
                 "rucio_base_url": "https://rucio",
                 "rucio_auth_url": "https://rucio",
                 "rucio_ca_cert": "/opt/rucio/etc/rucio_ca.pem",
-                "destination_rse": "Non existent RSE",
-                "rse_mount_path": "/non/existent/rse/path",
-                "path_begins_at": 4,
-                "mode": "download"
+                "destination_rse": "XRD1",
+                "rse_mount_path": "/tmp/rucio_xrd1",
+                "path_begins_at": 1,
+                "mode": "replica"
             }
         ]
     }

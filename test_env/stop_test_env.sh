@@ -7,3 +7,5 @@ docker compose -f $docker_compose_file --file docker-compose-extension.yml --pro
 
 # remove all containers
 docker compose -f $docker_compose_file --file docker-compose-extension.yml --profile storage rm --force
+
+rm -rf /tmp/rucio_xrd1
