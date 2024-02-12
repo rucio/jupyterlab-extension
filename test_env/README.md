@@ -39,14 +39,23 @@ cd rucio
 git checkout 32.8.0
 ```
 
-## Start/stop the development cluster
+### Change the extension configuration
+
+The Rucio jupyterlab extension is written in the `juptyer_notebook_config.json` file.
+Make changes to it if needed before launching the cluster.
+
+The extension is working on `replica` mode, you can change the configuration
+to use the `download` mode.
+
+
+## Managing the development cluster
 
 ### Start the cluster
 
 Execute the `run_test_env.sh` script to launch a development cluster.
 
 This script will also create a temporary folder in `$TMP` (`/tmp/rucio_xrd1`) that will be shared between
-the XRD1 RSE and the jupyterlab container to test the extension in replica mode.
+the XRD1 RSE and the jupyterlab container to test the extension in `replica` mode.
 
 The script also runs the tests to create some dummy data. If the temporary folder already exists,
 it is assumed that the dummy data was already created and this step is skipped.
@@ -69,4 +78,75 @@ and the jupyterlab server will be accessible at http://localhost:8888
 
 Execute the `stop_test_env.sh` script to stop de cluster,
 remove the containers and the temporary directory.
+
+
+## Testing the extension
+
+### Accessing the jupyterlab server
+
+Once the development cluster is running, the jupyerlab server should be reachable
+through a web browser at http://localhost:8888
+
+### Check Rucio
+
+From a terminal in jupyterlab activate the conda environment to have the
+rucio executable in the `PATH`: 
+
+    conda activate rucio_jupyterlab
+
+Check that the Rucio credentials are correct:
+
+    rucio whoami
+
+Perform other rucio commands at your wish, for example: 
+
+		rucio list-dids --filter 'type=all' test:*
+
+will list all DIDs in the `test` scope.
+
+When starting the dev cluster, some replication rules will be
+created but they will be stuck in `REPLICATING`.
+See the section on [How to trigger replicas](#how-to-trigger-replicas)
+
+### Testing the extension
+
+* Go to the Rucio jupyterlab extension dashboard no the left-side panel.
+* Fill in the Settings:
+  * Active Instance = "Rucio Test"
+  * Authentication = "Username & Password"
+  * Username = "ddmlab"
+  * Password = "secret"
+  * Account = "root"
+* Go to the **Explore** tab, look for `test:file3` and then click on "Make Available"
+  * If the extension is working in `download` mode
+  the file should be available locally after some minutes
+  * If the extension is working in `replica` mode a replication rule will 
+  be added but the replication process will be stuck because there are no Rucio daemons
+  in the dev cluster see the section [How to trigger replicas](#how-to-trigger-replicas)
+* Once the file is "Available", open a Notebook
+* The "Add to Notebook" button should appear next to the "Available" label,
+click on it and follow the steps to add an environment variable containing the path to the 
+DID in the notebook
+* A green "Ready" label should be visible in the top bar of the notebook
+* The attached DIDs should be listed in the Notebook tab of the Rucio jupyterlab extension dashboard
+
+
+## Troubleshooting
+
+### How to trigger replicas
+
+When using the development cluster, the daemons are not deployed so you have to run them
+in single execution mode to actually get the replication done.
+
+Open a terminal inside the `dev-rucio-1` container by running this command
+in the host machine (not in jupyterlab)
+
+    docker exec -it dev-rucio-1 /bin/bash
+
+Then run these commands
+
+    rucio-conveyor-submitter --run-once
+    rucio-conveyor-poller --run-once --older-than 0
+    rucio-conveyor-finisher --run-once
+
 
