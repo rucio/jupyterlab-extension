@@ -60,7 +60,7 @@ setup_args = dict(
         "peewee",
         "jsonschema",
         "psutil",
-        "rucio-clients~=32.0",
+        "rucio-clients>=32.0",
         "pyjwt",
         "jupyterlab>=3,<4"
     ],

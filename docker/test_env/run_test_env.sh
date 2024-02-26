@@ -15,7 +15,7 @@ fi
 docker compose \
 	--file rucio/etc/docker/dev/docker-compose.yml \
 	--file docker-compose-extension.yml \
-	--profile storage up -d
+	--profile storage --profile extension up -d
 
 
 # Login into rucio dev container and run some tests, create some RSEs,

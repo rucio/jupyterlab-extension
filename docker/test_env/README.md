@@ -18,7 +18,8 @@ with the checked-out version of the Rucio jupyterlab extension.
 Modify the files in the `test_container` as desired.
 Pay special attention to:
 * `environment.yml`: environment definition (e.g. python version)
-* `jupyter_notebook_config.yml`: Rucio jupyterlab extension configuration 
+* `jupyter_notebook_config.json`: Rucio jupyterlab extension configuration.
+For example to change from `replica` to `download` mode.
 
 ```
 cd test_container
@@ -38,14 +39,6 @@ Then you can choose the version of Rucio you want to use by doing a `git checkou
 cd rucio
 git checkout 32.8.0
 ```
-
-### Change the extension configuration
-
-The Rucio jupyterlab extension is written in the `juptyer_notebook_config.json` file.
-Make changes to it if needed before launching the cluster.
-
-The extension is working on `replica` mode, you can change the configuration
-to use the `download` mode.
 
 
 ## Managing the development cluster
