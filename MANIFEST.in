@@ -27,7 +27,7 @@ global-exclude .git
 global-exclude .ipynb_checkpoints
 
 exclude Dockerfile
-exclude docker/*
+recursive-exclude docker
 exclude jest.config.js
 exclude requirements.txt
 exclude rucio_jupyterlab/tests/*

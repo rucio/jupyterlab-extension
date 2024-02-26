@@ -43,7 +43,7 @@ jobs:
             yarn-
       - name: Install Python dependencies
         run: |
-          python -m pip install -U jupyterlab~=3.1 check-manifest
+          python -m pip install -U check-manifest
           python -m pip install -r requirements.txt
       - name: Install JS dependencies
         run: jlpm
