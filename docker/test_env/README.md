@@ -15,16 +15,7 @@ with the checked-out version of the Rucio jupyterlab extension.
 
 ### Build the rucio-jupyterlab docker image
 
-Modify the files in the `test_container` as desired.
-Pay special attention to:
-* `environment.yml`: environment definition (e.g. python version)
-* `jupyter_notebook_config.json`: Rucio jupyterlab extension configuration.
-For example to change from `replica` to `download` mode.
-
-```
-cd test_container
-docker build . -t rucio-jupyterlab
-```
+Check the documentation in the [container folder](../container/README.md)
 
 ### Choose the version of Rucio
 
@@ -82,12 +73,7 @@ through a web browser at http://localhost:8888
 
 ### Check Rucio
 
-From a terminal in jupyterlab activate the conda environment to have the
-rucio executable in the `PATH`: 
-
-    conda activate rucio_jupyterlab
-
-Check that the Rucio credentials are correct:
+From a terminal in jupyterlab you can check that the Rucio credentials are correct:
 
     rucio whoami
 
