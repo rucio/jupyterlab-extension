@@ -34,7 +34,7 @@ From the root folder of the project, run
 
 ### Standalone
 
-Check the instructions in [the main README][../../README.md] to see how to use the image
+Check the instructions in [the main README](../../README.md) to see how to use the image
 standalone, that is without the rest of the Rucio development environment
 
 ### Inside Rucio's development environment
