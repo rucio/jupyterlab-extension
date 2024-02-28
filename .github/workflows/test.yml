@@ -15,5 +15,5 @@ jobs:
       - uses: ./.github/actions/setup
       - uses: ./.github/actions/test
       - uses: ./.github/actions/build-ext
-      - name: Check Manifest.in
-        run: check-manifest -v
+      - uses: ./.github/actions/post-test
+
