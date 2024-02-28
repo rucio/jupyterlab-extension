@@ -6,13 +6,11 @@ runs:
       uses: actions/setup-node@v1
       with:
         node-version: '14.x'
-      shell: bash
     - name: Install Python
       uses: actions/setup-python@v2
       with:
         python-version: '3.9'
         architecture: 'x64'
-      shell: bash
     - name: Setup pip cache
       uses: actions/cache@v2
       with:
@@ -21,7 +19,6 @@ runs:
         restore-keys: |
           pip-3.9-
           pip-
-      shell: bash
     - name: Get yarn cache directory path
       id: yarn-cache-dir-path
       run: echo "::set-output name=dir::$(yarn cache dir)"
@@ -34,7 +31,6 @@ runs:
         key: yarn-${{ hashFiles('**/yarn.lock') }}
         restore-keys: |
           yarn-
-      shell: bash
     - name: Install Python dependencies
       run: |
         python -m pip install -U check-manifest
