@@ -2,11 +2,12 @@ name: "Build"
 runs:
   using: "composite"
   steps:
-  - name: Build the extension
-    run: |
-      set -eux
-      python -m pip install .
-      jupyter server extension list 2>&1 | grep -ie "rucio_jupyterlab.*OK"
-      jupyter labextension list 2>&1 | grep -ie "rucio-jupyterlab.*OK"
-      python -m jupyterlab.browser_check
+    - name: Build the extension
+      run: |
+        set -eux
+        python -m pip install .
+        jupyter server extension list 2>&1 | grep -ie "rucio_jupyterlab.*OK"
+        jupyter labextension list 2>&1 | grep -ie "rucio-jupyterlab.*OK"
+        python -m jupyterlab.browser_check
+      shell: bash
  
