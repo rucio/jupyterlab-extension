@@ -11,13 +11,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Setup
-      	uses: ./.github/actions/setup
-      - name: Test
-        uses: ./.github/actions/test
-      - name: Build the extension
-        uses: ./.github/actions/build-ext
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/setup
+      - uses: ./.github/actions/test
+      - uses: ./.github/actions/build-ext
       - name: Check Manifest.in
         run: check-manifest -v
