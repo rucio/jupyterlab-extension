@@ -1,0 +1,10 @@
+name: "Build"
+runs:
+  using: "composite"
+  steps:
+    - name: Build the extension
+      run: |
+        set -eux
+        python -m pip install .
+      shell: bash
+ 

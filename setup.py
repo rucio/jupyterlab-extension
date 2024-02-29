@@ -56,12 +56,13 @@ setup_args = dict(
     packages=setuptools.find_packages(),
     install_requires=[
         "jupyter_server>=1.6,<2",
-        "requests~=2.25.0",
-        "peewee~=3.14.0",
-        "jsonschema~=3.2.0",
-        "psutil~=5.8.0",
-        "rucio-clients>=1.26.0",
-        "pyjwt"
+        "requests",
+        "peewee",
+        "jsonschema",
+        "psutil",
+        "rucio-clients>=32.0",
+        "pyjwt",
+        "jupyterlab>=3,<4"
     ],
     zip_safe=False,
     include_package_data=True,

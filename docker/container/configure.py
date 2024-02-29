@@ -9,6 +9,7 @@
 
 import os
 import json
+import configparser
 
 HOME = '/home/jovyan'
 
@@ -63,6 +64,30 @@ def write_jupyterlab_config():
     config_file.write(json.dumps(config_json, indent=2))
     config_file.close()
 
+def write_rucio_config():
+    
+    rucio_config = configparser.ConfigParser()
+    
+    client_config = {
+        'rucio_host': os.getenv('RUCIO_BASE_URL'),
+        'auth_host': os.getenv('RUCIO_AUTH_URL'),
+        'auth_type': os.getenv('RUCIO_AUTH_TYPE', 'userpass'), # it could be gss, x509_proxy, ssh
+        'username': os.getenv('RUCIO_USERNAME', 'ddmlab'),
+        'password': os.getenv('RUCIO_PASSWORD', 'secret'),
+        'ca_cert': os.getenv('RUCIO_CA_CERT'),
+        'client_cert': os.getenv('X509_USER_CERT'),
+        'client_key': os.getenv('X509_USER_KEY'),
+        'client_x509_proxy': os.getenv('X509_USER_PROXY'),
+        'ssh_private_key': os.getenv('SSH_PRIVATE_KEY', '$HOME/.ssh/id_rsa'),
+        'account': os.getenv('RUCIO_ACCOUNT', 'root'),
+        'request_retries': 3,
+        'protocol_stat_retries': 6
+    }
+    client_config = dict((k, v) for k, v in client_config.items() if v)
+    
+    rucio_config['client'] = client_config
+    with open('/opt/rucio/etc/rucio.cfg', 'w') as f:
+        rucio_config.write(f)
 
 def write_ipython_config():
     file_path = HOME + '/.ipython/profile_default/ipython_kernel_config.json'
@@ -99,3 +124,4 @@ def write_ipython_config():
 if __name__ == '__main__':
     write_jupyterlab_config()
     write_ipython_config()
+    write_rucio_config()

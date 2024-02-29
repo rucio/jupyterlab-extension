@@ -1,0 +1,6 @@
+[submodule "rucio"]
+	path = docker/test_env/rucio
+	url = git@github.com:rucio/rucio.git
+[submodule "docker/test_env/rucio"]
+	path = docker/test_env/rucio
+	url = https://github.com/rucio/rucio.git

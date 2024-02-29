@@ -1,0 +1,49 @@
+services:
+  ruciodb:
+    extends:
+      file: docker-compose.yml
+      service: ruciodb
+  rucio:
+    extends:
+      file: docker-compose.yml
+      service: rucio
+    depends_on:
+      - ruciodb
+  rucio-jupyterlab:
+    image: "rucio-jupyterlab"
+    build:
+      context: .
+    profiles:
+      - extension
+    volumes:
+      - ../../certs/rucio_ca.pem:/etc/grid-security/certificates/5fca1cb1.0:z
+      - ../../certs/hostcert_rucio.pem:/etc/grid-security/hostcert.pem:z
+      - ../../certs/hostcert_rucio.key.pem:/etc/grid-security/hostkey.pem:z
+      - ../../certs/rucio_ca.pem:/opt/rucio/etc/rucio_ca.pem:z
+      - ../../certs/ruciouser.pem:/opt/rucio/etc/usercert.pem:z
+      - ../../certs/ruciouser.key.pem:/opt/rucio/etc/userkey.pem:z
+      - ../../../../../..:/rucio-jupyterlab:Z
+      - /tmp/rucio_xrd1:/tmp/rucio_xrd1:z
+    environment:
+      - X509_USER_CERT=/opt/rucio/etc/usercert.pem
+      - X509_USER_KEY=/opt/rucio/etc/userkey.pem
+      - RUCIO_CA_CERT=/opt/rucio/etc/rucio_ca.pem
+      - RUCIO_MODE=replica
+      - RUCIO_WILDCARD_ENABLED=1
+      - RUCIO_BASE_URL=https://rucio
+      - RUCIO_AUTH_URL=https://rucio
+      - RUCIO_DESTINATION_RSE=XRD1
+      - RUCIO_DISPLAY_NAME=Rucio Test
+      - RUCIO_NAME=rucio.test
+      - RUCIO_PATH_BEGINS_AT=1
+      - RUCIO_RSE_MOUNT_PATH=/tmp/rucio_xrd1
+      - CONTAINER_PURPOSE=develop
+    ports:
+      - "8888:8888"
+  xrd1:
+    extends:
+      file: docker-compose.yml
+      service: xrd1
+    volumes:
+      - /tmp/rucio_xrd1:/rucio:z
+  

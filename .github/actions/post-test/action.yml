@@ -1,0 +1,25 @@
+name: "Post Test"
+runs:
+  using: "composite"
+  steps:
+    - name: Install check-manifest
+      run: python -m pip install -U check-manifest
+      shell: bash
+    - name: Install Node (for Playwright)
+      uses: actions/setup-node@v1
+      with:
+        node-version: '16.x'
+    - name: Install Playwright
+      run: npx playwright install
+      shell: bash
+    - name: extension checks
+      run: |
+        jupyter server extension list 2>&1 | grep -ie "rucio_jupyterlab.*OK"
+        jupyter labextension list 2>&1 | grep -ie "rucio-jupyterlab.*OK"
+      shell: bash
+    - name: Browser check
+      run: python -m jupyterlab.browser_check
+      shell: bash
+    - name: Check Manifest.in
+      run: check-manifest -v
+      shell: bash
