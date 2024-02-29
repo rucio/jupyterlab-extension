@@ -6,14 +6,15 @@
 #eval "$(micromamba shell hook --shell bash )"
 #micromamba activate base
 cd /rucio-jupyterlab
-pip install -e .
 
 if [ "$CONTAINER_PURPOSE" == "develop" ]
 then
+	pip install -e .
 	jupyter labextension develop --overwrite .
 	jlpm run build
 	jupyter server extension enable rucio_jupyterlab.server
 else
+	pip install .
 	jupyter serverextension enable --py rucio_jupyterlab --sys-prefix
 	jupyter labextension link . --dev-build=False
 	jupyter lab clean -y
