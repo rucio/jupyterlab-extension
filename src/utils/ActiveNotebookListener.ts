@@ -66,21 +66,21 @@ export class ActiveNotebookListener {
   }
 
   private setJupyterNotebookFileRucioMetadata(attachments: NotebookDIDAttachment[], state: ExtensionState) {
-    const metadata = state.activeNotebookPanel?.model?.metadata;
+    const metadata = state.activeNotebookPanel?.model;
     if (!metadata) {
       return;
     }
 
-    const current = metadata.get(METADATA_ATTACHMENTS_KEY) as ReadonlyArray<any>;
+    const current = metadata.getMetadata(METADATA_ATTACHMENTS_KEY) as ReadonlyArray<any>;
     const rucioDidAttachments = attachments as ReadonlyArray<any>;
 
     if (current !== rucioDidAttachments) {
       if (rucioDidAttachments.length === 0) {
         if (current) {
-          metadata.delete(METADATA_ATTACHMENTS_KEY);
+          metadata.deleteMetadata(METADATA_ATTACHMENTS_KEY);
         }
       } else {
-        metadata.set(METADATA_ATTACHMENTS_KEY, rucioDidAttachments as ReadonlyPartialJSONArray);
+        metadata.setMetadata(METADATA_ATTACHMENTS_KEY, rucioDidAttachments as ReadonlyPartialJSONArray);
       }
     }
   }
@@ -101,7 +101,7 @@ export class ActiveNotebookListener {
 
     nbWidget.revealed.then(() => {
       this.setActiveNotebook(nbWidget);
-      const rucioDidAttachments = nbWidget.model?.metadata.get(METADATA_ATTACHMENTS_KEY);
+      const rucioDidAttachments = nbWidget.model?.getMetadata(METADATA_ATTACHMENTS_KEY);
       if (!rucioDidAttachments) {
         this.setActiveNotebookAttachments([]);
         return;

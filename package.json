@@ -16,6 +16,20 @@
     "name": "Muhammad Aditya Hilmy",
     "email": "mhilmy@hey.com"
   },
+  "maintainers": [
+    {
+      "name": "Francesc Torradeflot",
+      "email": "torradeflot@pic.es"
+    },
+    {
+      "name": "Enrique Garcia Garcia",
+      "email": "enrique.garcia.garcia@cern.ch"
+    },
+    {
+      "name": "Giovanni Guerrieri",
+      "email": "giovanni.guerrieri@cern.ch"
+    }
+  ],
   "files": [
     "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
     "style/**/*.{css,eot,gif,html,jpg,json,png,svg,woff2,ttf}",
@@ -50,6 +64,7 @@
   "dependencies": {
     "@jupyterlab/application": "^4.1.3",
     "@jupyterlab/coreutils": "^6.1.3",
+    "@jupyterlab/galata": "^5.1.3",
     "@jupyterlab/notebook": "^4.1.3",
     "@jupyterlab/services": "^7.1.3",
     "@lumino/coreutils": "^2.0.0",
@@ -61,7 +76,9 @@
     "@types/react-virtualized-auto-sizer": "^1.0.0",
     "@types/react-window": "^1.8.2",
     "camelcase-keys-deep": "^0.1.0",
-    "pullstate": "^1.13.2",
+    "pullstate": "^1.22.1",
+    "querystring": "^0.2.1",
+    "querystring-es3": "^0.2.1",
     "react-copy-to-clipboard": "^5.0.2",
     "react-jss": "^10.1.1",
     "react-popover": "^0.5.10",

@@ -7,6 +7,7 @@
  *
  * Authors:
  * - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
+ * - Enrique Garcia, (CERN), 2024
  */
 
 import { ILabShell } from '@jupyterlab/application';
@@ -219,7 +220,7 @@ export class NotebookListener {
   }
 
   private getAttachmentsFromMetadata(notebook: NotebookPanel): NotebookDIDAttachment[] {
-    const rucioDidAttachments = notebook.model?.metadata.get(METADATA_ATTACHMENTS_KEY) ?? [];
+    const rucioDidAttachments = notebook.model?.getMetadata(METADATA_ATTACHMENTS_KEY) ?? [];
     const attachedDIDs = rucioDidAttachments as ReadonlyArray<any>;
     return attachedDIDs as NotebookDIDAttachment[];
   }

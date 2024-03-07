@@ -22,6 +22,7 @@ import { ActiveNotebookListener } from './utils/ActiveNotebookListener';
 import { NotebookPollingListener } from './utils/NotebookPollingListener';
 import { InstanceConfig } from './types';
 import uploadFile from './commands/uploadFile';
+import { SessionManager } from '@jupyterlab/services';
 
 /**
  * Initialization data for the rucio-jupyterlab extension.
@@ -58,13 +59,13 @@ function activateNotebookListener(app: JupyterFrontEnd, labShell: ILabShell, not
   const notebookListener = new NotebookListener({
     labShell,
     notebookTracker,
-    sessionManager: app.serviceManager.sessions
+    sessionManager: app.serviceManager.sessions as SessionManager
   });
 
   new ActiveNotebookListener({
     labShell,
     notebookTracker,
-    sessionManager: app.serviceManager.sessions,
+    sessionManager: app.serviceManager.sessions as SessionManager,
     notebookListener: notebookListener
   });
 
