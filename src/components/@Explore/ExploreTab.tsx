@@ -249,7 +249,7 @@ const _Explore: React.FunctionComponent = props => {
           )}
           <div className={classes.resultsContainer}>
             <AutoSizer disableWidth>
-              {({ height }) => (
+              {({ height }: { height: number }) => (
                 <VariableSizeList
                   ref={listRef}
                   height={height}

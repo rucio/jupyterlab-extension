@@ -195,7 +195,7 @@ const _FilePickerPopover: React.FC<MyProps> = ({ children, onFilePicked, ...prop
       </div>
       <div className={`${classes.content} ${loading ? 'loading' : ''}`}>
         <AutoSizer>
-          {({ height, width }) => (
+          {({ height, width }: { height: number, width: number }) => (
             <FixedSizeList height={height} itemCount={directoryItems.length} itemSize={32} width={width}>
               {Row}
             </FixedSizeList>

@@ -83,8 +83,9 @@
     "react-jss": "^10.1.1",
     "react-popover": "^0.5.10",
     "react-select": "^3.1.0",
-    "react-virtualized-auto-sizer": "^1.0.2",
-    "react-window": "^1.8.6"
+    "react-virtualized-auto-sizer": "^1.0.24",
+    "react-window": "^1.8.6",
+    "workspace": "^0.0.1-preview.1"
   },
   "devDependencies": {
     "@jupyterlab/builder": "^4.0.0",
