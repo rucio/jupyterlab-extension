@@ -1,26 +1,23 @@
 import json
 from pathlib import Path
+import os
 
-class ExtensionPaths:
-    def __init__(self):
-        self.HERE = Path(__file__).parent.parent
-        self.package_data = self._load_package_data()
+HERE = os.path.abspath(os.curdir)
 
-    def _load_package_data(self):
-        package_path = self.HERE / "rucio_jupyterlab" / "labextension" / "package.json"
-        with package_path.open() as fid:
-            data = json.load(fid)
-        return data
+# HERE = Path(__file__).parent.parent
 
-    def _jupyter_labextension_paths(self):
-        return [{
-            "src": "labextension",
-            "dest": self.package_data["name"]
-        }]
+with (HERE / "jupyterlab-extension" / "rucio_jupyterlab" / "labextension" / "package.json").open() as fid:
+    data = json.load(fid)
 
-    def _jupyter_server_extension_paths(self):  # pragma: no cover
-        return [{
-            "module": "rucio_jupyterlab.server"
-        }]
 
-extension_paths = ExtensionPaths()
+def _jupyter_labextension_paths():
+    return [{
+        "src": "labextension",
+        "dest": data["name"]
+    }]
+
+
+def _jupyter_server_extension_paths():  # pragma: no cover
+    return [{
+        "module": "rucio_jupyterlab.server"
+    }]
