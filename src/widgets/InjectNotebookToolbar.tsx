@@ -68,12 +68,19 @@ const useStyles = createUseStyles({
   }
 });
 
-const Panel: React.FC<{ notebookPanel: NotebookPanel; onClick: { (): void } }> = ({ notebookPanel, onClick }) => {
+const Panel: React.FC<{
+  notebookPanel: NotebookPanel;
+  onClick: { (): void };
+}> = ({ notebookPanel, onClick }) => {
   const classes = useStyles();
   const notebookResolveStatusStore = useNotebookResolveStatusStore();
   const notebookResolveStatus = notebookResolveStatusStore[notebookPanel.id];
-  const statuses = notebookResolveStatus ? Object.keys(notebookResolveStatus).map(k => notebookResolveStatus[k]) : null;
-  const computeSummarizedStatus = (statuses: ResolveStatus[] | null): ResolveStatus | null => {
+  const statuses = notebookResolveStatus
+    ? Object.keys(notebookResolveStatus).map(k => notebookResolveStatus[k])
+    : null;
+  const computeSummarizedStatus = (
+    statuses: ResolveStatus[] | null
+  ): ResolveStatus | null => {
     if (!statuses) {
       return null;
     } else if (statuses.length === 0) {
@@ -91,50 +98,82 @@ const Panel: React.FC<{ notebookPanel: NotebookPanel; onClick: { (): void } }> =
     }
   };
 
-  const summmarizedStatus = useMemo(() => computeSummarizedStatus(statuses), [notebookResolveStatus]);
+  const summmarizedStatus = useMemo(
+    () => computeSummarizedStatus(statuses),
+    [notebookResolveStatus]
+  );
 
   return (
     <>
       {!!summmarizedStatus && (
         <div className={classes.main} onClick={onClick}>
           <ResolverStatusIcon status={summmarizedStatus} />
-          {summmarizedStatus === 'NOT_RESOLVED' && <span>Attach Variables</span>}
-          {summmarizedStatus === 'FAILED' && <span className={classes.failed}>Failed to Attach</span>}
-          {summmarizedStatus === 'RESOLVING' && <span className={classes.resolving}>Resolving</span>}
-          {summmarizedStatus === 'PENDING_INJECTION' && <span className={classes.injecting}>Attaching</span>}
-          {summmarizedStatus === 'READY' && <span className={classes.ready}>Ready</span>}
+          {summmarizedStatus === 'NOT_RESOLVED' && (
+            <span>Attach Variables</span>
+          )}
+          {summmarizedStatus === 'FAILED' && (
+            <span className={classes.failed}>Failed to Attach</span>
+          )}
+          {summmarizedStatus === 'RESOLVING' && (
+            <span className={classes.resolving}>Resolving</span>
+          )}
+          {summmarizedStatus === 'PENDING_INJECTION' && (
+            <span className={classes.injecting}>Attaching</span>
+          )}
+          {summmarizedStatus === 'READY' && (
+            <span className={classes.ready}>Ready</span>
+          )}
         </div>
       )}
     </>
   );
 };
 
-const ResolverStatusIcon: React.FC<{ status: ResolveStatus }> = ({ status }) => {
+const ResolverStatusIcon: React.FC<{ status: ResolveStatus }> = ({
+  status
+}) => {
   const classes = useStyles();
 
   switch (status) {
     case 'RESOLVING':
-      return <Spinning className={`${classes.resolvingIcon} material-icons`}>hourglass_top</Spinning>;
+      return (
+        <Spinning className={`${classes.resolvingIcon} material-icons`}>
+          hourglass_top
+        </Spinning>
+      );
     case 'PENDING_INJECTION':
-      return <Spinning className={`${classes.pendingInjectionIcon} material-icons`}>hourglass_top</Spinning>;
+      return (
+        <Spinning className={`${classes.pendingInjectionIcon} material-icons`}>
+          hourglass_top
+        </Spinning>
+      );
     case 'READY':
-      return <i className={`${classes.readyIcon} material-icons`}>check_circle</i>;
+      return (
+        <i className={`${classes.readyIcon} material-icons`}>check_circle</i>
+      );
     case 'FAILED':
       return <i className={`${classes.failedIcon} material-icons`}>cancel</i>;
     default:
-      return <rucioIcon.react tag="span" className={classes.rucioIcon} width="16px" height="16px" />;
+      return (
+        <rucioIcon.react
+          tag="span"
+          className={classes.rucioIcon}
+          width="16px"
+          height="16px"
+        />
+      );
   }
 };
 
 const PANEL_CLASS = 'jp-RucioExtensionInjectToolbar';
 
-interface InjectNotebookToolbarOptions {
+interface IInjectNotebookToolbarOptions {
   notebookPanel: NotebookPanel;
   onClick: { (): void };
 }
 export class InjectNotebookToolbar extends VDomRenderer {
-  options: InjectNotebookToolbarOptions;
-  constructor(options: InjectNotebookToolbarOptions) {
+  options: IInjectNotebookToolbarOptions;
+  constructor(options: IInjectNotebookToolbarOptions) {
     super();
     super.addClass(PANEL_CLASS);
 

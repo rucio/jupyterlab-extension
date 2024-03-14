@@ -82,13 +82,17 @@ const useStyles = createUseStyles({
   }
 });
 
-interface FilePickerPopoverProps {
+interface IFilePickerPopoverProps {
   onFilePicked: { (path: string): void };
 }
 
-type MyProps = React.HTMLAttributes<HTMLDivElement> & FilePickerPopoverProps;
+type MyProps = React.HTMLAttributes<HTMLDivElement> & IFilePickerPopoverProps;
 
-const _FilePickerPopover: React.FC<MyProps> = ({ children, onFilePicked, ...props }) => {
+const _FilePickerPopover: React.FC<MyProps> = ({
+  children,
+  onFilePicked,
+  ...props
+}) => {
   const { actions } = props as WithRequestAPIProps;
 
   const classes = useStyles();
@@ -96,7 +100,9 @@ const _FilePickerPopover: React.FC<MyProps> = ({ children, onFilePicked, ...prop
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [directoryItems, setDirectoryItems] = useState<DirectoryItem[]>([]);
-  const [itemsCache, setItemsCache] = useState<{ [path: string]: DirectoryItem[] }>({});
+  const [itemsCache, setItemsCache] = useState<{
+    [path: string]: DirectoryItem[];
+  }>({});
 
   const openPopover = () => {
     setOpen(true);
@@ -172,31 +178,59 @@ const _FilePickerPopover: React.FC<MyProps> = ({ children, onFilePicked, ...prop
 
   const Row = ({ index, style }: any) => {
     const item = directoryItems[index];
-    return <ListItem style={style} directoryItem={item} key={item.path} onClick={() => onItemClick(item)} />;
+    return (
+      <ListItem
+        style={style}
+        directoryItem={item}
+        key={item.path}
+        onClick={() => onItemClick(item)}
+      />
+    );
   };
 
   const popoverBody = (
     <div className={classes.main}>
       <div className={classes.heading}>
-        <span className={`material-icons ${classes.icon} ${classes.clickable}`} onClick={moveToHomeDirectory}>
+        <span
+          className={`material-icons ${classes.icon} ${classes.clickable}`}
+          onClick={moveToHomeDirectory}
+        >
           home
         </span>
-        {path.length === 0 && <span className={classes.folderName}>&nbsp; Home</span>}
-        {path.length >= 1 && <span className={`material-icons ${classes.icon}`}>navigate_next</span>}
+        {path.length === 0 && (
+          <span className={classes.folderName}>&nbsp; Home</span>
+        )}
+        {path.length >= 1 && (
+          <span className={`material-icons ${classes.icon}`}>
+            navigate_next
+          </span>
+        )}
         {path.length >= 2 && (
           <>
-            <span className={`material-icons ${classes.icon} ${classes.clickable}`} onClick={moveToUpperDirectory}>
+            <span
+              className={`material-icons ${classes.icon} ${classes.clickable}`}
+              onClick={moveToUpperDirectory}
+            >
               more_horiz
             </span>
-            <span className={`material-icons ${classes.icon}`}>navigate_next</span>
+            <span className={`material-icons ${classes.icon}`}>
+              navigate_next
+            </span>
           </>
         )}
-        <span className={classes.folderName}>{path ? path[path.length - 1] : ''}</span>
+        <span className={classes.folderName}>
+          {path ? path[path.length - 1] : ''}
+        </span>
       </div>
       <div className={`${classes.content} ${loading ? 'loading' : ''}`}>
         <AutoSizer>
-          {({ height, width }: { height: number, width: number }) => (
-            <FixedSizeList height={height} itemCount={directoryItems.length} itemSize={32} width={width}>
+          {({ height, width }: { height: number; width: number }) => (
+            <FixedSizeList
+              height={height}
+              itemCount={directoryItems.length}
+              itemSize={32}
+              width={width}
+            >
               {Row}
             </FixedSizeList>
           )}
@@ -218,18 +252,22 @@ const _FilePickerPopover: React.FC<MyProps> = ({ children, onFilePicked, ...prop
   );
 };
 
-const ListItem: React.FC<{ directoryItem: DirectoryItem; onClick: { (): void }; style: any }> = ({
-  directoryItem,
-  onClick,
-  style
-}) => {
+const ListItem: React.FC<{
+  directoryItem: DirectoryItem;
+  onClick: { (): void };
+  style: any;
+}> = ({ directoryItem, onClick, style }) => {
   const classes = useStyles();
 
   return (
     <div className={classes.listItem} onClick={onClick} style={style}>
       <div className={classes.iconContainer}>
-        {directoryItem.type === 'file' && <i className={`${classes.fileIcon} material-icons`}>attachment</i>}
-        {directoryItem.type === 'dir' && <i className={`${classes.dirIcon} material-icons`}>folder</i>}
+        {directoryItem.type === 'file' && (
+          <i className={`${classes.fileIcon} material-icons`}>attachment</i>
+        )}
+        {directoryItem.type === 'dir' && (
+          <i className={`${classes.dirIcon} material-icons`}>folder</i>
+        )}
       </div>
       <div className={classes.textContainer}>{directoryItem.name}</div>
     </div>

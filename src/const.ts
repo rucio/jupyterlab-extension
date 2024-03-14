@@ -26,4 +26,6 @@ export namespace CommandIDs {
   export const OpenUploadLog = `${EXTENSION_ID}:open-upload-log`;
 }
 
-export const JupyterLabAppContext = React.createContext<JupyterFrontEnd | undefined>(undefined);
+export const JupyterLabAppContext = React.createContext<
+  JupyterFrontEnd | undefined
+>(undefined);

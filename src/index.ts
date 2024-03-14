@@ -9,19 +9,24 @@
  * - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
  */
 
-import { JupyterFrontEnd, JupyterFrontEndPlugin, ILabShell } from '@jupyterlab/application';
+import {
+  JupyterFrontEnd,
+  JupyterFrontEndPlugin,
+  ILabShell
+} from '@jupyterlab/application';
 import { INotebookTracker } from '@jupyterlab/notebook';
-import { fileUploadIcon } from '@jupyterlab/ui-components';
+// import { fileUploadIcon } from '@jupyterlab/ui-components';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
-import { toArray } from '@lumino/algorithm';
-import { CommandIDs, EXTENSION_ID } from './const';
+// import { toArray } from '@lumino/algorithm';
+// import { CommandIDs } from './const';
+import { EXTENSION_ID } from './const';
 import { SidebarPanel } from './widgets/SidebarPanel';
 import { actions } from './utils/Actions';
 import { NotebookListener } from './utils/NotebookListener';
 import { ActiveNotebookListener } from './utils/ActiveNotebookListener';
 import { NotebookPollingListener } from './utils/NotebookPollingListener';
-import { InstanceConfig } from './types';
-import uploadFile from './commands/uploadFile';
+import { IInstanceConfig } from './types';
+// import uploadFile from './commands/uploadFile';
 import { SessionManager } from '@jupyterlab/services';
 
 /**
@@ -48,14 +53,22 @@ const extension: JupyterFrontEndPlugin<void> = {
   }
 };
 
-function activateSidebarPanel(app: JupyterFrontEnd, labShell: ILabShell, instanceConfig: InstanceConfig) {
+function activateSidebarPanel(
+  app: JupyterFrontEnd,
+  labShell: ILabShell,
+  instanceConfig: IInstanceConfig
+) {
   const sidebarPanel = new SidebarPanel({ app, instanceConfig });
   sidebarPanel.id = EXTENSION_ID + ':panel';
   labShell.add(sidebarPanel, 'left', { rank: 900 });
   labShell.activateById(sidebarPanel.id);
 }
 
-function activateNotebookListener(app: JupyterFrontEnd, labShell: ILabShell, notebookTracker: INotebookTracker) {
+function activateNotebookListener(
+  app: JupyterFrontEnd,
+  labShell: ILabShell,
+  notebookTracker: INotebookTracker
+) {
   const notebookListener = new NotebookListener({
     labShell,
     notebookTracker,
@@ -72,7 +85,10 @@ function activateNotebookListener(app: JupyterFrontEnd, labShell: ILabShell, not
   new NotebookPollingListener(notebookListener);
 }
 
-function activateRucioUploadWidget(app: JupyterFrontEnd, fileBrowserFactory: IFileBrowserFactory) {
+/*function activateRucioUploadWidget(
+  app: JupyterFrontEnd,
+  fileBrowserFactory: IFileBrowserFactory
+) {
   app.commands.addCommand(CommandIDs.UploadFile, {
     icon: fileUploadIcon,
     label: 'Upload File(s) to Rucio',
@@ -80,7 +96,9 @@ function activateRucioUploadWidget(app: JupyterFrontEnd, fileBrowserFactory: IFi
       const widget = fileBrowserFactory.tracker.currentWidget;
 
       if (widget) {
-        const selection = toArray(widget.selectedItems()).filter(s => s.type !== 'directory');
+        const selection = toArray(widget.selectedItems()).filter(
+          s => s.type !== 'directory'
+        );
         if (selection.length === 0) {
           return;
         }
@@ -94,6 +112,6 @@ function activateRucioUploadWidget(app: JupyterFrontEnd, fileBrowserFactory: IFi
     selector: '.jp-DirListing-item[data-isdir="false"]',
     rank: 10
   });
-}
+}*/
 
 export default extension;

@@ -10,9 +10,14 @@
  */
 
 import { Store } from 'pullstate';
-import { Instance, FileDIDDetails, RucioAuthCredentials, RucioAuthType } from '../types';
+import {
+  Instance,
+  FileDIDDetails,
+  RucioAuthCredentials,
+  RucioAuthType
+} from '../types';
 
-export interface UIState {
+export interface IUIState {
   activeInstance?: Instance;
   activeAuthType?: RucioAuthType;
   instances?: Instance[];
@@ -21,7 +26,7 @@ export interface UIState {
   collectionDetails: { [did: string]: FileDIDDetails[] };
 }
 
-export const initialState: UIState = {
+export const initialState: IUIState = {
   fileDetails: {},
   collectionDetails: {}
 };

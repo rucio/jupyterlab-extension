@@ -27,7 +27,11 @@ const useStyles = createUseStyles({
   }
 });
 
-export const Spinning: React.FC<React.HTMLAttributes<HTMLElement>> = ({ children, className, ...props }) => {
+export const Spinning: React.FC<React.HTMLAttributes<HTMLElement>> = ({
+  children,
+  className,
+  ...props
+}) => {
   const classes = useStyles();
   return (
     <span className={`${className} ${classes.rotate}`} {...props}>

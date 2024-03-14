@@ -41,13 +41,13 @@ const useStyles = createUseStyles({
   }
 });
 
-interface UserPassAuthProps {
+interface IUserPassAuthProps {
   params?: RucioUserpassAuth;
   loading?: boolean;
   onAuthParamsChange: { (val: RucioUserpassAuth): void };
 }
 
-type MyProps = UserPassAuthProps & React.HTMLAttributes<HTMLDivElement>;
+type MyProps = IUserPassAuthProps & React.HTMLAttributes<HTMLDivElement>;
 
 export const UserPassAuth: React.FC<MyProps> = ({
   params = { username: '', password: '', account: '' },
@@ -70,7 +70,9 @@ export const UserPassAuth: React.FC<MyProps> = ({
 
   const loadingSpinner = (
     <div className={classes.loadingContainer}>
-      <Spinning className={`${classes.loadingIcon} material-icons`}>hourglass_top</Spinning>
+      <Spinning className={`${classes.loadingIcon} material-icons`}>
+        hourglass_top
+      </Spinning>
     </div>
   );
 
@@ -98,7 +100,9 @@ export const UserPassAuth: React.FC<MyProps> = ({
             after={loading ? loadingSpinner : undefined}
           />
         </div>
-        <div className={classes.warning}>Your password will be stored in plain text inside your user directory.</div>
+        <div className={classes.warning}>
+          Your password will be stored in plain text inside your user directory.
+        </div>
         <div className={classes.textFieldContainer}>
           <div className={classes.label}>Account</div>
           <TextField

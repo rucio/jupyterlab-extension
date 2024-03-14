@@ -11,7 +11,9 @@
 
 import { FileDIDDetails, CollectionStatus } from '../types';
 
-export const computeCollectionState = (files?: FileDIDDetails[]): CollectionStatus | false => {
+export const computeCollectionState = (
+  files?: FileDIDDetails[]
+): CollectionStatus | false => {
   if (!files) {
     return false;
   }

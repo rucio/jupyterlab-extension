@@ -9,7 +9,13 @@
  * - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
  */
 
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef
+} from 'react';
 import Popover from 'react-popover';
 import { createUseStyles } from 'react-jss';
 import { useStoreState } from 'pullstate';
@@ -55,33 +61,52 @@ const useStyles = createUseStyles({
   }
 });
 
-interface AddToNotebookPopoverProps {
+interface IAddToNotebookPopoverProps {
   did: string;
   type: 'collection' | 'file';
 }
 
-type MyProps = React.HTMLAttributes<HTMLDivElement> & AddToNotebookPopoverProps;
+type MyProps = React.HTMLAttributes<HTMLDivElement> &
+  IAddToNotebookPopoverProps;
 
-export const AddToNotebookPopover: React.FC<MyProps> = ({ children, did, type }) => {
+export const AddToNotebookPopover: React.FC<MyProps> = ({
+  children,
+  did,
+  type
+}) => {
   const classes = useStyles();
   const textFieldRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string>();
   const [varName, setVarName] = useState('');
-  const activeNotebookPanel = useStoreState(ExtensionStore, s => s.activeNotebookPanel);
-  const activeNotebookAttachments = useStoreState(ExtensionStore, s => s.activeNotebookAttachment);
+  const activeNotebookPanel = useStoreState(
+    ExtensionStore,
+    s => s.activeNotebookPanel
+  );
+  const activeNotebookAttachments = useStoreState(
+    ExtensionStore,
+    s => s.activeNotebookAttachment
+  );
 
   const existingAttachmentVariableNames = useMemo(
-    () => (activeNotebookAttachments ? activeNotebookAttachments.map(a => a.variableName) : []),
+    () =>
+      activeNotebookAttachments
+        ? activeNotebookAttachments.map(a => a.variableName)
+        : [],
     [activeNotebookAttachments]
   );
 
   const didAttached = useMemo(
-    () => (activeNotebookAttachments ? !!activeNotebookAttachments.find(a => a.did === did) : false),
+    () =>
+      activeNotebookAttachments
+        ? !!activeNotebookAttachments.find(a => a.did === did)
+        : false,
     [activeNotebookAttachments]
   );
 
-  const setActiveNotebookAttachments = (attachments: NotebookDIDAttachment[]) => {
+  const setActiveNotebookAttachments = (
+    attachments: NotebookDIDAttachment[]
+  ) => {
     ExtensionStore.update(s => {
       s.activeNotebookAttachment = attachments;
     });
@@ -113,7 +138,9 @@ export const AddToNotebookPopover: React.FC<MyProps> = ({ children, did, type })
       type,
       variableName: varName
     };
-    const notebookAttachments = activeNotebookAttachments ? [...activeNotebookAttachments, attachment] : [attachment];
+    const notebookAttachments = activeNotebookAttachments
+      ? [...activeNotebookAttachments, attachment]
+      : [attachment];
 
     setActiveNotebookAttachments(notebookAttachments);
   };
