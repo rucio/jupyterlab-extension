@@ -3,7 +3,7 @@ from pathlib import Path
 
 HERE = Path(__file__).parent.resolve()
 
-with (HERE / "labextension" / "package.json").open() as fid:
+with (HERE.parent / "labextension" / "package.json").open() as fid:
     data = json.load(fid)
 
 
