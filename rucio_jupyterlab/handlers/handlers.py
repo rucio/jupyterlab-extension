@@ -7,7 +7,7 @@
 # Authors:
 # - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
 
-from notebook.utils import url_path_join  # pylint: disable=import-error
+from jupyter_server.utils import url_path_join  # pylint: disable=import-error
 from rucio_jupyterlab.config import RucioConfig, Config
 from rucio_jupyterlab.rucio import RucioAPIFactory
 from .instances import InstancesHandler
