@@ -14,8 +14,8 @@ import { createUseStyles } from 'react-jss';
 import { FixedSizeList } from 'react-window';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import Popover from 'react-popover';
-import { withRequestAPI, WithRequestAPIProps } from '../../utils/Actions';
-import { DirectoryItem } from '../../types';
+import { withRequestAPI, IWithRequestAPIProps } from '../../utils/Actions';
+import { IDirectoryItem } from '../../types';
 
 const useStyles = createUseStyles({
   main: {
@@ -93,15 +93,15 @@ const _FilePickerPopover: React.FC<MyProps> = ({
   onFilePicked,
   ...props
 }) => {
-  const { actions } = props as WithRequestAPIProps;
+  const { actions } = props as IWithRequestAPIProps;
 
   const classes = useStyles();
   const [path, setPath] = useState<string[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [directoryItems, setDirectoryItems] = useState<DirectoryItem[]>([]);
+  const [directoryItems, setDirectoryItems] = useState<IDirectoryItem[]>([]);
   const [itemsCache, setItemsCache] = useState<{
-    [path: string]: DirectoryItem[];
+    [path: string]: IDirectoryItem[];
   }>({});
 
   const openPopover = () => {
@@ -111,7 +111,7 @@ const _FilePickerPopover: React.FC<MyProps> = ({
     setItemsCache({});
   };
 
-  const itemsSortFunction = (a: DirectoryItem, b: DirectoryItem): number => {
+  const itemsSortFunction = (a: IDirectoryItem, b: IDirectoryItem): number => {
     if (a.type === b.type) {
       return a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1;
     }
@@ -167,7 +167,7 @@ const _FilePickerPopover: React.FC<MyProps> = ({
     };
   }, []);
 
-  const onItemClick = (item: DirectoryItem) => {
+  const onItemClick = (item: IDirectoryItem) => {
     if (item.type === 'dir') {
       setPath([...path, item.name]);
     } else {
@@ -253,7 +253,7 @@ const _FilePickerPopover: React.FC<MyProps> = ({
 };
 
 const ListItem: React.FC<{
-  directoryItem: DirectoryItem;
+  directoryItem: IDirectoryItem;
   onClick: { (): void };
   style: any;
 }> = ({ directoryItem, onClick, style }) => {

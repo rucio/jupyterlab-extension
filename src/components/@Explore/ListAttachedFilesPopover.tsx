@@ -16,7 +16,7 @@ import { createUseStyles } from 'react-jss';
 import { FixedSizeList } from 'react-window';
 import { useStoreState } from 'pullstate';
 import { UIStore } from '../../stores/UIStore';
-import { AttachedFile } from '../../types';
+import { IAttachedFile } from '../../types';
 import { actions } from '../../utils/Actions';
 import { Spinning } from '../Spinning';
 import { toHumanReadableSize } from '../../utils/Helpers';
@@ -126,7 +126,7 @@ export const ListAttachedFilesPopover: React.FC<MyProps> = ({
   const classes = useStyles();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [files, setFiles] = useState<AttachedFile[]>([]);
+  const [files, setFiles] = useState<IAttachedFile[]>([]);
   const activeInstance = useStoreState(UIStore, s => s.activeInstance);
 
   const escFunction = useCallback(event => {

@@ -259,7 +259,7 @@ export class Actions {
 
 export const actions = new Actions();
 
-export interface IIWithRequestAPIProps {
+export interface IWithRequestAPIProps {
   actions: Actions;
 }
 

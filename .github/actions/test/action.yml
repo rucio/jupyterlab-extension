@@ -5,9 +5,9 @@ runs:
     - name: Run ESLint
       run: jlpm run eslint:check
       shell: bash
-    #- name: Run Jest
-    #  run: jlpm jest
-    #  shell: bash
+    - name: Run Jest
+      run: jlpm jest
+      shell: bash
     - name: Run Pytest
       run: pytest rucio_jupyterlab/tests/
       shell: bash

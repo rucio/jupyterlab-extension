@@ -15,20 +15,20 @@ import Select from 'react-select';
 import { useStoreState } from 'pullstate';
 import { UIStore, resetRucioCaches } from '../../stores/UIStore';
 import { Button } from '../Button';
-import { withRequestAPI, WithRequestAPIProps } from '../../utils/Actions';
+import { withRequestAPI, IWithRequestAPIProps } from '../../utils/Actions';
 import { UserPassAuth } from './UserPassAuth';
 import { X509Auth } from './X509Auth';
 import { X509ProxyAuth } from './X509ProxyAuth';
 import {
-  Instance,
+  IInstance,
   RucioAuthType,
-  RucioUserpassAuth,
-  RucioX509Auth,
-  RucioX509ProxyAuth
+  IRucioUserpassAuth,
+  IRucioX509Auth,
+  IRucioX509ProxyAuth
 } from '../../types';
 import { HorizontalHeading } from '../HorizontalHeading';
 
-const getEnabledAuthTypes = (instance: Instance) =>
+const getEnabledAuthTypes = (instance: IInstance) =>
   [
     instance.oidcEnabled
       ? { label: 'OpenID Connect', value: 'oidc' }
@@ -115,7 +115,7 @@ const useStyles = createUseStyles({
 });
 
 const _Settings: React.FunctionComponent = props => {
-  const { actions } = props as WithRequestAPIProps;
+  const { actions } = props as IWithRequestAPIProps;
 
   const classes = useStyles();
   const activeInstance = useStoreState(UIStore, s => s.activeInstance);
@@ -142,11 +142,11 @@ const _Settings: React.FunctionComponent = props => {
   >(activeAuthType);
 
   const [rucioUserpassAuthCredentials, setRucioUserpassAuthCredentials] =
-    useState<RucioUserpassAuth>();
+    useState<IRucioUserpassAuth>();
   const [rucioX509AuthCredentials, setRucioX509AuthCredentials] =
-    useState<RucioX509Auth>();
+    useState<IRucioX509Auth>();
   const [rucioX509ProxyAuthCredentials, setRucioX509ProxyAuthCredentials] =
-    useState<RucioX509ProxyAuth>();
+    useState<IRucioX509ProxyAuth>();
   const [credentialsLoading, setCredentialsLoading] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(false);
   const [showSaved, setShowSaved] = useState<boolean>(false);
@@ -232,19 +232,22 @@ const _Settings: React.FunctionComponent = props => {
 
     if (selectedAuthType === 'userpass') {
       actions
-        .fetchAuthConfig<RucioUserpassAuth>(selectedInstance, selectedAuthType)
+        .fetchAuthConfig<IRucioUserpassAuth>(selectedInstance, selectedAuthType)
         .then(c => setRucioUserpassAuthCredentials(c))
         .catch(() => setRucioUserpassAuthCredentials(undefined))
         .finally(() => setCredentialsLoading(false));
     } else if (selectedAuthType === 'x509') {
       actions
-        .fetchAuthConfig<RucioX509Auth>(selectedInstance, selectedAuthType)
+        .fetchAuthConfig<IRucioX509Auth>(selectedInstance, selectedAuthType)
         .then(c => setRucioX509AuthCredentials(c))
         .catch(() => setRucioX509AuthCredentials(undefined))
         .finally(() => setCredentialsLoading(false));
     } else if (selectedAuthType === 'x509_proxy') {
       actions
-        .fetchAuthConfig<RucioX509ProxyAuth>(selectedInstance, selectedAuthType)
+        .fetchAuthConfig<IRucioX509ProxyAuth>(
+          selectedInstance,
+          selectedAuthType
+        )
         .then(c => setRucioX509ProxyAuthCredentials(c))
         .catch(() => setRucioX509ProxyAuthCredentials(undefined))
         .finally(() => setCredentialsLoading(false));

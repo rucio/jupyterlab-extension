@@ -19,8 +19,8 @@ import { TextField } from '../../components/TextField';
 import { HorizontalHeading } from '../../components/HorizontalHeading';
 import { DIDListItem } from '../../components/@Explore/DIDListItem';
 import { Spinning } from '../../components/Spinning';
-import { withRequestAPI, WithRequestAPIProps } from '../../utils/Actions';
-import { DIDSearchType, DIDSearchResult } from '../../types';
+import { withRequestAPI, IWithRequestAPIProps } from '../../utils/Actions';
+import { DIDSearchType, IDIDSearchResult } from '../../types';
 import { InlineDropdown } from '../components/../@Explore/InlineDropdown';
 import { ListScopesPopover } from '../components/../@Explore/ListScopesPopover';
 
@@ -98,11 +98,11 @@ const searchByOptions = [
 const _Explore: React.FunctionComponent = props => {
   const classes = useStyles();
 
-  const { actions } = props as WithRequestAPIProps;
+  const { actions } = props as IWithRequestAPIProps;
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchType, setSearchType] = useState<DIDSearchType>('all');
-  const [searchResult, setSearchResult] = useState<DIDSearchResult[]>();
+  const [searchResult, setSearchResult] = useState<IDIDSearchResult[]>();
   const [didExpanded, setDidExpanded] = useState<{ [index: number]: boolean }>(
     {}
   );
@@ -116,8 +116,8 @@ const _Explore: React.FunctionComponent = props => {
   };
 
   const itemsSortFunction = (
-    a: DIDSearchResult,
-    b: DIDSearchResult
+    a: IDIDSearchResult,
+    b: IDIDSearchResult
   ): number => {
     if (a.type === b.type) {
       return a.did.toLowerCase() < b.did.toLowerCase() ? -1 : 1;

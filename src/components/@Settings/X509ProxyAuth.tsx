@@ -12,7 +12,7 @@
 import React from 'react';
 import { createUseStyles } from 'react-jss';
 import { TextField } from '../TextField';
-import { RucioX509ProxyAuth } from '../../types';
+import { IRucioX509ProxyAuth } from '../../types';
 import { Spinning } from '../Spinning';
 import { FilePickerPopover } from './FilePickerPopover';
 
@@ -47,9 +47,9 @@ const useStyles = createUseStyles({
 });
 
 interface IX509AuthProxyProps {
-  params?: RucioX509ProxyAuth;
+  params?: IRucioX509ProxyAuth;
   loading?: boolean;
-  onAuthParamsChange: { (val: RucioX509ProxyAuth): void };
+  onAuthParamsChange: { (val: IRucioX509ProxyAuth): void };
 }
 
 type MyProps = IX509AuthProxyProps & React.HTMLAttributes<HTMLDivElement>;

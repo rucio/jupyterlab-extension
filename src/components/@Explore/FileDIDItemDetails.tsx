@@ -17,11 +17,11 @@ import { ServerConnection } from '@jupyterlab/services';
 import { EXTENSION_ID } from '../../const';
 import { UIStore } from '../../stores/UIStore';
 import { Spinning } from '../Spinning';
-import { withRequestAPI, WithRequestAPIProps } from '../../utils/Actions';
+import { withRequestAPI, IWithRequestAPIProps } from '../../utils/Actions';
 import { AddToNotebookPopover } from './AddToNotebookPopover';
 import {
   withPollingManager,
-  WithPollingManagerProps,
+  IWithPollingManagerProps,
   PollingRequesterRef
 } from '../../utils/DIDPollingManager';
 
@@ -88,8 +88,8 @@ export interface IDIDItem {
 const _FileDIDItemDetails: React.FC<IDIDItem> = ({ did, ...props }) => {
   const classes = useStyles();
 
-  const { actions } = props as WithRequestAPIProps;
-  const { didPollingManager } = props as WithPollingManagerProps;
+  const { actions } = props as IWithRequestAPIProps;
+  const { didPollingManager } = props as IWithPollingManagerProps;
 
   const fileDetails = useStoreState(UIStore, s => s.fileDetails[did]);
   const activeInstance = useStoreState(UIStore, s => s.activeInstance);

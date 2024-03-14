@@ -12,7 +12,7 @@
 import React from 'react';
 import { createUseStyles } from 'react-jss';
 import { TextField } from '../TextField';
-import { RucioUserpassAuth } from '../../types';
+import { IRucioUserpassAuth } from '../../types';
 import { Spinning } from '../Spinning';
 
 const useStyles = createUseStyles({
@@ -42,9 +42,9 @@ const useStyles = createUseStyles({
 });
 
 interface IUserPassAuthProps {
-  params?: RucioUserpassAuth;
+  params?: IRucioUserpassAuth;
   loading?: boolean;
-  onAuthParamsChange: { (val: RucioUserpassAuth): void };
+  onAuthParamsChange: { (val: IRucioUserpassAuth): void };
 }
 
 type MyProps = IUserPassAuthProps & React.HTMLAttributes<HTMLDivElement>;

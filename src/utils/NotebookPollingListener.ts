@@ -12,7 +12,7 @@
 import { ExtensionStore } from '../stores/ExtensionStore';
 import { UIStore } from '../stores/UIStore';
 import { PollingRequesterRef, didPollingManager } from './DIDPollingManager';
-import { NotebookDIDAttachment } from '../types';
+import { INotebookDIDAttachment } from '../types';
 import { actions } from './Actions';
 import { NotebookListener } from './NotebookListener';
 import { computeCollectionState } from './Helpers';
@@ -124,14 +124,14 @@ export class NotebookPollingListener {
     );
   }
 
-  private removeUnfocusedDIDs(attachments: NotebookDIDAttachment[] = []) {
+  private removeUnfocusedDIDs(attachments: INotebookDIDAttachment[] = []) {
     const shouldNoLongerPoll = this.activePolling.filter(
       did => !attachments.find(a => a.did === did)
     );
     shouldNoLongerPoll.forEach(did => this.disablePolling(did));
   }
 
-  private processNewAttachments(attachments: NotebookDIDAttachment[] = []) {
+  private processNewAttachments(attachments: INotebookDIDAttachment[] = []) {
     const newlyAdded = attachments.filter(
       a => !this.activePolling.find(did => did === a.did)
     );
@@ -144,7 +144,7 @@ export class NotebookPollingListener {
     });
   }
 
-  private async shouldEnablePolling(attachment: NotebookDIDAttachment) {
+  private async shouldEnablePolling(attachment: INotebookDIDAttachment) {
     const { activeInstance } = UIStore.getRawState();
     if (!activeInstance) {
       return false;

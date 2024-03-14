@@ -13,13 +13,13 @@ import React, { useEffect, useMemo } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useStoreState } from 'pullstate';
 import {
-  NotebookDIDAttachment,
+  INotebookDIDAttachment,
   FileStatus,
   CollectionStatus,
   ResolveStatus
 } from '../../types';
 import { Spinning } from '../Spinning';
-import { WithRequestAPIProps, withRequestAPI } from '../../utils/Actions';
+import { IWithRequestAPIProps, withRequestAPI } from '../../utils/Actions';
 import { UIStore } from '../../stores/UIStore';
 import { computeCollectionState } from '../../utils/Helpers';
 import { ExtensionStore } from '../../stores/ExtensionStore';
@@ -100,7 +100,7 @@ const useStyles = createUseStyles({
 });
 
 export interface INotebookAttachmentListItemProps {
-  attachment: NotebookDIDAttachment;
+  attachment: INotebookDIDAttachment;
   status?: ResolveStatus;
 }
 
@@ -108,7 +108,7 @@ const _NotebookAttachmentListItem: React.FC<
   INotebookAttachmentListItemProps
 > = ({ attachment, status, ...props }) => {
   const classes = useStyles();
-  const { actions } = props as WithRequestAPIProps;
+  const { actions } = props as IWithRequestAPIProps;
   const { did, type } = attachment;
 
   const fileDetails = useStoreState(UIStore, s => s.fileDetails[did]);

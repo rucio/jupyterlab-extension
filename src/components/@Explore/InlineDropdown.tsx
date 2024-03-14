@@ -32,7 +32,7 @@ const useStyles = createUseStyles({
     color: 'var(--jp-ui-font-color1)'
   },
   dropdownActive: {
-    minWidth: (props: Partial<InlineDropdownProps>) =>
+    minWidth: (props: Partial<IInlineDropdownProps>) =>
       props.optionWidth || '150px',
     extend: 'dropdownContent',
     display: 'block'
