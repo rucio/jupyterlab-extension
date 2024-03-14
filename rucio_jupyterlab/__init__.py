@@ -4,7 +4,7 @@ import os
 
 HERE = Path(os.path.abspath(os.curdir))
 
-# HERE = Path(__file__).parent.parent
+print(HERE)
 
 with (HERE / "rucio_jupyterlab" / "labextension" / "package.json").open() as fid:
     data = json.load(fid)
