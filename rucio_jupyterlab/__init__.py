@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 import os
 
-HERE = Path(os.path.abspath(os.curdir))
+HERE = Path(os.path.abspath(os.curdir)).parent
 
 print(HERE)
 
