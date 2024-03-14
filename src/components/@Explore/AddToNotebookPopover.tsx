@@ -21,7 +21,7 @@ import { createUseStyles } from 'react-jss';
 import { useStoreState } from 'pullstate';
 import { ExtensionStore } from '../../stores/ExtensionStore';
 import { TextField } from '../TextField';
-import { NotebookDIDAttachment } from '../../types';
+import { INotebookDIDAttachment } from '../../types';
 import { checkVariableNameValid } from '../../utils/Helpers';
 
 const useStyles = createUseStyles({
@@ -105,7 +105,7 @@ export const AddToNotebookPopover: React.FC<MyProps> = ({
   );
 
   const setActiveNotebookAttachments = (
-    attachments: NotebookDIDAttachment[]
+    attachments: INotebookDIDAttachment[]
   ) => {
     ExtensionStore.update(s => {
       s.activeNotebookAttachment = attachments;
@@ -133,7 +133,7 @@ export const AddToNotebookPopover: React.FC<MyProps> = ({
 
     setOpen(false);
 
-    const attachment: NotebookDIDAttachment = {
+    const attachment: INotebookDIDAttachment = {
       did,
       type,
       variableName: varName
