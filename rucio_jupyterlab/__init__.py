@@ -1,9 +1,9 @@
 import json
 from pathlib import Path
 
-HERE = Path(__file__).parent.resolve()
+HERE = Path(__file__).parent
 
-with (HERE.parent / "labextension" / "package.json").open() as fid:
+with (HERE / "labextension" / "package.json").open() as fid:
     data = json.load(fid)
 
 
