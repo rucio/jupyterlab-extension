@@ -4,6 +4,7 @@ jsonschema
 psutil
 pytest
 pytest-mock
+pytest-jupyter
 requests-mock
 traitlets
 pylint
