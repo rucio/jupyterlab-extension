@@ -3,12 +3,17 @@ from pathlib import Path
 import os
 
 HERE = Path(os.path.abspath(os.curdir)).parent
+try:
+    print(HERE)
 
-print(HERE)
+    with (HERE / "rucio_jupyterlab" / "labextension" / "package.json").open() as fid:
+        data = json.load(fid)
+except FileNotFoundError:
+    HERE = HERE.parent
+    print(HERE)
 
-with (HERE / "rucio_jupyterlab" / "labextension" / "package.json").open() as fid:
-    data = json.load(fid)
-
+    with (HERE / "rucio_jupyterlab" / "labextension" / "package.json").open() as fid:
+        data = json.load(fid)    
 
 def _jupyter_labextension_paths():
     return [{
