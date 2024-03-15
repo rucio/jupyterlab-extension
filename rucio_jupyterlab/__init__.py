@@ -4,15 +4,15 @@ import os
 
 HERE = Path(os.path.abspath(os.curdir)).parent
 try:
-    print(HERE)
+    print("1st case; ", HERE)
 
-    with (HERE / "rucio_jupyterlab" / "labextension" / "package.json").open() as fid:
+    with (HERE / "labextension" / "package.json").open() as fid:
         data = json.load(fid)
 except FileNotFoundError:
     HERE = HERE.parent
-    print(HERE)
+    print("2nd case; ", HERE)
 
-    with (HERE / "rucio_jupyterlab" / "labextension" / "package.json").open() as fid:
+    with (HERE / "labextension" / "package.json").open() as fid:
         data = json.load(fid)    
 
 def _jupyter_labextension_paths():
