@@ -1,23 +1,3 @@
-# import json
-# from pathlib import Path
-# #import os
-
-# HERE = Path(__file__).parent.resolve()
-# with (HERE / "labextension" / "package.json").open() as fid:
-#         data = json.load(fid)
-
-# try:
-#     print("1st case; ", HERE)
-
-#     with (HERE / "labextension" / "package.json").open() as fid:
-#         data = json.load(fid)
-# except FileNotFoundError:
-#     HERE = HERE.parent
-#     print("2nd case; ", HERE)
-
-#     with (HERE / "labextension" / "package.json").open() as fid:
-#         data = json.load(fid)    
-
 try:
     from ._version import __version__
 except ImportError:
