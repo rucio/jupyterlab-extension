@@ -112,7 +112,7 @@ export const AddToNotebookPopover: React.FC<MyProps> = ({
     });
   };
 
-  const escFunction = useCallback(event => {
+  const escFunction = useCallback((event: any) => {
     if (event.keyCode === 27) {
       setOpen(false);
     }

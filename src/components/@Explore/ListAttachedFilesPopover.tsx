@@ -129,7 +129,7 @@ export const ListAttachedFilesPopover: React.FC<MyProps> = ({
   const [files, setFiles] = useState<IAttachedFile[]>([]);
   const activeInstance = useStoreState(UIStore, s => s.activeInstance);
 
-  const escFunction = useCallback(event => {
+  const escFunction = useCallback((event: any) => {
     if (event.keyCode === 27) {
       setOpen(false);
     }
