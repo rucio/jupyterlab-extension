@@ -10805,6 +10805,7 @@ __metadata:
     "@jupyterlab/apputils": ^4.2.5
     "@jupyterlab/builder": ^4.0.0
     "@jupyterlab/coreutils": ^6.1.3
+    "@jupyterlab/filebrowser": ^4.1.5
     "@jupyterlab/galata": ^5.1.3
     "@jupyterlab/notebook": ^4.1.3
     "@jupyterlab/services": ^7.1.3
