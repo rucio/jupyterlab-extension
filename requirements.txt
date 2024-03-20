@@ -1,4 +1,4 @@
-jupyterlab~=4.0
+jupyterlab~=4.0,<4.1
 peewee
 jsonschema
 psutil

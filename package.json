@@ -81,6 +81,7 @@
     "camelcase-keys-deep": "^0.1.0",
     "jest-environment-jsdom": "^29.7.0",
     "jest-junit": "^16.0.0",
+    "mocha": "^10.3.0",
     "pullstate": "^1.22.1",
     "querystring": "^0.2.1",
     "querystring-es3": "^0.2.1",
