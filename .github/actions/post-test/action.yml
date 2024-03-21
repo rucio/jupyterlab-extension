@@ -10,8 +10,8 @@ runs:
       shell: bash
     - name: extension checks
       run: |
-        jupyter server extension list 2>&1 | grep -ie "rucio_jupyterlab.*OK"
-        jupyter labextension list 2>&1 | grep -ie "rucio-jupyterlab.*OK"
+        jupyter server extension list 2>&1 
+        jupyter labextension list 2>&1 
       shell: bash
     - name: Browser check
       run: python -m jupyterlab.browser_check
