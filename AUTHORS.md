@@ -6,6 +6,7 @@ Individual contributors to the source code
 - Domenic Gosein (CERN), 2023
 - Francesc Torradeflot (PIC), 2023-2024
 - Enrique Garcia (CERN), 2023-2024
+- Giovanni Guerrieri (CERN) 2024-
   
 Organisations associated with contributors
 ------------------------------------------
