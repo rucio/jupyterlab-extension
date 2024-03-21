@@ -76,7 +76,7 @@
     "@types/node": "^20.11.0",
     "@types/react-copy-to-clipboard": "^5.0.7",
     "@types/react-popover": "^0.5.3",
-    "@types/react-select": "^3.9.2",
+    "@types/react-select": "^5.0.1",
     "@types/react-virtualized-auto-sizer": "^1.0.0",
     "@types/react-window": "^1.8.2",
     "camelcase-keys-deep": "^0.1.0",
@@ -95,7 +95,7 @@
     "workspace": "^0.0.1-preview.1"
   },
   "devDependencies": {
-    "@jupyterlab/builder": "^4.0.0",
+    "@jupyterlab/builder": "^3.6.7",
     "@jupyterlab/testutils": "^4.0.0",
     "@types/jest": "^29.5.12",
     "@types/json-schema": "^7.0.11",
