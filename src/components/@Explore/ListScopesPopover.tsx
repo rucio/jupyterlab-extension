@@ -122,7 +122,7 @@ export const ListScopesPopover: React.FC<MyProps> = ({
   const [scopes, setScopes] = useState<string[]>([]);
   const activeInstance = useStoreState(UIStore, s => s.activeInstance);
 
-  const escFunction = useCallback(event => {
+  const escFunction = useCallback((event: any) => {
     if (event.keyCode === 27) {
       setOpen(false);
     }

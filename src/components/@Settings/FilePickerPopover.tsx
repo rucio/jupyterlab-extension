@@ -153,7 +153,7 @@ const _FilePickerPopover: React.FC<MyProps> = ({
     setPath([]);
   };
 
-  const onKeyDown = useCallback(event => {
+  const onKeyDown = useCallback((event: any) => {
     if (event.keyCode === 27) {
       setOpen(false);
     }
