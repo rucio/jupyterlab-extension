@@ -3,11 +3,11 @@ runs:
   using: "composite"
   steps:
     - name: Install node
-      uses: actions/setup-node@v1
+      uses: actions/setup-node@v4
       with:
         node-version: '18.x'
     - name: Install Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v5
       with:
         python-version: '3.11'
         architecture: 'x64'
