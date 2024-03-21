@@ -95,7 +95,7 @@
     "workspace": "^0.0.1-preview.1"
   },
   "devDependencies": {
-    "@jupyterlab/builder": "^3.6.7",
+    "@jupyterlab/builder": "^4.0.0",
     "@jupyterlab/testutils": "^4.0.0",
     "@types/jest": "^29.5.12",
     "@types/json-schema": "^7.0.11",
