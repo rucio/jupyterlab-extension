@@ -7,7 +7,7 @@ node_modules/
 *.egg-info/
 .ipynb_checkpoints
 *.tsbuildinfo
-rucio_jupyterlab/labextension
+rucio_jupyterlab/labextension/
 # Version file is handled by hatchling
 rucio_jupyterlab/_version.py
 
