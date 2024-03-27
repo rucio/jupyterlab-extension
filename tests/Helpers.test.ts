@@ -10,7 +10,7 @@
  */
 
 import { computeCollectionState, toHumanReadableSize, checkVariableNameValid } from '../src/utils/Helpers';
-import { FileDIDDetails } from '../src/types';
+import { IFileDIDDetails } from '../src/types';
 
 describe('toHumanReadableSize', () => {
     test('return bytes value', () => {
@@ -36,21 +36,21 @@ describe('toHumanReadableSize', () => {
 
 describe('computeCollectionState', () => {
     test('empty files should return EMPTY', () => {
-        const mockFiles: FileDIDDetails[] = [];
+        const mockFiles: IFileDIDDetails[] = [];
     
         const computedState = computeCollectionState(mockFiles);
         expect(computedState).toBe('EMPTY');
     })
     
     test('null files should return false', () => {
-        const mockFiles: FileDIDDetails[] | undefined = undefined;
+        const mockFiles: IFileDIDDetails[] | undefined = undefined;
     
         const computedState = computeCollectionState(mockFiles);
         expect(computedState).toBeFalsy();
     })
     
     test('all available should return AVAILABLE', () => {
-        const mockFiles: FileDIDDetails[] = [
+        const mockFiles: IFileDIDDetails[] = [
             { status: 'OK', did: 'scope:name1', path: '/eos/rucio/1231', size: 123 },
             { status: 'OK', did: 'scope:name2', path: '/eos/rucio/1232', size: 123 },
             { status: 'OK', did: 'scope:name3', path: '/eos/rucio/1233', size: 123 }
@@ -61,7 +61,7 @@ describe('computeCollectionState', () => {
     })
     
     test('some available should return PARTIALLY_AVAILABLE', () => {
-        const mockFiles: FileDIDDetails[] = [
+        const mockFiles: IFileDIDDetails[] = [
             { status: 'NOT_AVAILABLE', did: 'scope:name1', path: '/eos/rucio/1231', size: 123 },
             { status: 'OK', did: 'scope:name2', path: '/eos/rucio/1232', size: 123 },
             { status: 'OK', did: 'scope:name3', path: '/eos/rucio/1233', size: 123 }
@@ -72,7 +72,7 @@ describe('computeCollectionState', () => {
     })
     
     test('some replicating should return REPLICATING', () => {
-        const mockFiles: FileDIDDetails[] = [
+        const mockFiles: IFileDIDDetails[] = [
             { status: 'NOT_AVAILABLE', did: 'scope:name1', path: '/eos/rucio/1231', size: 123 },
             { status: 'REPLICATING', did: 'scope:name2', path: '/eos/rucio/1232', size: 123 },
             { status: 'OK', did: 'scope:name3', path: '/eos/rucio/1233', size: 123 }
@@ -83,7 +83,7 @@ describe('computeCollectionState', () => {
     })
     
     test('some stuck should return STUCK', () => {
-        const mockFiles: FileDIDDetails[] = [
+        const mockFiles: IFileDIDDetails[] = [
             { status: 'OK', did: 'scope:name1', path: '/eos/rucio/1231', size: 123 },
             { status: 'STUCK', did: 'scope:name2', path: '/eos/rucio/1232', size: 123 },
             { status: 'OK', did: 'scope:name3', path: '/eos/rucio/1233', size: 123 }
@@ -94,7 +94,7 @@ describe('computeCollectionState', () => {
     })
     
     test('none available should return NOT_AVAILABLE', () => {
-        const mockFiles: FileDIDDetails[] = [
+        const mockFiles: IFileDIDDetails[] = [
             { status: 'NOT_AVAILABLE', did: 'scope:name1', path: '/eos/rucio/1231', size: 123 },
             { status: 'NOT_AVAILABLE', did: 'scope:name2', path: '/eos/rucio/1232', size: 123 },
             { status: 'NOT_AVAILABLE', did: 'scope:name3', path: '/eos/rucio/1233', size: 123 }

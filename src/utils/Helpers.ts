@@ -9,9 +9,11 @@
  * - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020-2021
  */
 
-import { FileDIDDetails, CollectionStatus } from '../types';
+import { IFileDIDDetails, CollectionStatus } from '../types';
 
-export const computeCollectionState = (files?: FileDIDDetails[]): CollectionStatus | false => {
+export const computeCollectionState = (
+  files?: IFileDIDDetails[]
+): CollectionStatus | false => {
   if (!files) {
     return false;
   }

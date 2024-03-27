@@ -27,5 +27,7 @@ const logoSvg = `
 `;
 /* eslint-enable max-len */
 
-const RucioLogo: React.FC = () => <div dangerouslySetInnerHTML={{ __html: logoSvg }} />;
+const RucioLogo: React.FC = () => (
+  <div dangerouslySetInnerHTML={{ __html: logoSvg }} />
+);
 export default RucioLogo;

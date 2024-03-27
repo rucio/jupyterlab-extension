@@ -16,7 +16,9 @@ import { actions } from './Actions';
 export class PollingRequesterRef {}
 type DIDType = 'file' | 'collection';
 class DIDPollingManager {
-  pollingRequesterMap: { [did: string]: { type: DIDType; refs: PollingRequesterRef[] } } = {};
+  pollingRequesterMap: {
+    [did: string]: { type: DIDType; refs: PollingRequesterRef[] };
+  } = {};
 
   constructor() {
     setInterval(() => {
@@ -24,7 +26,12 @@ class DIDPollingManager {
     }, 10000);
   }
 
-  requestPolling(did: string, type: DIDType, ref?: PollingRequesterRef, fetchNow = true) {
+  requestPolling(
+    did: string,
+    type: DIDType,
+    ref?: PollingRequesterRef,
+    fetchNow = true
+  ) {
     if (!this.pollingRequesterMap[did]) {
       this.pollingRequesterMap[did] = { type, refs: [] };
     }
@@ -43,13 +50,18 @@ class DIDPollingManager {
 
   disablePolling(did: string, ref: PollingRequesterRef) {
     if (this.pollingRequesterMap[did]) {
-      this.pollingRequesterMap[did].refs = this.pollingRequesterMap[did].refs.filter(r => r !== ref);
+      this.pollingRequesterMap[did].refs = this.pollingRequesterMap[
+        did
+      ].refs.filter(r => r !== ref);
     }
   }
 
   private poll() {
     const dids = Object.keys(this.pollingRequesterMap).filter(did => {
-      return this.pollingRequesterMap[did] && this.pollingRequesterMap[did].refs.length > 0;
+      return (
+        this.pollingRequesterMap[did] &&
+        this.pollingRequesterMap[did].refs.length > 0
+      );
     });
 
     dids.forEach(did => {
@@ -67,18 +79,22 @@ class DIDPollingManager {
     const type = this.pollingRequesterMap[did].type;
     switch (type) {
       case 'file':
-        actions.getFileDIDDetails(activeInstance.name, did, true).then(details => {
-          if (details.status !== 'REPLICATING') {
-            delete this.pollingRequesterMap[did];
-          }
-        });
+        actions
+          .getFileDIDDetails(activeInstance.name, did, true)
+          .then(details => {
+            if (details.status !== 'REPLICATING') {
+              delete this.pollingRequesterMap[did];
+            }
+          });
         break;
       case 'collection':
-        actions.getCollectionDIDDetails(activeInstance.name, did, true).then(didDetails => {
-          if (!didDetails.find(d => d.status === 'REPLICATING')) {
-            delete this.pollingRequesterMap[did];
-          }
-        });
+        actions
+          .getCollectionDIDDetails(activeInstance.name, did, true)
+          .then(didDetails => {
+            if (!didDetails.find(d => d.status === 'REPLICATING')) {
+              delete this.pollingRequesterMap[did];
+            }
+          });
         break;
     }
   }
@@ -86,7 +102,7 @@ class DIDPollingManager {
 
 export const didPollingManager = new DIDPollingManager();
 
-export interface WithPollingManagerProps {
+export interface IWithPollingManagerProps {
   didPollingManager: DIDPollingManager;
 }
 
@@ -96,7 +112,9 @@ export function withPollingManager<P>(Component: React.ComponentType<P>) {
     //eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     render() {
       const { ...props } = this.props;
-      return <Component {...(props as P)} didPollingManager={didPollingManager} />;
+      return (
+        <Component {...(props as P)} didPollingManager={didPollingManager} />
+      );
     }
   };
 }

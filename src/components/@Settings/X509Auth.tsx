@@ -12,7 +12,7 @@
 import React from 'react';
 import { createUseStyles } from 'react-jss';
 import { TextField } from '../TextField';
-import { RucioX509Auth } from '../../types';
+import { IRucioX509Auth } from '../../types';
 import { Spinning } from '../Spinning';
 import { FilePickerPopover } from './FilePickerPopover';
 
@@ -46,13 +46,13 @@ const useStyles = createUseStyles({
   }
 });
 
-interface X509AuthProps {
-  params?: RucioX509Auth;
+interface IX509AuthProps {
+  params?: IRucioX509Auth;
   loading?: boolean;
-  onAuthParamsChange: { (val: RucioX509Auth): void };
+  onAuthParamsChange: { (val: IRucioX509Auth): void };
 }
 
-type MyProps = X509AuthProps & React.HTMLAttributes<HTMLDivElement>;
+type MyProps = IX509AuthProps & React.HTMLAttributes<HTMLDivElement>;
 
 export const X509Auth: React.FC<MyProps> = ({
   params = { certificate: '', key: '', account: '' },
@@ -75,7 +75,9 @@ export const X509Auth: React.FC<MyProps> = ({
 
   const loadingSpinner = (
     <div className={classes.iconContainer}>
-      <Spinning className={`${classes.icon} material-icons`}>hourglass_top</Spinning>
+      <Spinning className={`${classes.icon} material-icons`}>
+        hourglass_top
+      </Spinning>
     </div>
   );
 
@@ -89,7 +91,15 @@ export const X509Auth: React.FC<MyProps> = ({
             value={params.certificate}
             onChange={e => onCertPathChange(e.target.value)}
             disabled={loading}
-            after={loading ? loadingSpinner : <SelectFileButtonTrailer onFilePicked={path => onCertPathChange(path)} />}
+            after={
+              loading ? (
+                loadingSpinner
+              ) : (
+                <SelectFileButtonTrailer
+                  onFilePicked={path => onCertPathChange(path)}
+                />
+              )
+            }
           />
         </div>
         <div className={classes.textFieldContainer}>
@@ -99,12 +109,20 @@ export const X509Auth: React.FC<MyProps> = ({
             value={params.key}
             onChange={e => onKeyPathChange(e.target.value)}
             disabled={loading}
-            after={loading ? loadingSpinner : <SelectFileButtonTrailer onFilePicked={path => onKeyPathChange(path)} />}
+            after={
+              loading ? (
+                loadingSpinner
+              ) : (
+                <SelectFileButtonTrailer
+                  onFilePicked={path => onKeyPathChange(path)}
+                />
+              )
+            }
           />
         </div>
         <div className={classes.warning}>
-          Enter the private key path if the certificate file does not include it. Passphrase-protected certificate is not
-          supported.
+          Enter the private key path if the certificate file does not include
+          it. Passphrase-protected certificate is not supported.
         </div>
         <div className={classes.textFieldContainer}>
           <div className={classes.label}>Account</div>
@@ -121,13 +139,17 @@ export const X509Auth: React.FC<MyProps> = ({
   );
 };
 
-const SelectFileButtonTrailer: React.FC<{ onFilePicked: { (path: string): void } }> = ({ onFilePicked }) => {
+const SelectFileButtonTrailer: React.FC<{
+  onFilePicked: { (path: string): void };
+}> = ({ onFilePicked }) => {
   const classes = useStyles();
 
   return (
     <div className={classes.iconContainer}>
       <FilePickerPopover onFilePicked={onFilePicked}>
-        <span className={`${classes.icon} ${classes.action} material-icons`}>folder</span>
+        <span className={`${classes.icon} ${classes.action} material-icons`}>
+          folder
+        </span>
       </FilePickerPopover>
     </div>
   );

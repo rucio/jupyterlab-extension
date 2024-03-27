@@ -11,14 +11,14 @@
 
 import { ILabShell } from '@jupyterlab/application';
 import { INotebookTracker, NotebookPanel } from '@jupyterlab/notebook';
-import { ExtensionStore, ExtensionState } from '../stores/ExtensionStore';
-import { NotebookDIDAttachment } from '../types';
+import { ExtensionStore, IExtensionState } from '../stores/ExtensionStore';
+import { INotebookDIDAttachment } from '../types';
 import { METADATA_ATTACHMENTS_KEY } from '../const';
 import { ReadonlyPartialJSONArray } from '@lumino/coreutils';
 import { SessionManager } from '@jupyterlab/services';
 import { NotebookListener } from './NotebookListener';
 
-export interface NotebookListenerOptions {
+export interface INotebookListenerOptions {
   labShell: ILabShell;
   notebookTracker: INotebookTracker;
   sessionManager: SessionManager;
@@ -26,9 +26,9 @@ export interface NotebookListenerOptions {
 }
 
 export class ActiveNotebookListener {
-  options: NotebookListenerOptions;
+  options: INotebookListenerOptions;
 
-  constructor(options: NotebookListenerOptions) {
+  constructor(options: INotebookListenerOptions) {
     this.options = options;
     this.setup();
   }
@@ -48,7 +48,10 @@ export class ActiveNotebookListener {
     labShell.currentChanged.connect(this.onCurrentTabChanged, this);
   }
 
-  private onNotebookAttachmentChanged(attachments: NotebookDIDAttachment[], state: ExtensionState) {
+  private onNotebookAttachmentChanged(
+    attachments: INotebookDIDAttachment[],
+    state: IExtensionState
+  ) {
     const { activeNotebookPanel } = state;
 
     if (!attachments || !activeNotebookPanel) {
@@ -65,22 +68,30 @@ export class ActiveNotebookListener {
     }
   }
 
-  private setJupyterNotebookFileRucioMetadata(attachments: NotebookDIDAttachment[], state: ExtensionState) {
-    const metadata = state.activeNotebookPanel?.model?.metadata;
+  private setJupyterNotebookFileRucioMetadata(
+    attachments: INotebookDIDAttachment[],
+    state: IExtensionState
+  ) {
+    const metadata = state.activeNotebookPanel?.model;
     if (!metadata) {
       return;
     }
 
-    const current = metadata.get(METADATA_ATTACHMENTS_KEY) as ReadonlyArray<any>;
+    const current = metadata.getMetadata(
+      METADATA_ATTACHMENTS_KEY
+    ) as ReadonlyArray<any>;
     const rucioDidAttachments = attachments as ReadonlyArray<any>;
 
     if (current !== rucioDidAttachments) {
       if (rucioDidAttachments.length === 0) {
         if (current) {
-          metadata.delete(METADATA_ATTACHMENTS_KEY);
+          metadata.deleteMetadata(METADATA_ATTACHMENTS_KEY);
         }
       } else {
-        metadata.set(METADATA_ATTACHMENTS_KEY, rucioDidAttachments as ReadonlyPartialJSONArray);
+        metadata.setMetadata(
+          METADATA_ATTACHMENTS_KEY,
+          rucioDidAttachments as ReadonlyPartialJSONArray
+        );
       }
     }
   }
@@ -101,14 +112,18 @@ export class ActiveNotebookListener {
 
     nbWidget.revealed.then(() => {
       this.setActiveNotebook(nbWidget);
-      const rucioDidAttachments = nbWidget.model?.metadata.get(METADATA_ATTACHMENTS_KEY);
+      const rucioDidAttachments = nbWidget.model?.getMetadata(
+        METADATA_ATTACHMENTS_KEY
+      );
       if (!rucioDidAttachments) {
         this.setActiveNotebookAttachments([]);
         return;
       }
 
       const attachedDIDs = rucioDidAttachments as ReadonlyArray<any>;
-      this.setActiveNotebookAttachments(attachedDIDs as NotebookDIDAttachment[]);
+      this.setActiveNotebookAttachments(
+        attachedDIDs as INotebookDIDAttachment[]
+      );
     });
   }
 
@@ -126,7 +141,7 @@ export class ActiveNotebookListener {
     });
   }
 
-  private setActiveNotebookAttachments(attachments?: NotebookDIDAttachment[]) {
+  private setActiveNotebookAttachments(attachments?: INotebookDIDAttachment[]) {
     ExtensionStore.update(s => {
       s.activeNotebookAttachment = attachments;
     });

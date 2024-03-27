@@ -1,9 +1,10 @@
-jupyterlab~=3.0
-peewee~=3.14.0
-jsonschema~=3.2.0
-psutil~=5.8.0
+jupyterlab~=4.1,<4.2
+peewee
+jsonschema
+psutil
 pytest
 pytest-mock
+pytest-jupyter
 requests-mock
 traitlets
 pylint

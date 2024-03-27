@@ -11,13 +11,13 @@
 
 import { Store } from 'pullstate';
 import { NotebookPanel } from '@jupyterlab/notebook';
-import { NotebookDIDAttachment } from '../types';
+import { INotebookDIDAttachment } from '../types';
 
-export interface ExtensionState {
+export interface IExtensionState {
   activeNotebookPanel?: NotebookPanel;
-  activeNotebookAttachment?: NotebookDIDAttachment[];
+  activeNotebookAttachment?: INotebookDIDAttachment[];
 }
 
-export const initialState: ExtensionState = {};
+export const initialState: IExtensionState = {};
 
 export const ExtensionStore = new Store(initialState);
