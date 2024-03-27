@@ -14,7 +14,7 @@ import { createUseStyles } from 'react-jss';
 import { VDomRenderer } from '@jupyterlab/apputils';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { useStoreState } from 'pullstate';
-import { InstanceConfig } from '../types';
+import { IInstanceConfig } from '../types';
 import { Header } from '../components/Header';
 import { UIStore } from '../stores/UIStore';
 import { rucioIcon } from '../icons/RucioIcon';
@@ -106,8 +106,12 @@ const Panel: React.FC = () => {
           <MenuBar menus={menus} value={activeMenu} onChange={setActiveMenu} />
         </div>
         <div className={classes.content}>
-          <div className={activeMenu !== 1 ? classes.hidden : ''}>{activeInstance && <ExploreTab />}</div>
-          <div className={activeMenu !== 2 ? classes.hidden : ''}>{activeInstance && <NotebookTab />}</div>
+          <div className={activeMenu !== 1 ? classes.hidden : ''}>
+            {activeInstance && <ExploreTab />}
+          </div>
+          <div className={activeMenu !== 2 ? classes.hidden : ''}>
+            {activeInstance && <NotebookTab />}
+          </div>
           <div className={activeMenu !== 3 ? classes.hidden : ''}>
             <SettingsTab />
           </div>
@@ -126,19 +130,19 @@ const ErrorPanel: React.FC<{ error: string }> = ({ error }) => {
   return <div className={classes.content}>{error}</div>;
 };
 
-export interface SidebarPanelOptions {
+export interface ISidebarPanelOptions {
   app: JupyterFrontEnd;
-  instanceConfig: InstanceConfig;
+  instanceConfig: IInstanceConfig;
 }
 
 const PANEL_CLASS = 'jp-RucioExtensionPanel';
 
 export class SidebarPanel extends VDomRenderer {
   error?: string;
-  instanceConfig?: InstanceConfig;
+  instanceConfig?: IInstanceConfig;
   app: JupyterFrontEnd;
 
-  constructor(options: SidebarPanelOptions, error?: string) {
+  constructor(options: ISidebarPanelOptions, error?: string) {
     super();
     super.addClass(PANEL_CLASS);
     super.title.closable = true;
@@ -148,7 +152,9 @@ export class SidebarPanel extends VDomRenderer {
     this.app = app;
 
     if (error) {
-      this.error = error ?? 'Failed to activate extension. Make sure that the extension is configured and installed properly.';
+      this.error =
+        error ??
+        'Failed to activate extension. Make sure that the extension is configured and installed properly.';
       return;
     }
 
@@ -156,7 +162,7 @@ export class SidebarPanel extends VDomRenderer {
     this.populateUIStore(instanceConfig);
   }
 
-  private populateUIStore(instanceConfig: InstanceConfig) {
+  private populateUIStore(instanceConfig: IInstanceConfig) {
     const { activeInstance, authType, instances } = instanceConfig;
     const objActiveInstance = instances.find(i => i.name === activeInstance);
     UIStore.update(s => {

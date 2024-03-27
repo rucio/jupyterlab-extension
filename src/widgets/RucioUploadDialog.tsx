@@ -174,10 +174,16 @@ namespace RucioUpload {
         menuPortal: (base: any) => ({ ...base, zIndex: 99999 }),
         option: (provided: any, { isFocused, isSelected }: any) => ({
           ...provided,
-          background: isFocused ? (isSelected ? provided.background : 'var(--jp-layout-color2)') : provided.background,
+          background: isFocused
+            ? isSelected
+              ? provided.background
+              : 'var(--jp-layout-color2)'
+            : provided.background,
           ':active': {
             ...provided[':active'],
-            background: isSelected ? provided.background : 'var(--jp-layout-color2)'
+            background: isSelected
+              ? provided.background
+              : 'var(--jp-layout-color2)'
           }
         })
       };
@@ -186,13 +192,22 @@ namespace RucioUpload {
 
       return (
         <div>
-          {this.files.length > 1 && <h2 style={{ marginTop: 0 }}>Upload {this.files.length} files to Rucio</h2>}
-          {this.files.length === 1 && <h2 style={{ marginTop: 0 }}>Upload {this.files[0].name} to Rucio</h2>}
+          {this.files.length > 1 && (
+            <h2 style={{ marginTop: 0 }}>
+              Upload {this.files.length} files to Rucio
+            </h2>
+          )}
+          {this.files.length === 1 && (
+            <h2 style={{ marginTop: 0 }}>
+              Upload {this.files[0].name} to Rucio
+            </h2>
+          )}
 
           {!(activeAuthType === 'x509' || activeAuthType === 'x509_proxy') && (
             <Alert style={{ marginTop: '8px', marginBottom: '8px' }}>
-              You are not using X509 as the authentication method, upload may fail if the destination RSE does not support your
-              authentication method.
+              You are not using X509 as the authentication method, upload may
+              fail if the destination RSE does not support your authentication
+              method.
             </Alert>
           )}
 
@@ -223,9 +238,17 @@ namespace RucioUpload {
               isLoading={this.model.scopesLoading}
               menuPortalTarget={document.body}
               styles={selectStyles}
-              options={this.model.scopes.map(scope => ({ value: scope, label: scope }))}
-              defaultValue={{ value: this.model.selectedScope, label: this.model.selectedScope }}
-              onChange={(value: any) => (this.model.selectedScope = value.value)}
+              options={this.model.scopes.map(scope => ({
+                value: scope,
+                label: scope
+              }))}
+              defaultValue={{
+                value: this.model.selectedScope,
+                label: this.model.selectedScope
+              }}
+              onChange={(value: any) =>
+                (this.model.selectedScope = value.value)
+              }
             />
           </div>
 
@@ -246,9 +269,17 @@ namespace RucioUpload {
                     isLoading={this.model.scopesLoading}
                     menuPortalTarget={document.body}
                     styles={selectStyles}
-                    options={this.model.scopes.map(scope => ({ value: scope, label: scope }))}
-                    defaultValue={{ value: this.model.selectedDatasetScope, label: this.model.selectedDatasetScope }}
-                    onChange={(value: any) => (this.model.selectedDatasetScope = value.value)}
+                    options={this.model.scopes.map(scope => ({
+                      value: scope,
+                      label: scope
+                    }))}
+                    defaultValue={{
+                      value: this.model.selectedDatasetScope,
+                      label: this.model.selectedDatasetScope
+                    }}
+                    onChange={(value: any) =>
+                      (this.model.selectedDatasetScope = value.value)
+                    }
                   />
                 </div>
                 <p style={{ marginTop: '16px' }}>Dataset Name:</p>

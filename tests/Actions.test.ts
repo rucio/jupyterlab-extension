@@ -14,7 +14,7 @@ jest.mock('../src/stores/UIStore');
 
 import { requestAPI } from '../src/utils/ApiRequest';
 import { Actions } from '../src/utils/Actions';
-import { Instance, AttachedFile, FileDIDDetails, RucioAuthCredentials } from '../src/types';
+import { IInstance, IAttachedFile, IFileDIDDetails, RucioAuthCredentials } from '../src/types';
 import { UIStore } from '../src/stores/UIStore';
 
 describe('fetchInstancesConfig', () => {
@@ -22,7 +22,7 @@ describe('fetchInstancesConfig', () => {
         const mockRequestAPI = requestAPI as jest.MockedFunction<typeof requestAPI>;
         const mockInstanceConfig = {
             activeInstance: 'atlas',
-            instances: [] as Instance[]
+            instances: [] as IInstance[]
         };
 
         mockRequestAPI.mockClear();
@@ -137,7 +137,7 @@ describe('fetchScopes', () => {
 describe('fetchAttachedFileDIDs', () => {
     test('should call /files endpoint with query', async () => {
         const mockRequestAPI = requestAPI as jest.MockedFunction<typeof requestAPI>;
-        const mockAttachedFiles: AttachedFile[] = [
+        const mockAttachedFiles: IAttachedFile[] = [
             { did: 'scope:name1', size: 123 },
             { did: 'scope:name2', size: 123 },
             { did: 'scope:name3', size: 123 }
@@ -160,7 +160,7 @@ describe('fetchAttachedFileDIDs', () => {
 describe('fetchDIDDetails', () => {
     test('should call /did endpoint with query', async () => {
         const mockRequestAPI = requestAPI as jest.MockedFunction<typeof requestAPI>;
-        const mockDIDDetails: FileDIDDetails[] = [
+        const mockDIDDetails: IFileDIDDetails[] = [
             { did: 'scope:name1', size: 123, status: 'OK', path: '/eos/rucio/1' },
             { did: 'scope:name2', size: 123, status: 'NOT_AVAILABLE' },
             { did: 'scope:name3', size: 123, status: 'REPLICATING' },
@@ -182,7 +182,7 @@ describe('fetchDIDDetails', () => {
 
 describe('getFileDIDDetails', () => {
     test('polling disabled, file DID exists in store, should not fetch', async () => {
-        const mockFileDetails: FileDIDDetails = {
+        const mockFileDetails: IFileDIDDetails = {
             status: 'OK',
             did: 'scope:name1',
             path: '/eos/rucio/1',
@@ -210,7 +210,7 @@ describe('getFileDIDDetails', () => {
     })
 
     test('polling disabled, file DID not exists in store, should fetch', async () => {
-        const mockFileDetails: FileDIDDetails = {
+        const mockFileDetails: IFileDIDDetails = {
             status: 'OK',
             did: 'scope:name1',
             path: '/eos/rucio/1',
@@ -240,7 +240,7 @@ describe('getFileDIDDetails', () => {
     })
 
     test('polling enabled, file DID exists in store, should fetch', async () => {
-        const mockFileDetails: FileDIDDetails = {
+        const mockFileDetails: IFileDIDDetails = {
             status: 'OK',
             did: 'scope:name1',
             path: '/eos/rucio/1',
@@ -274,7 +274,7 @@ describe('getFileDIDDetails', () => {
 
 describe('getCollectionDIDDetails', () => {
     test('polling disabled, collection DID exists in store, should not fetch', async () => {
-        const mockFileDetails: FileDIDDetails = {
+        const mockFileDetails: IFileDIDDetails = {
             status: 'OK',
             did: 'scope:name1',
             path: '/eos/rucio/1',
@@ -302,7 +302,7 @@ describe('getCollectionDIDDetails', () => {
     })
 
     test('polling disabled, collection DID not exists in store, should fetch', async () => {
-        const mockFileDetails: FileDIDDetails = {
+        const mockFileDetails: IFileDIDDetails = {
             status: 'OK',
             did: 'scope:name1',
             path: '/eos/rucio/1',
@@ -332,7 +332,7 @@ describe('getCollectionDIDDetails', () => {
     })
 
     test('polling enabled, collection DID exists in store, should fetch', async () => {
-        const mockFileDetails: FileDIDDetails = {
+        const mockFileDetails: IFileDIDDetails = {
             status: 'OK',
             did: 'scope:name1',
             path: '/eos/rucio/1',

@@ -92,12 +92,15 @@ const useStyles = createUseStyles({
   }
 });
 
-export interface UploadJobListItemProps {
+export interface IUploadJobListItemProps {
   job: FileUploadJob;
   onDeleteClick?: () => void;
 }
 
-const _UploadJobListItem: React.FC<UploadJobListItemProps> = ({ job, onDeleteClick }) => {
+const _UploadJobListItem: React.FC<IUploadJobListItemProps> = ({
+  job,
+  onDeleteClick
+}) => {
   const classes = useStyles();
 
   const app = useContext(JupyterLabAppContext);
@@ -138,11 +141,21 @@ const StatusIcon: React.FC<{ status?: FileUploadStatus }> = ({ status }) => {
 
   switch (status) {
     case 'UPLOADING':
-      return <Spinning className={`${classes.replicatingIcon} material-icons`}>hourglass_top</Spinning>;
+      return (
+        <Spinning className={`${classes.replicatingIcon} material-icons`}>
+          hourglass_top
+        </Spinning>
+      );
     case 'OK':
-      return <i className={`${classes.availableIcon} material-icons`}>check_circle</i>;
+      return (
+        <i className={`${classes.availableIcon} material-icons`}>
+          check_circle
+        </i>
+      );
     case 'FAILED':
-      return <i className={`${classes.notAvailableIcon} material-icons`}>cancel</i>;
+      return (
+        <i className={`${classes.notAvailableIcon} material-icons`}>cancel</i>
+      );
     default:
       return <span />;
   }

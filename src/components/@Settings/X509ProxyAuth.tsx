@@ -12,7 +12,7 @@
 import React from 'react';
 import { createUseStyles } from 'react-jss';
 import { TextField } from '../TextField';
-import { RucioX509ProxyAuth } from '../../types';
+import { IRucioX509ProxyAuth } from '../../types';
 import { Spinning } from '../Spinning';
 import { FilePickerPopover } from './FilePickerPopover';
 
@@ -46,15 +46,19 @@ const useStyles = createUseStyles({
   }
 });
 
-interface X509AuthProxyProps {
-  params?: RucioX509ProxyAuth;
+interface IX509AuthProxyProps {
+  params?: IRucioX509ProxyAuth;
   loading?: boolean;
-  onAuthParamsChange: { (val: RucioX509ProxyAuth): void };
+  onAuthParamsChange: { (val: IRucioX509ProxyAuth): void };
 }
 
-type MyProps = X509AuthProxyProps & React.HTMLAttributes<HTMLDivElement>;
+type MyProps = IX509AuthProxyProps & React.HTMLAttributes<HTMLDivElement>;
 
-export const X509ProxyAuth: React.FC<MyProps> = ({ params = { proxy: '', account: '' }, loading, onAuthParamsChange }) => {
+export const X509ProxyAuth: React.FC<MyProps> = ({
+  params = { proxy: '', account: '' },
+  loading,
+  onAuthParamsChange
+}) => {
   const classes = useStyles();
 
   const onProxyPathChange = (path: string) => {
@@ -67,7 +71,9 @@ export const X509ProxyAuth: React.FC<MyProps> = ({ params = { proxy: '', account
 
   const loadingSpinner = (
     <div className={classes.iconContainer}>
-      <Spinning className={`${classes.icon} material-icons`}>hourglass_top</Spinning>
+      <Spinning className={`${classes.icon} material-icons`}>
+        hourglass_top
+      </Spinning>
     </div>
   );
 
@@ -81,7 +87,15 @@ export const X509ProxyAuth: React.FC<MyProps> = ({ params = { proxy: '', account
             value={params.proxy}
             onChange={e => onProxyPathChange(e.target.value)}
             disabled={loading}
-            after={loading ? loadingSpinner : <SelectFileButtonTrailer onFilePicked={path => onProxyPathChange(path)} />}
+            after={
+              loading ? (
+                loadingSpinner
+              ) : (
+                <SelectFileButtonTrailer
+                  onFilePicked={path => onProxyPathChange(path)}
+                />
+              )
+            }
           />
         </div>
         <div className={classes.textFieldContainer}>
@@ -99,13 +113,17 @@ export const X509ProxyAuth: React.FC<MyProps> = ({ params = { proxy: '', account
   );
 };
 
-const SelectFileButtonTrailer: React.FC<{ onFilePicked: { (path: string): void } }> = ({ onFilePicked }) => {
+const SelectFileButtonTrailer: React.FC<{
+  onFilePicked: { (path: string): void };
+}> = ({ onFilePicked }) => {
   const classes = useStyles();
 
   return (
     <div className={classes.iconContainer}>
       <FilePickerPopover onFilePicked={onFilePicked}>
-        <span className={`${classes.icon} ${classes.action} material-icons`}>folder</span>
+        <span className={`${classes.icon} ${classes.action} material-icons`}>
+          folder
+        </span>
       </FilePickerPopover>
     </div>
   );

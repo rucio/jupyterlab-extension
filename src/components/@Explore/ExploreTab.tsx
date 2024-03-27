@@ -19,8 +19,8 @@ import { TextField } from '../../components/TextField';
 import { HorizontalHeading } from '../../components/HorizontalHeading';
 import { DIDListItem } from '../../components/@Explore/DIDListItem';
 import { Spinning } from '../../components/Spinning';
-import { withRequestAPI, WithRequestAPIProps } from '../../utils/Actions';
-import { DIDSearchType, DIDSearchResult } from '../../types';
+import { withRequestAPI, IWithRequestAPIProps } from '../../utils/Actions';
+import { DIDSearchType, IDIDSearchResult } from '../../types';
 import { InlineDropdown } from '../components/../@Explore/InlineDropdown';
 import { ListScopesPopover } from '../components/../@Explore/ListScopesPopover';
 
@@ -98,12 +98,14 @@ const searchByOptions = [
 const _Explore: React.FunctionComponent = props => {
   const classes = useStyles();
 
-  const { actions } = props as WithRequestAPIProps;
+  const { actions } = props as IWithRequestAPIProps;
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchType, setSearchType] = useState<DIDSearchType>('all');
-  const [searchResult, setSearchResult] = useState<DIDSearchResult[]>();
-  const [didExpanded, setDidExpanded] = useState<{ [index: number]: boolean }>({});
+  const [searchResult, setSearchResult] = useState<IDIDSearchResult[]>();
+  const [didExpanded, setDidExpanded] = useState<{ [index: number]: boolean }>(
+    {}
+  );
   const [error, setError] = useState<string>();
   const [lastQuery, setLastQuery] = useState('');
   const [loading, setLoading] = useState(false);
@@ -113,7 +115,10 @@ const _Explore: React.FunctionComponent = props => {
     setLastQuery(searchQuery);
   };
 
-  const itemsSortFunction = (a: DIDSearchResult, b: DIDSearchResult): number => {
+  const itemsSortFunction = (
+    a: IDIDSearchResult,
+    b: IDIDSearchResult
+  ): number => {
     if (a.type === b.type) {
       return a.did.toLowerCase() < b.did.toLowerCase() ? -1 : 1;
     }
@@ -145,7 +150,9 @@ const _Explore: React.FunctionComponent = props => {
       .catch(e => {
         setSearchResult([]);
         if (e.response.status === 401) {
-          setError('Authentication error. Perhaps you set an invalid credential?');
+          setError(
+            'Authentication error. Perhaps you set an invalid credential?'
+          );
           return;
         }
 
@@ -171,7 +178,10 @@ const _Explore: React.FunctionComponent = props => {
   );
 
   const searchButton = (
-    <div className={classes.searchButton} onClick={() => setLastQuery(searchQuery)}>
+    <div
+      className={classes.searchButton}
+      onClick={() => setLastQuery(searchQuery)}
+    >
       <i className={`${classes.searchIcon} material-icons`}>search</i>
     </div>
   );
@@ -237,7 +247,9 @@ const _Explore: React.FunctionComponent = props => {
       </div>
       {loading && (
         <div className={classes.loading}>
-          <Spinning className={`${classes.icon} material-icons`}>hourglass_top</Spinning>
+          <Spinning className={`${classes.icon} material-icons`}>
+            hourglass_top
+          </Spinning>
           <span className={classes.iconText}>Loading...</span>
         </div>
       )}
@@ -249,7 +261,7 @@ const _Explore: React.FunctionComponent = props => {
           )}
           <div className={classes.resultsContainer}>
             <AutoSizer disableWidth>
-              {({ height }) => (
+              {({ height }: { height: number }) => (
                 <VariableSizeList
                   ref={listRef}
                   height={height}

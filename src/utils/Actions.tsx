@@ -14,25 +14,28 @@ import qs from 'querystring';
 import { requestAPI } from './ApiRequest';
 import { UIStore } from '../stores/UIStore';
 import {
-  FileDIDDetails,
-  AttachedFile,
+  IFileDIDDetails,
+  IAttachedFile,
   RucioAuthType,
   RucioAuthCredentials,
-  InstanceConfig,
-  DirectoryItem,
+  IInstanceConfig,
+  IDirectoryItem,
   DIDSearchType,
-  DIDSearchResult,
+  IDIDSearchResult,
   FileUploadParam,
   FileUploadJob,
   FileUploadLog
 } from '../types';
 
 export class Actions {
-  async fetchInstancesConfig(): Promise<InstanceConfig> {
-    return requestAPI<InstanceConfig>('instances');
+  async fetchInstancesConfig(): Promise<IInstanceConfig> {
+    return requestAPI<IInstanceConfig>('instances');
   }
 
-  async postActiveInstance(instanceName: string, authType: RucioAuthType): Promise<void> {
+  async postActiveInstance(
+    instanceName: string,
+    authType: RucioAuthType
+  ): Promise<void> {
     const init = {
       method: 'PUT',
       body: JSON.stringify({
@@ -44,12 +47,16 @@ export class Actions {
     return requestAPI('instances', init);
   }
 
-  async fetchAuthConfig<T extends any>(namespace: string, type: RucioAuthType): Promise<T> {
+  async fetchAuthConfig<T>(namespace: string, type: RucioAuthType): Promise<T> {
     const query = { namespace, type };
     return requestAPI<T>(`auth?${qs.encode(query)}`);
   }
 
-  async putAuthConfig(namespace: string, type: RucioAuthType, params: RucioAuthCredentials): Promise<void> {
+  async putAuthConfig(
+    namespace: string,
+    type: RucioAuthType,
+    params: RucioAuthCredentials
+  ): Promise<void> {
     const init = {
       method: 'PUT',
       body: JSON.stringify({
@@ -62,9 +69,13 @@ export class Actions {
     return requestAPI('auth', init);
   }
 
-  async searchDID(namespace: string, did: string, type: DIDSearchType): Promise<DIDSearchResult[]> {
+  async searchDID(
+    namespace: string,
+    did: string,
+    type: DIDSearchType
+  ): Promise<IDIDSearchResult[]> {
     const query = { namespace, did, type };
-    return requestAPI<DIDSearchResult[]>(`did-search?${qs.encode(query)}`);
+    return requestAPI<IDIDSearchResult[]>(`did-search?${qs.encode(query)}`);
   }
 
   async fetchScopes(namespace: string): Promise<string[]> {
@@ -77,17 +88,28 @@ export class Actions {
     return requestAPI<string[]>(`list-rses?${qs.encode(query)}`);
   }
 
-  async fetchAttachedFileDIDs(namespace: string, did: string): Promise<AttachedFile[]> {
+  async fetchAttachedFileDIDs(
+    namespace: string,
+    did: string
+  ): Promise<IAttachedFile[]> {
     const query = { namespace, did };
-    return requestAPI<AttachedFile[]>(`files?${qs.encode(query)}`);
+    return requestAPI<IAttachedFile[]>(`files?${qs.encode(query)}`);
   }
 
-  async fetchDIDDetails(namespace: string, did: string, poll = false): Promise<FileDIDDetails[]> {
+  async fetchDIDDetails(
+    namespace: string,
+    did: string,
+    poll = false
+  ): Promise<IFileDIDDetails[]> {
     const query = { namespace, did, poll: poll ? 1 : undefined };
-    return requestAPI<FileDIDDetails[]>('did?' + qs.encode(query));
+    return requestAPI<IFileDIDDetails[]>('did?' + qs.encode(query));
   }
 
-  async getFileDIDDetails(namespace: string, did: string, poll = false): Promise<FileDIDDetails> {
+  async getFileDIDDetails(
+    namespace: string,
+    did: string,
+    poll = false
+  ): Promise<IFileDIDDetails> {
     const fileDetails = UIStore.getRawState().fileDetails[did];
 
     if (!poll && !!fileDetails) {
@@ -95,10 +117,13 @@ export class Actions {
     }
 
     const didDetails = await this.fetchDIDDetails(namespace, did, poll);
-    const didMap = didDetails.reduce((acc: { [did: string]: FileDIDDetails }, curr) => {
-      acc[curr.did] = curr;
-      return acc;
-    }, {});
+    const didMap = didDetails.reduce(
+      (acc: { [did: string]: IFileDIDDetails }, curr) => {
+        acc[curr.did] = curr;
+        return acc;
+      },
+      {}
+    );
 
     UIStore.update(s => {
       s.fileDetails = { ...s.fileDetails, ...didMap };
@@ -107,7 +132,11 @@ export class Actions {
     return didDetails[0];
   }
 
-  async getCollectionDIDDetails(namespace: string, did: string, poll = false): Promise<FileDIDDetails[]> {
+  async getCollectionDIDDetails(
+    namespace: string,
+    did: string,
+    poll = false
+  ): Promise<IFileDIDDetails[]> {
     const collectionDetails = UIStore.getRawState().collectionDetails[did];
     if (!poll && !!collectionDetails) {
       return collectionDetails;
@@ -133,15 +162,20 @@ export class Actions {
       body: JSON.stringify({ did })
     };
 
-    return requestAPI('did/make-available?namespace=' + encodeURIComponent(namespace), init);
+    return requestAPI(
+      'did/make-available?namespace=' + encodeURIComponent(namespace),
+      init
+    );
   }
 
   async makeCollectionAvailable(namespace: string, did: string): Promise<void> {
-    const collectionAttachedFiles = UIStore.getRawState().collectionDetails[did];
-    const updatedCollectionAttachedFiles: FileDIDDetails[] = collectionAttachedFiles.map(f => ({
-      ...f,
-      status: f.status === 'OK' ? 'OK' : 'REPLICATING'
-    }));
+    const collectionAttachedFiles =
+      UIStore.getRawState().collectionDetails[did];
+    const updatedCollectionAttachedFiles: IFileDIDDetails[] =
+      collectionAttachedFiles.map(f => ({
+        ...f,
+        status: f.status === 'OK' ? 'OK' : 'REPLICATING'
+      }));
     UIStore.update(s => {
       s.collectionDetails[did] = updatedCollectionAttachedFiles;
     });
@@ -151,11 +185,16 @@ export class Actions {
       body: JSON.stringify({ did })
     };
 
-    return requestAPI('did/make-available?namespace=' + encodeURIComponent(namespace), init);
+    return requestAPI(
+      'did/make-available?namespace=' + encodeURIComponent(namespace),
+      init
+    );
   }
 
-  async listDirectory(path: string): Promise<DirectoryItem[]> {
-    return requestAPI<DirectoryItem[]>('file-browser?path=' + encodeURIComponent(path));
+  async listDirectory(path: string): Promise<IDirectoryItem[]> {
+    return requestAPI<IDirectoryItem[]>(
+      'file-browser?path=' + encodeURIComponent(path)
+    );
   }
 
   async purgeCache(): Promise<void> {
@@ -167,7 +206,15 @@ export class Actions {
   }
 
   async uploadFile(namespace: string, params: FileUploadParam): Promise<void> {
-    const { paths, rse, fileScope, datasetName, addToDataset, datasetScope, lifetime } = params;
+    const {
+      paths,
+      rse,
+      fileScope,
+      datasetName,
+      addToDataset,
+      datasetScope,
+      lifetime
+    } = params;
 
     const init = {
       method: 'POST',
@@ -182,7 +229,10 @@ export class Actions {
       })
     };
 
-    return requestAPI('upload?namespace=' + encodeURIComponent(namespace), init);
+    return requestAPI(
+      'upload?namespace=' + encodeURIComponent(namespace),
+      init
+    );
   }
 
   async fetchUploadJobs(namespace: string): Promise<FileUploadJob[]> {
@@ -190,7 +240,10 @@ export class Actions {
     return requestAPI<FileUploadJob[]>('upload/jobs?' + qs.encode(query));
   }
 
-  async fetchUploadJobLog(namespace: string, id: string): Promise<FileUploadLog> {
+  async fetchUploadJobLog(
+    namespace: string,
+    id: string
+  ): Promise<FileUploadLog> {
     const query = { namespace, id };
     return requestAPI<FileUploadLog>('upload/jobs/log?' + qs.encode(query));
   }
@@ -206,7 +259,7 @@ export class Actions {
 
 export const actions = new Actions();
 
-export interface WithRequestAPIProps {
+export interface IWithRequestAPIProps {
   actions: Actions;
 }
 

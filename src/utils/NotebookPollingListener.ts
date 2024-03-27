@@ -12,7 +12,7 @@
 import { ExtensionStore } from '../stores/ExtensionStore';
 import { UIStore } from '../stores/UIStore';
 import { PollingRequesterRef, didPollingManager } from './DIDPollingManager';
-import { NotebookDIDAttachment } from '../types';
+import { INotebookDIDAttachment } from '../types';
 import { actions } from './Actions';
 import { NotebookListener } from './NotebookListener';
 import { computeCollectionState } from './Helpers';
@@ -62,10 +62,16 @@ export class NotebookPollingListener {
             if (this.activePolling.includes(did)) {
               this.disablePolling(did);
             }
-            if (file.current.status === 'OK' && file.prev?.status === 'REPLICATING') {
+            if (
+              file.current.status === 'OK' &&
+              file.prev?.status === 'REPLICATING'
+            ) {
               const { activeNotebookPanel } = ExtensionStore.getRawState();
               if (activeNotebookPanel) {
-                this.notebookListener.reinjectSpecificDID(activeNotebookPanel, did);
+                this.notebookListener.reinjectSpecificDID(
+                  activeNotebookPanel,
+                  did
+                );
               }
             }
           }
@@ -100,10 +106,16 @@ export class NotebookPollingListener {
               this.disablePolling(did);
             }
             const prevCollectionState = computeCollectionState(file.prev);
-            if (currentCollectionState === 'AVAILABLE' && prevCollectionState === 'REPLICATING') {
+            if (
+              currentCollectionState === 'AVAILABLE' &&
+              prevCollectionState === 'REPLICATING'
+            ) {
               const { activeNotebookPanel } = ExtensionStore.getRawState();
               if (activeNotebookPanel) {
-                this.notebookListener.reinjectSpecificDID(activeNotebookPanel, did);
+                this.notebookListener.reinjectSpecificDID(
+                  activeNotebookPanel,
+                  did
+                );
               }
             }
           }
@@ -112,13 +124,17 @@ export class NotebookPollingListener {
     );
   }
 
-  private removeUnfocusedDIDs(attachments: NotebookDIDAttachment[] = []) {
-    const shouldNoLongerPoll = this.activePolling.filter(did => !attachments.find(a => a.did === did));
+  private removeUnfocusedDIDs(attachments: INotebookDIDAttachment[] = []) {
+    const shouldNoLongerPoll = this.activePolling.filter(
+      did => !attachments.find(a => a.did === did)
+    );
     shouldNoLongerPoll.forEach(did => this.disablePolling(did));
   }
 
-  private processNewAttachments(attachments: NotebookDIDAttachment[] = []) {
-    const newlyAdded = attachments.filter(a => !this.activePolling.find(did => did === a.did));
+  private processNewAttachments(attachments: INotebookDIDAttachment[] = []) {
+    const newlyAdded = attachments.filter(
+      a => !this.activePolling.find(did => did === a.did)
+    );
     newlyAdded.forEach(attachment => {
       this.shouldEnablePolling(attachment).then(shouldEnable => {
         if (shouldEnable) {
@@ -128,17 +144,23 @@ export class NotebookPollingListener {
     });
   }
 
-  private async shouldEnablePolling(attachment: NotebookDIDAttachment) {
+  private async shouldEnablePolling(attachment: INotebookDIDAttachment) {
     const { activeInstance } = UIStore.getRawState();
     if (!activeInstance) {
       return false;
     }
 
     if (attachment.type === 'file') {
-      const didDetails = await actions.getFileDIDDetails(activeInstance.name, attachment.did);
+      const didDetails = await actions.getFileDIDDetails(
+        activeInstance.name,
+        attachment.did
+      );
       return didDetails.status === 'REPLICATING';
     } else {
-      const didDetails = await actions.getCollectionDIDDetails(activeInstance.name, attachment.did);
+      const didDetails = await actions.getCollectionDIDDetails(
+        activeInstance.name,
+        attachment.did
+      );
       return didDetails.find(d => d.status === 'REPLICATING');
     }
   }

@@ -28,35 +28,54 @@ const useStyles = createUseStyles({
 
 export const NotebookTab: React.FunctionComponent = () => {
   const classes = useStyles();
-  const activeNotebookPanel = useStoreState(ExtensionStore, s => s.activeNotebookPanel);
-  const activeNotebookAttachments = useStoreState(ExtensionStore, s => s.activeNotebookAttachment);
+  const activeNotebookPanel = useStoreState(
+    ExtensionStore,
+    s => s.activeNotebookPanel
+  );
+  const activeNotebookAttachments = useStoreState(
+    ExtensionStore,
+    s => s.activeNotebookAttachment
+  );
   const notebookStatusStore = useNotebookResolveStatusStore();
-  const notebookStatus = activeNotebookPanel?.id ? notebookStatusStore[activeNotebookPanel?.id] : null;
+  const notebookStatus = activeNotebookPanel?.id
+    ? notebookStatusStore[activeNotebookPanel?.id]
+    : null;
 
   return (
     <>
-      {!!activeNotebookPanel && !!activeNotebookAttachments && activeNotebookAttachments.length > 0 && (
-        <div className={classes.container}>
-          {activeNotebookAttachments.length > 0 && (
-            <>
-              <HorizontalHeading title="Attached DIDs" />
-              {activeNotebookAttachments.map(attachment => (
-                <NotebookAttachmentListItem
-                  key={attachment.did}
-                  attachment={attachment}
-                  status={notebookStatus ? notebookStatus[attachment.did] : undefined}
-                />
-              ))}
-            </>
-          )}
-        </div>
+      {!!activeNotebookPanel &&
+        !!activeNotebookAttachments &&
+        activeNotebookAttachments.length > 0 && (
+          <div className={classes.container}>
+            {activeNotebookAttachments.length > 0 && (
+              <>
+                <HorizontalHeading title="Attached DIDs" />
+                {activeNotebookAttachments.map(attachment => (
+                  <NotebookAttachmentListItem
+                    key={attachment.did}
+                    attachment={attachment}
+                    status={
+                      notebookStatus
+                        ? notebookStatus[attachment.did]
+                        : undefined
+                    }
+                  />
+                ))}
+              </>
+            )}
+          </div>
+        )}
+      {!!activeNotebookPanel &&
+        !!activeNotebookAttachments &&
+        activeNotebookAttachments.length === 0 && (
+          <div className={classes.messageContainer}>
+            You have not attached any DID. Use the Explore menu to add a DID to
+            this notebook.
+          </div>
+        )}
+      {!activeNotebookPanel && (
+        <div className={classes.messageContainer}>Please open a Notebook.</div>
       )}
-      {!!activeNotebookPanel && !!activeNotebookAttachments && activeNotebookAttachments.length === 0 && (
-        <div className={classes.messageContainer}>
-          You have not attached any DID. Use the Explore menu to add a DID to this notebook.
-        </div>
-      )}
-      {!activeNotebookPanel && <div className={classes.messageContainer}>Please open a Notebook.</div>}
     </>
   );
 };

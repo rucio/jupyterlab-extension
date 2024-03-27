@@ -14,10 +14,14 @@
     "preserveWatchOutput": true,
     "resolveJsonModule": true,
     "outDir": "lib",
+    "rootDir": "src",
     "strict": true,
     "strictNullChecks": true,
-    "target": "es2017",
-    "types": ["node", "jest"]
+    "target": "ES2018",
+    "skipLibCheck": true,
+    "paths": {
+      "react": [ "./node_modules/@types/react" ]
+    }
   },
   "include": ["src/**/*"]
 }

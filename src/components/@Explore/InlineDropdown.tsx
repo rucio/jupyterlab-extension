@@ -32,7 +32,8 @@ const useStyles = createUseStyles({
     color: 'var(--jp-ui-font-color1)'
   },
   dropdownActive: {
-    minWidth: (props: Partial<InlineDropdownProps>) => props.optionWidth || '150px',
+    minWidth: (props: Partial<IInlineDropdownProps>) =>
+      props.optionWidth || '150px',
     extend: 'dropdownContent',
     display: 'block'
   },
@@ -54,28 +55,37 @@ const useStyles = createUseStyles({
   }
 });
 
-interface Option {
+interface IOption {
   title: string;
   value: any;
 }
 
-interface InlineDropdownProps {
-  options: Option[];
+interface IInlineDropdownProps {
+  options: IOption[];
   value: any;
   onItemSelected?: { (value: any): void };
   optionWidth?: string;
 }
 
-type MyProps = React.HTMLAttributes<HTMLSpanElement> & InlineDropdownProps;
+type MyProps = React.HTMLAttributes<HTMLSpanElement> & IInlineDropdownProps;
 
-export const InlineDropdown: React.FC<MyProps> = ({ options, value, onItemSelected, optionWidth, ...props }) => {
+export const InlineDropdown: React.FC<MyProps> = ({
+  options,
+  value,
+  onItemSelected,
+  optionWidth,
+  ...props
+}) => {
   const classes = useStyles({ optionWidth });
   const [open, setOpen] = useState(false);
   const currentOption = options.find(o => o.value === value);
   const clickTargetRef = useRef<HTMLElement>(null);
 
   const handleClickOutside = (event: Event) => {
-    if (clickTargetRef && !clickTargetRef.current?.contains(event.target as Node)) {
+    if (
+      clickTargetRef &&
+      !clickTargetRef.current?.contains(event.target as Node)
+    ) {
       setOpen(false);
     }
   };
@@ -88,10 +98,16 @@ export const InlineDropdown: React.FC<MyProps> = ({ options, value, onItemSelect
   });
 
   return (
-    <span className={classes.dropdown} onClick={() => setOpen(!open)} ref={clickTargetRef}>
+    <span
+      className={classes.dropdown}
+      onClick={() => setOpen(!open)}
+      ref={clickTargetRef}
+    >
       <span className={classes.dropdownTitle} {...props}>
         {currentOption ? currentOption.title : '(select)'}
-        <span className={`${classes.icon} material-icons`}>arrow_drop_down</span>
+        <span className={`${classes.icon} material-icons`}>
+          arrow_drop_down
+        </span>
       </span>
       <div className={open ? classes.dropdownActive : classes.dropdownContent}>
         {options.map(option => (

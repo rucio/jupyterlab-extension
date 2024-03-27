@@ -52,20 +52,24 @@ const useStyles = createUseStyles({
   }
 });
 
-interface MenuBarProps {
+interface IMenuBarProps {
   value?: any;
   onChange: { (value: any): void };
-  menus: Menu[];
+  menus: IMenu[];
 }
 
-export interface Menu {
+export interface IMenu {
   title: any;
   value: any;
   right?: boolean;
   disabled?: boolean;
 }
 
-export const MenuBar: React.FunctionComponent<MenuBarProps> = ({ menus, value, onChange }) => {
+export const MenuBar: React.FunctionComponent<IMenuBarProps> = ({
+  menus,
+  value,
+  onChange
+}) => {
   const classes = useStyles();
 
   return (

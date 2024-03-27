@@ -15,16 +15,24 @@ import Select from 'react-select';
 import { useStoreState } from 'pullstate';
 import { UIStore, resetRucioCaches } from '../../stores/UIStore';
 import { Button } from '../Button';
-import { withRequestAPI, WithRequestAPIProps } from '../../utils/Actions';
+import { withRequestAPI, IWithRequestAPIProps } from '../../utils/Actions';
 import { UserPassAuth } from './UserPassAuth';
 import { X509Auth } from './X509Auth';
 import { X509ProxyAuth } from './X509ProxyAuth';
-import { Instance, RucioAuthType, RucioUserpassAuth, RucioX509Auth, RucioX509ProxyAuth } from '../../types';
+import {
+  IInstance,
+  RucioAuthType,
+  IRucioUserpassAuth,
+  IRucioX509Auth,
+  IRucioX509ProxyAuth
+} from '../../types';
 import { HorizontalHeading } from '../HorizontalHeading';
 
-const getEnabledAuthTypes = (instance: Instance) =>
+const getEnabledAuthTypes = (instance: IInstance) =>
   [
-    instance.oidcEnabled ? { label: 'OpenID Connect', value: 'oidc' } : undefined,
+    instance.oidcEnabled
+      ? { label: 'OpenID Connect', value: 'oidc' }
+      : undefined,
     { label: 'X.509 User Certificate', value: 'x509' },
     { label: 'X.509 Proxy Certificate', value: 'x509_proxy' },
     { label: 'Username & Password', value: 'userpass' }
@@ -107,32 +115,50 @@ const useStyles = createUseStyles({
 });
 
 const _Settings: React.FunctionComponent = props => {
-  const { actions } = props as WithRequestAPIProps;
+  const { actions } = props as IWithRequestAPIProps;
 
   const classes = useStyles();
   const activeInstance = useStoreState(UIStore, s => s.activeInstance);
   const activeAuthType = useStoreState(UIStore, s => s.activeAuthType);
   const instances = useStoreState(UIStore, s => s.instances) || [];
 
-  const [selectedInstance, setSelectedInstance] = useState<string | undefined>(activeInstance?.name);
+  const [selectedInstance, setSelectedInstance] = useState<string | undefined>(
+    activeInstance?.name
+  );
 
-  const selectedInstanceObject = useMemo(() => instances.find(i => i.name === selectedInstance), [instances, selectedInstance]);
+  const selectedInstanceObject = useMemo(
+    () => instances.find(i => i.name === selectedInstance),
+    [instances, selectedInstance]
+  );
 
-  const authTypeOptions = selectedInstanceObject ? getEnabledAuthTypes(selectedInstanceObject) : [];
-  const authTypeDefaultValue = activeAuthType ? authTypeOptions.find(o => o.value === activeAuthType) : undefined;
-  const [selectedAuthType, setSelectedAuthType] = useState<RucioAuthType | undefined>(activeAuthType);
+  const authTypeOptions = selectedInstanceObject
+    ? getEnabledAuthTypes(selectedInstanceObject)
+    : [];
+  const authTypeDefaultValue = activeAuthType
+    ? authTypeOptions.find(o => o.value === activeAuthType)
+    : undefined;
+  const [selectedAuthType, setSelectedAuthType] = useState<
+    RucioAuthType | undefined
+  >(activeAuthType);
 
-  const [rucioUserpassAuthCredentials, setRucioUserpassAuthCredentials] = useState<RucioUserpassAuth>();
-  const [rucioX509AuthCredentials, setRucioX509AuthCredentials] = useState<RucioX509Auth>();
-  const [rucioX509ProxyAuthCredentials, setRucioX509ProxyAuthCredentials] = useState<RucioX509ProxyAuth>();
+  const [rucioUserpassAuthCredentials, setRucioUserpassAuthCredentials] =
+    useState<IRucioUserpassAuth>();
+  const [rucioX509AuthCredentials, setRucioX509AuthCredentials] =
+    useState<IRucioX509Auth>();
+  const [rucioX509ProxyAuthCredentials, setRucioX509ProxyAuthCredentials] =
+    useState<IRucioX509ProxyAuth>();
   const [credentialsLoading, setCredentialsLoading] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(false);
   const [showSaved, setShowSaved] = useState<boolean>(false);
-  const [showAdvancedSettings, setShowAdvancedSettings] = useState<boolean>(false);
+  const [showAdvancedSettings, setShowAdvancedSettings] =
+    useState<boolean>(false);
   const [purgingCache, setPurgingCache] = useState<boolean>(false);
   const [showCachePurged, setShowCachePurged] = useState<boolean>(false);
 
-  const instanceOptions = useMemo(() => instances?.map(i => ({ label: i.displayName, value: i.name })), [instances]);
+  const instanceOptions = useMemo(
+    () => instances?.map(i => ({ label: i.displayName, value: i.name })),
+    [instances]
+  );
 
   const setActiveInstance = (instanceName: string, authType: RucioAuthType) => {
     UIStore.update(s => {
@@ -147,7 +173,9 @@ const _Settings: React.FunctionComponent = props => {
       }
     });
 
-    return actions.postActiveInstance(instanceName, authType).catch(e => console.log(e));
+    return actions
+      .postActiveInstance(instanceName, authType)
+      .catch(e => console.log(e));
   };
 
   const saveSettings = () => {
@@ -157,7 +185,10 @@ const _Settings: React.FunctionComponent = props => {
 
     const promises = [];
     if (selectedInstance && selectedAuthType) {
-      const setActiveInstancePromise = setActiveInstance(selectedInstance, selectedAuthType);
+      const setActiveInstancePromise = setActiveInstance(
+        selectedInstance,
+        selectedAuthType
+      );
       promises.push(setActiveInstancePromise);
     }
 
@@ -174,7 +205,11 @@ const _Settings: React.FunctionComponent = props => {
       })();
 
       if (rucioAuthCredentials) {
-        const setPutAuthConfigPromise = actions.putAuthConfig(selectedInstance, selectedAuthType, rucioAuthCredentials);
+        const setPutAuthConfigPromise = actions.putAuthConfig(
+          selectedInstance,
+          selectedAuthType,
+          rucioAuthCredentials
+        );
         promises.push(setPutAuthConfigPromise);
       }
     }
@@ -197,19 +232,22 @@ const _Settings: React.FunctionComponent = props => {
 
     if (selectedAuthType === 'userpass') {
       actions
-        .fetchAuthConfig<RucioUserpassAuth>(selectedInstance, selectedAuthType)
+        .fetchAuthConfig<IRucioUserpassAuth>(selectedInstance, selectedAuthType)
         .then(c => setRucioUserpassAuthCredentials(c))
         .catch(() => setRucioUserpassAuthCredentials(undefined))
         .finally(() => setCredentialsLoading(false));
     } else if (selectedAuthType === 'x509') {
       actions
-        .fetchAuthConfig<RucioX509Auth>(selectedInstance, selectedAuthType)
+        .fetchAuthConfig<IRucioX509Auth>(selectedInstance, selectedAuthType)
         .then(c => setRucioX509AuthCredentials(c))
         .catch(() => setRucioX509AuthCredentials(undefined))
         .finally(() => setCredentialsLoading(false));
     } else if (selectedAuthType === 'x509_proxy') {
       actions
-        .fetchAuthConfig<RucioX509ProxyAuth>(selectedInstance, selectedAuthType)
+        .fetchAuthConfig<IRucioX509ProxyAuth>(
+          selectedInstance,
+          selectedAuthType
+        )
         .then(c => setRucioX509ProxyAuthCredentials(c))
         .catch(() => setRucioX509ProxyAuthCredentials(undefined))
         .finally(() => setCredentialsLoading(false));
@@ -250,7 +288,11 @@ const _Settings: React.FunctionComponent = props => {
     }),
     option: (provided: any, { isFocused, isSelected }: any) => ({
       ...provided,
-      background: isFocused ? (isSelected ? provided.background : 'var(--jp-layout-color2)') : provided.background,
+      background: isFocused
+        ? isSelected
+          ? provided.background
+          : 'var(--jp-layout-color2)'
+        : provided.background,
       ':active': {
         ...provided[':active'],
         background: isSelected ? provided.background : 'var(--jp-layout-color2)'
@@ -258,7 +300,9 @@ const _Settings: React.FunctionComponent = props => {
     })
   };
 
-  const instanceDefaultValue = activeInstance ? { label: activeInstance.displayName, value: activeInstance.name } : null;
+  const instanceDefaultValue = activeInstance
+    ? { label: activeInstance.displayName, value: activeInstance.name }
+    : null;
 
   return (
     <div className={classes.content}>
@@ -286,7 +330,13 @@ const _Settings: React.FunctionComponent = props => {
           </div>
         </div>
         <div>
-          <div className={selectedInstance && selectedAuthType === 'userpass' ? '' : classes.hidden}>
+          <div
+            className={
+              selectedInstance && selectedAuthType === 'userpass'
+                ? ''
+                : classes.hidden
+            }
+          >
             <HorizontalHeading title="Username &amp; Password" />
             <UserPassAuth
               loading={credentialsLoading}
@@ -294,7 +344,13 @@ const _Settings: React.FunctionComponent = props => {
               onAuthParamsChange={v => setRucioUserpassAuthCredentials(v)}
             />
           </div>
-          <div className={selectedInstance && selectedAuthType === 'x509' ? '' : classes.hidden}>
+          <div
+            className={
+              selectedInstance && selectedAuthType === 'x509'
+                ? ''
+                : classes.hidden
+            }
+          >
             <HorizontalHeading title="X.509 User Certificate" />
             <X509Auth
               loading={credentialsLoading}
@@ -302,7 +358,13 @@ const _Settings: React.FunctionComponent = props => {
               onAuthParamsChange={v => setRucioX509AuthCredentials(v)}
             />
           </div>
-          <div className={selectedInstance && selectedAuthType === 'x509_proxy' ? '' : classes.hidden}>
+          <div
+            className={
+              selectedInstance && selectedAuthType === 'x509_proxy'
+                ? ''
+                : classes.hidden
+            }
+          >
             <HorizontalHeading title="X.509 Proxy Certificate" />
             <X509ProxyAuth
               loading={credentialsLoading}
@@ -317,14 +379,24 @@ const _Settings: React.FunctionComponent = props => {
             <div className={classes.formItem}>
               <div className={classes.textFieldContainer}>
                 <div className={classes.label}>Purge cache</div>
-                <div className={classes.subtitle}>Remove all caches, including search results and DID paths.</div>
+                <div className={classes.subtitle}>
+                  Remove all caches, including search results and DID paths.
+                </div>
                 <Button
                   block
                   onClick={purgeCache}
                   disabled={purgingCache}
                   outlineColor="var(--jp-error-color1)"
-                  color={!purgingCache && showCachePurged ? '#FFFFFF' : 'var(--jp-error-color1)'}
-                  className={!purgingCache && showCachePurged ? classes.buttonPurgedAcknowledgement : classes.purgeButton}
+                  color={
+                    !purgingCache && showCachePurged
+                      ? '#FFFFFF'
+                      : 'var(--jp-error-color1)'
+                  }
+                  className={
+                    !purgingCache && showCachePurged
+                      ? classes.buttonPurgedAcknowledgement
+                      : classes.purgeButton
+                  }
                 >
                   {!purgingCache && !showCachePurged && <>Purge Cache</>}
                   {purgingCache && <>Purging...</>}
@@ -336,12 +408,18 @@ const _Settings: React.FunctionComponent = props => {
         </div>
         <div className={classes.container}>
           {!showAdvancedSettings && (
-            <div className={classes.action} onClick={() => setShowAdvancedSettings(true)}>
+            <div
+              className={classes.action}
+              onClick={() => setShowAdvancedSettings(true)}
+            >
               Show Advanced Settings
             </div>
           )}
           {showAdvancedSettings && (
-            <div className={classes.action} onClick={() => setShowAdvancedSettings(false)}>
+            <div
+              className={classes.action}
+              onClick={() => setShowAdvancedSettings(false)}
+            >
               Hide Advanced Settings
             </div>
           )}
@@ -354,7 +432,11 @@ const _Settings: React.FunctionComponent = props => {
           disabled={!settingsComplete || loading}
           outlineColor={!loading && showSaved ? '#689f38' : undefined}
           color={!loading && showSaved ? '#FFFFFF' : undefined}
-          className={!loading && showSaved ? classes.buttonSavedAcknowledgement : undefined}
+          className={
+            !loading && showSaved
+              ? classes.buttonSavedAcknowledgement
+              : undefined
+          }
         >
           {!loading && !showSaved && <>Save Settings</>}
           {loading && <>Saving...</>}

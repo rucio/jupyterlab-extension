@@ -9,7 +9,7 @@
  * - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
  */
 
-export interface Instance {
+export interface IInstance {
   displayName: string;
   name: string;
   mode: 'replica' | 'download';
@@ -17,40 +17,43 @@ export interface Instance {
   webuiUrl?: string;
 }
 
-interface RucioAuth {
+interface IRucioAuth {
   account?: string;
 }
 
-export interface RucioUserpassAuth extends RucioAuth {
+export interface IRucioUserpassAuth extends IRucioAuth {
   username: string;
   password: string;
 }
 
-export interface RucioX509Auth extends RucioAuth {
+export interface IRucioX509Auth extends IRucioAuth {
   certificate: string;
   key?: string;
 }
 
-export interface RucioX509ProxyAuth extends RucioAuth {
+export interface IRucioX509ProxyAuth extends IRucioAuth {
   proxy: string;
 }
 
-export type RucioAuthCredentials = RucioUserpassAuth | RucioX509Auth | RucioX509ProxyAuth;
+export type RucioAuthCredentials =
+  | IRucioUserpassAuth
+  | IRucioX509Auth
+  | IRucioX509ProxyAuth;
 
 export type RucioAuthType = 'userpass' | 'x509' | 'x509_proxy' | 'oidc';
 
-export interface InstanceConfig {
+export interface IInstanceConfig {
   activeInstance?: string;
-  instances: Instance[];
+  instances: IInstance[];
   authType?: RucioAuthType;
 }
 
-export interface AttachedFile {
+export interface IAttachedFile {
   did: string;
   size: number;
 }
 
-export interface FileDIDDetails {
+export interface IFileDIDDetails {
   status: FileStatus;
   did: string;
   path?: string;
@@ -58,25 +61,41 @@ export interface FileDIDDetails {
   size: number;
 }
 
-export interface NotebookDIDAttachment {
+export interface INotebookDIDAttachment {
   did: string;
   variableName: string;
   type: 'collection' | 'file';
 }
 
-export interface DirectoryItem {
+export interface IDirectoryItem {
   type: 'file' | 'dir';
   name: string;
   path: string;
 }
 
 export type FileStatus = 'OK' | 'REPLICATING' | 'NOT_AVAILABLE' | 'STUCK';
-export type CollectionStatus = 'NOT_AVAILABLE' | 'AVAILABLE' | 'PARTIALLY_AVAILABLE' | 'REPLICATING' | 'STUCK' | 'EMPTY';
-export type ResolveStatus = 'NOT_RESOLVED' | 'RESOLVING' | 'PENDING_INJECTION' | 'READY' | 'FAILED';
+export type CollectionStatus =
+  | 'NOT_AVAILABLE'
+  | 'AVAILABLE'
+  | 'PARTIALLY_AVAILABLE'
+  | 'REPLICATING'
+  | 'STUCK'
+  | 'EMPTY';
+export type ResolveStatus =
+  | 'NOT_RESOLVED'
+  | 'RESOLVING'
+  | 'PENDING_INJECTION'
+  | 'READY'
+  | 'FAILED';
 
-export type DIDSearchType = 'collection' | 'dataset' | 'container' | 'file' | 'all';
+export type DIDSearchType =
+  | 'collection'
+  | 'dataset'
+  | 'container'
+  | 'file'
+  | 'all';
 
-export interface DIDSearchResult {
+export interface IDIDSearchResult {
   did: string;
   type: 'dataset' | 'container' | 'file';
   size?: number;
