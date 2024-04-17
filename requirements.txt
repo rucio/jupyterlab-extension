@@ -1,4 +1,5 @@
 jupyterlab~=4.1,<4.2
+notebook<7
 peewee
 jsonschema
 psutil
