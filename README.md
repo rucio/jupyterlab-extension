@@ -13,8 +13,10 @@ for the frontend extension.
 
 ## Requirements
 
-* JupyterLab >= 3.0
-* Rucio Server >= 1.28
+* JupyterLab >= 3.0, < 4
+* Rucio >= 32
+
+The rest of the requirements can be found in the [setup.py](setup.py) of the project.
 
 ## Install
 
@@ -56,7 +58,9 @@ If you want to contribute or build the extension from source, see [CONTRIBUTING.
 
 ## Quick Setup using Docker
 
-This repository comes with a Docker image of [jupyter/scipy-notebook](https://hub.docker.com/r/jupyter/scipy-notebook) installed with the extension.
+This repository comes with a Docker image of
+[jupyter/docker-stack-foundation](https://jupyter-docker-stacks.readthedocs.io/en/latest/using/selecting.html#jupyter-docker-stacks-foundation)
+defined [here](docker/container/README.md), that can be used to run the extension.
 
 To run the image, use the following command.
 

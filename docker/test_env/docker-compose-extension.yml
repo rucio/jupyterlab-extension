@@ -10,7 +10,7 @@ services:
     depends_on:
       - ruciodb
   rucio-jupyterlab:
-    image: "rucio-jupyterlab"
+    image: "rucio/jupyterlab"
     build:
       context: .
     profiles:

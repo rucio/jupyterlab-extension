@@ -24,11 +24,11 @@ for our `rucio-jupyterlab` image.
 
 	docker build . -t jupyter/docker-stacks-foundation:python-3.9
 
-### Building the `rucio-jupyterlab` docker image
+### Building the `rucio/jupyterlab` docker image
 
 From the root folder of the project, run
 
-	docker build . -t rucio-jupyterlab -f docker/container/Dockerfile
+	docker build . -t rucio/jupyterlab -f docker/container/Dockerfile
 	
 ## Using the image
 
@@ -36,6 +36,13 @@ From the root folder of the project, run
 
 Check the instructions in [the main README](../../README.md) to see how to use the image
 standalone, that is without the rest of the Rucio development environment
+
+If the environment variables `X509_USER_KEY` and `X509_USER_CERT` are provided to the `docker run`
+ command, a X509 proxy will be initialized at container startup.
+
+An already initialized container can directly be used inside the container, mounting 
+it to the default X509 proxy location (e.g. /tmp/x509up_u1000) or mounting it into
+a different location and pointing the `X509_USER_PROXY` environment variable to it. 
 
 ### Inside Rucio's development environment
 
