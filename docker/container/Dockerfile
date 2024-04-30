@@ -1,4 +1,4 @@
-FROM jupyter/docker-stacks-foundation:python-3.9
+FROM jupyter/docker-stacks-foundation:python-3.11
 LABEL maintainer="Muhammad Aditya Hilmy <mhilmy@hey.com>, Francesc Torradeflot <torradeflot@pic.es>"
 
 ENV CONTAINER_PURPOSE="test"
@@ -10,7 +10,7 @@ USER $NB_UID
 
 RUN mamba install -y -n base -c conda-forge \
 		python-gfal2 \
-		nodejs=14 \
+		nodejs \
 		pip \
     && mamba clean --all -f -y 
 
@@ -22,7 +22,7 @@ WORKDIR /rucio-jupyterlab
 RUN fix-permissions /rucio-jupyterlab \
     && sed -i -e 's/\r$/\n/' /rucio-jupyterlab/docker/container/configure.sh
 
-COPY docker/container/jupyter_server_config.py $HOME/.jupyter/jupyter_server_config.py
+COPY docker/container/jupyter_server_config.json $HOME/.jupyter/jupyter_server_config.json
 RUN fix-permissions $HOME/.jupyter
 RUN mkdir -p /opt/rucio/etc \
 	&& chown -R ${NB_UID}:${NB_GID} /opt/rucio/etc
