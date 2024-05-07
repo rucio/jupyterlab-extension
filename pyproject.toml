@@ -29,7 +29,7 @@ dependencies = [
     "peewee",
     "psutil",
     "pyjwt",
-    "jsonschema",
+    "jsonschema<4.20",
     "rucio-clients>=32.0",
     "traitlets",
 ]
