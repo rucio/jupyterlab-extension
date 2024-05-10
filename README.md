@@ -18,11 +18,23 @@ for the frontend extension.
 
 ## Install
 
-Note: You will need NodeJS to install the extension.
+You will need NodeJS to install the extension. For JupyterLab 4.x you will need NodeJS>=v20 and >=v14 for JupyterLab 3.x.
+
+### JupyterLab 4.x
 
 ```bash
 pip install rucio-jupyterlab
 ```
+
+### JupyterLab 3.x
+
+For JupyterLab 3.x, please use the last supported version.
+
+```bash
+pip install rucio-jupyterlab==0.9.10
+```
+
+#### Download mode
 
 If you are going to run the extension in Download mode, you will also need to install libraries required by the RSE downloaders. For instance, `gfal2`, which is available in EPEL or conda-forge. 
 
