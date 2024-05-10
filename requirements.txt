@@ -1,6 +1,7 @@
 jupyterlab~=4.1,<4.2
+notebook<7
 peewee
-jsonschema
+jsonschema<4.20
 psutil
 pytest
 pytest-mock
