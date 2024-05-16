@@ -19,7 +19,8 @@ jobs:
           pip install build
           python -m build --sdist
       - name: Publish distribution to PyPI
-        uses: pypa/gh-action-pypi-publish@master
+        uses: pypa/gh-action-pypi-publish@release/v1
+        permissions:
+          id-token: write
         with:
-          password: ${{ secrets.pypi_password }}
           skip_existing: true
