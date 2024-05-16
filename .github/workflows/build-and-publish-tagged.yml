@@ -8,6 +8,11 @@ jobs:
   build:
     name: Build and Publish to PyPI
     runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/rucio-jupyterlab
+    permissions:
+      id-token: write
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/setup
@@ -20,7 +25,5 @@ jobs:
           python -m build --sdist
       - name: Publish distribution to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-        permissions:
-          id-token: write
         with:
           skip_existing: true
