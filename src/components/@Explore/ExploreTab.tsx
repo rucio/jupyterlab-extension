@@ -23,6 +23,7 @@ import { withRequestAPI, IWithRequestAPIProps } from '../../utils/Actions';
 import { DIDSearchType, IDIDSearchResult } from '../../types';
 import { InlineDropdown } from '../components/../@Explore/InlineDropdown';
 import { ListScopesPopover } from '../components/../@Explore/ListScopesPopover';
+import { MetadataFilter, MetadataFilterItem } from '../components/../@Explore/MetadataFilterItem';
 
 const useStyles = createUseStyles({
   mainContainer: {
@@ -74,6 +75,31 @@ const useStyles = createUseStyles({
     cursor: 'pointer',
     marginLeft: '4px'
   },
+  addMetadataFilterButton: {
+    padding: '0 16px 0 16px',
+    fontSize: '9pt',
+    cursor: 'pointer',
+    opacity: 0.5,
+    '&:hover': {
+      opacity: 1
+    }
+  },
+  deleteFiltersButton: {
+    fontSize: '9pt',
+    cursor: 'pointer',
+    opacity: 0.5,
+    '&:hover': {
+      opacity: 1
+    }
+  },
+  deleteFiltersIcon: {
+    fontSize: '9pt',
+    cursor: 'pointer',
+    opacity: 0.5,
+    '&:hover': {
+      opacity: 1
+    }
+  },
   loading: {
     padding: '16px'
   },
@@ -102,10 +128,9 @@ const _Explore: React.FunctionComponent = props => {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchType, setSearchType] = useState<DIDSearchType>('all');
-  const [searchResult, setSearchResult] = useState<IDIDSearchResult[]>();
-  const [didExpanded, setDidExpanded] = useState<{ [index: number]: boolean }>(
-    {}
-  );
+  const [searchResult, setSearchResult] = useState<DIDSearchResult[]>();
+  const [didExpanded, setDidExpanded] = useState<{ [index: number]: boolean }>({});
+  const [metadataFilters, setMetadataFilters] = React.useState<MetadataFilter[]>([]);
   const [error, setError] = useState<string>();
   const [lastQuery, setLastQuery] = useState('');
   const [loading, setLoading] = useState(false);
@@ -222,6 +247,35 @@ const _Explore: React.FunctionComponent = props => {
     );
   };
 
+  const handleAddMetadataFilter = () => {
+    setMetadataFilters([
+      ...metadataFilters,
+      { logic: "And", key: "", operator: "=", value: "" },
+    ]);
+  };
+
+  const handleDeleteMetadataFilter = (indexToDelete: number) => {
+    setMetadataFilters((prev) => {
+      const newFilters = prev.filter((_, index) => index !== indexToDelete);
+      if (indexToDelete === 0 && newFilters.length > 0) {
+        newFilters[0] = { ...newFilters[0], logic: "And" };
+      }
+      return newFilters;
+    });
+  };
+
+  const handleDeleteAllMetadataFilters = () => {
+    setMetadataFilters([]);
+  };
+
+  const handleFilterChange = (index: number, updatedFilter: MetadataFilter) => {
+    setMetadataFilters((prev) => {
+      const newFilters = [...prev];
+      newFilters[index] = updatedFilter;
+      return newFilters;
+    });
+  };
+
   return (
     <div className={classes.mainContainer}>
       <div className={classes.searchContainer}>
@@ -244,6 +298,41 @@ const _Explore: React.FunctionComponent = props => {
           onItemSelected={setSearchType}
           optionWidth="180px"
         />
+      </div>
+      <div>
+        {!metadataFilters.length && (
+          <div
+            className={classes.addFilterText}
+            onClick={handleAddMetadataFilter}
+          >
+            + Add metadata filter
+          </div>
+        )}
+        {metadataFilters.map((filter, index) => (
+          <MetadataFilterItem
+            key={index}
+            filter={filter}
+            showBoolOperatorDropdown={index === 0}
+            onDelete={() => handleDeleteMetadataFilter(index)}
+            onChange={(updatedFilter) =>
+              handleFilterChange(index, updatedFilter)
+            }
+          />
+        ))}
+        {!!metadataFilters.length && (
+          <div
+            className={classes.addFilterText}
+            onClick={handleAddMetadataFilter}
+          >
+            + Add filter rule
+          </div>
+        )}
+        {!!metadataFilters.length && (
+          <div className={classes.deleteFiltersButton} onClick={handleDeleteAllMetadataFilters}>
+            <i className={`${classes.deleteFiltersIcon} material-icons`}>delete</i>
+            <span style={{ marginLeft: '8px' }}>Delete filter</span>
+          </div>
+        )}
       </div>
       {loading && (
         <div className={classes.loading}>
