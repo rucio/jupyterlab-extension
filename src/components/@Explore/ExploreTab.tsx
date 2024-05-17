@@ -302,7 +302,7 @@ const _Explore: React.FunctionComponent = props => {
       <div>
         {!metadataFilters.length && (
           <div
-            className={classes.addFilterText}
+            className={classes.addMetadataFilterButton}
             onClick={handleAddMetadataFilter}
           >
             + Add metadata filter
@@ -321,7 +321,7 @@ const _Explore: React.FunctionComponent = props => {
         ))}
         {!!metadataFilters.length && (
           <div
-            className={classes.addFilterText}
+            className={classes.addMetadataFilterButton}
             onClick={handleAddMetadataFilter}
           >
             + Add filter rule
