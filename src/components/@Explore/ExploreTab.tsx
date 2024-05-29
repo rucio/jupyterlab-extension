@@ -128,7 +128,7 @@ const _Explore: React.FunctionComponent = props => {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchType, setSearchType] = useState<DIDSearchType>('all');
-  const [searchResult, setSearchResult] = useState<DIDSearchResult[]>();
+  const [searchResult, setSearchResult] = useState<IDIDSearchResult[]>();
   const [didExpanded, setDidExpanded] = useState<{ [index: number]: boolean }>({});
   const [metadataFilters, setMetadataFilters] = React.useState<MetadataFilter[]>([]);
   const [error, setError] = useState<string>();
