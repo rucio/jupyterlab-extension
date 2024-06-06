@@ -7,6 +7,7 @@
  *
  * Authors:
  * - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
+ * - Enrique Garcia, (CERN), 2024
  */
 
 import { URLExt } from '@jupyterlab/coreutils';
@@ -21,7 +22,11 @@ import { EXTENSION_ID } from '../const';
  * @param init Initial values for the request
  * @returns The response body interpreted as JSON
  */
-export async function requestAPI<T>(endPoint = '', init: RequestInit = {}, convertSnakeCase = true): Promise<T> {
+export async function requestAPI<T>(
+  endPoint = '',
+  init: RequestInit = {},
+  convertSnakeCase = true
+): Promise<T> {
   // Make request to Jupyter API
   const settings = ServerConnection.makeSettings();
   const requestUrl = URLExt.join(
@@ -34,7 +39,7 @@ export async function requestAPI<T>(endPoint = '', init: RequestInit = {}, conve
   try {
     response = await ServerConnection.makeRequest(requestUrl, init, settings);
   } catch (error) {
-    throw new ServerConnection.NetworkError(error);
+    throw new ServerConnection.NetworkError(error as TypeError);
   }
 
   const data = await response.json();

@@ -5,12 +5,8 @@ runs:
     - name: Install check-manifest
       run: python -m pip install -U check-manifest
       shell: bash
-    - name: Install Node (for Playwright)
-      uses: actions/setup-node@v1
-      with:
-        node-version: '16.x'
     - name: Install Playwright
-      run: npx playwright install
+      run: npx playwright install --with-deps
       shell: bash
     - name: extension checks
       run: |

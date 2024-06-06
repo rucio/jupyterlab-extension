@@ -17,10 +17,14 @@ import { ServerConnection } from '@jupyterlab/services';
 import { EXTENSION_ID } from '../../const';
 import { UIStore } from '../../stores/UIStore';
 import { Spinning } from '../Spinning';
-import { withRequestAPI, WithRequestAPIProps } from '../../utils/Actions';
+import { withRequestAPI, IWithRequestAPIProps } from '../../utils/Actions';
 import { AddToNotebookPopover } from './AddToNotebookPopover';
 import { computeCollectionState } from '../../utils/Helpers';
-import { PollingRequesterRef, withPollingManager, WithPollingManagerProps } from '../../utils/DIDPollingManager';
+import {
+  PollingRequesterRef,
+  withPollingManager,
+  IWithPollingManagerProps
+} from '../../utils/DIDPollingManager';
 
 const useStyles = createUseStyles({
   container: {
@@ -86,17 +90,20 @@ const useStyles = createUseStyles({
   }
 });
 
-export interface DIDItem {
+export interface IDIDItem {
   did: string;
 }
 
-const _CollectionDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
+const _CollectionDIDItemDetails: React.FC<IDIDItem> = ({ did, ...props }) => {
   const classes = useStyles();
 
-  const { actions } = props as WithRequestAPIProps;
-  const { didPollingManager } = props as WithPollingManagerProps;
+  const { actions } = props as IWithRequestAPIProps;
+  const { didPollingManager } = props as IWithPollingManagerProps;
 
-  const collectionAttachedFiles = useStoreState(UIStore, s => s.collectionDetails[did]);
+  const collectionAttachedFiles = useStoreState(
+    UIStore,
+    s => s.collectionDetails[did]
+  );
   const activeInstance = useStoreState(UIStore, s => s.activeInstance);
 
   const [pollingRequesterRef] = useState(() => new PollingRequesterRef());
@@ -129,11 +136,17 @@ const _CollectionDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
   };
 
   const collectionState = useMemo(() => {
-    return collectionAttachedFiles ? computeCollectionState(collectionAttachedFiles) : undefined;
+    return collectionAttachedFiles
+      ? computeCollectionState(collectionAttachedFiles)
+      : undefined;
   }, [collectionAttachedFiles]);
 
   const settings = ServerConnection.makeSettings();
-  const redirectorUrl = URLExt.join(settings.baseUrl, EXTENSION_ID, 'open-replication-rule');
+  const redirectorUrl = URLExt.join(
+    settings.baseUrl,
+    EXTENSION_ID,
+    'open-replication-rule'
+  );
   const showReplicationRuleUrl =
     activeInstance?.webuiUrl && activeInstance.mode === 'replica'
       ? `${redirectorUrl}?namespace=${activeInstance?.name}&did=${did}`
@@ -143,19 +156,38 @@ const _CollectionDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
     <div className={classes.container}>
       {!collectionAttachedFiles && (
         <div className={classes.loading}>
-          <Spinning className={`${classes.icon} material-icons`}>hourglass_top</Spinning>
+          <Spinning className={`${classes.icon} material-icons`}>
+            hourglass_top
+          </Spinning>
           <span className={classes.statusText}>Loading...</span>
         </div>
       )}
-      {collectionState === 'AVAILABLE' && <FileAvailable did={did} showReplicationRuleUrl={showReplicationRuleUrl} />}
-      {collectionState === 'PARTIALLY_AVAILABLE' && (
-        <FilePartiallyAvailable onMakeAvailableClicked={makeAvailable} showReplicationRuleUrl={showReplicationRuleUrl} />
+      {collectionState === 'AVAILABLE' && (
+        <FileAvailable
+          did={did}
+          showReplicationRuleUrl={showReplicationRuleUrl}
+        />
       )}
-      {collectionState === 'NOT_AVAILABLE' && <FileNotAvailable onMakeAvailableClicked={makeAvailable} />}
-      {collectionState === 'REPLICATING' && <FileReplicating did={did} showReplicationRuleUrl={showReplicationRuleUrl} />}
+      {collectionState === 'PARTIALLY_AVAILABLE' && (
+        <FilePartiallyAvailable
+          onMakeAvailableClicked={makeAvailable}
+          showReplicationRuleUrl={showReplicationRuleUrl}
+        />
+      )}
+      {collectionState === 'NOT_AVAILABLE' && (
+        <FileNotAvailable onMakeAvailableClicked={makeAvailable} />
+      )}
+      {collectionState === 'REPLICATING' && (
+        <FileReplicating
+          did={did}
+          showReplicationRuleUrl={showReplicationRuleUrl}
+        />
+      )}
       {collectionState === 'STUCK' && (
         <FileStuck
-          onMakeAvailableClicked={activeInstance?.mode === 'download' ? makeAvailable : undefined}
+          onMakeAvailableClicked={
+            activeInstance?.mode === 'download' ? makeAvailable : undefined
+          }
           showReplicationRuleUrl={showReplicationRuleUrl}
         />
       )}
@@ -164,7 +196,10 @@ const _CollectionDIDItemDetails: React.FC<DIDItem> = ({ did, ...props }) => {
   );
 };
 
-const FileAvailable: React.FC<{ did: string; showReplicationRuleUrl?: string }> = ({ did, showReplicationRuleUrl }) => {
+const FileAvailable: React.FC<{
+  did: string;
+  showReplicationRuleUrl?: string;
+}> = ({ did, showReplicationRuleUrl }) => {
   const classes = useStyles();
 
   return (
@@ -172,12 +207,19 @@ const FileAvailable: React.FC<{ did: string; showReplicationRuleUrl?: string }> 
       <i className={`${classes.icon} material-icons`}>check_circle</i>
       {showReplicationRuleUrl && (
         <div className={classes.clickableStatusText}>
-          <a href={showReplicationRuleUrl} target="_blank" rel="noreferrer" title="Show replication rule">
+          <a
+            href={showReplicationRuleUrl}
+            target="_blank"
+            rel="noreferrer"
+            title="Show replication rule"
+          >
             All files available
           </a>
         </div>
       )}
-      {!showReplicationRuleUrl && <div className={classes.statusText}>All files available</div>}
+      {!showReplicationRuleUrl && (
+        <div className={classes.statusText}>All files available</div>
+      )}
       <div className={classes.action}>
         <AddToNotebookPopover did={did} type="collection">
           Add to Notebook
@@ -187,7 +229,9 @@ const FileAvailable: React.FC<{ did: string; showReplicationRuleUrl?: string }> 
   );
 };
 
-const FileNotAvailable: React.FC<{ onMakeAvailableClicked?: () => void }> = ({ onMakeAvailableClicked }) => {
+const FileNotAvailable: React.FC<{ onMakeAvailableClicked?: () => void }> = ({
+  onMakeAvailableClicked
+}) => {
   const classes = useStyles();
 
   return (
@@ -212,12 +256,19 @@ const FilePartiallyAvailable: React.FC<{
       <i className={`${classes.icon} material-icons`}>lens</i>
       {showReplicationRuleUrl && (
         <div className={classes.clickableStatusText}>
-          <a href={showReplicationRuleUrl} target="_blank" rel="noreferrer" title="Show replication rule">
+          <a
+            href={showReplicationRuleUrl}
+            target="_blank"
+            rel="noreferrer"
+            title="Show replication rule"
+          >
             Partially available
           </a>
         </div>
       )}
-      {!showReplicationRuleUrl && <div className={classes.statusText}>Partially available</div>}
+      {!showReplicationRuleUrl && (
+        <div className={classes.statusText}>Partially available</div>
+      )}
       <div className={classes.action} onClick={onMakeAvailableClicked}>
         Make Available
       </div>
@@ -225,20 +276,32 @@ const FilePartiallyAvailable: React.FC<{
   );
 };
 
-const FileReplicating: React.FC<{ did: string; showReplicationRuleUrl?: string }> = ({ did, showReplicationRuleUrl }) => {
+const FileReplicating: React.FC<{
+  did: string;
+  showReplicationRuleUrl?: string;
+}> = ({ did, showReplicationRuleUrl }) => {
   const classes = useStyles();
 
   return (
     <div className={classes.statusReplicating}>
-      <Spinning className={`${classes.icon} material-icons`}>hourglass_top</Spinning>
+      <Spinning className={`${classes.icon} material-icons`}>
+        hourglass_top
+      </Spinning>
       {showReplicationRuleUrl && (
         <div className={classes.clickableStatusText}>
-          <a href={showReplicationRuleUrl} target="_blank" rel="noreferrer" title="Show replication rule">
+          <a
+            href={showReplicationRuleUrl}
+            target="_blank"
+            rel="noreferrer"
+            title="Show replication rule"
+          >
             Replicating files...
           </a>
         </div>
       )}
-      {!showReplicationRuleUrl && <div className={classes.statusText}>Replicating files...</div>}
+      {!showReplicationRuleUrl && (
+        <div className={classes.statusText}>Replicating files...</div>
+      )}
       <div className={classes.action}>
         <AddToNotebookPopover did={did} type="collection">
           Add to Notebook
@@ -248,10 +311,10 @@ const FileReplicating: React.FC<{ did: string; showReplicationRuleUrl?: string }
   );
 };
 
-const FileStuck: React.FC<{ onMakeAvailableClicked?: () => void; showReplicationRuleUrl?: string }> = ({
-  onMakeAvailableClicked,
-  showReplicationRuleUrl
-}) => {
+const FileStuck: React.FC<{
+  onMakeAvailableClicked?: () => void;
+  showReplicationRuleUrl?: string;
+}> = ({ onMakeAvailableClicked, showReplicationRuleUrl }) => {
   const classes = useStyles();
 
   return (
@@ -259,12 +322,19 @@ const FileStuck: React.FC<{ onMakeAvailableClicked?: () => void; showReplication
       <i className={`${classes.icon} material-icons`}>error</i>
       {showReplicationRuleUrl && (
         <div className={classes.clickableStatusText}>
-          <a href={showReplicationRuleUrl} target="_blank" rel="noreferrer" title="Show replication rule">
+          <a
+            href={showReplicationRuleUrl}
+            target="_blank"
+            rel="noreferrer"
+            title="Show replication rule"
+          >
             Something went wrong
           </a>
         </div>
       )}
-      {!showReplicationRuleUrl && <div className={classes.statusText}>Something went wrong</div>}
+      {!showReplicationRuleUrl && (
+        <div className={classes.statusText}>Something went wrong</div>
+      )}
       {onMakeAvailableClicked && (
         <div className={classes.action} onClick={onMakeAvailableClicked}>
           Make Available
@@ -285,4 +355,6 @@ const FileEmpty: React.FC = () => {
   );
 };
 
-export const CollectionDIDItemDetails = withPollingManager(withRequestAPI(_CollectionDIDItemDetails));
+export const CollectionDIDItemDetails = withPollingManager(
+  withRequestAPI(_CollectionDIDItemDetails)
+);

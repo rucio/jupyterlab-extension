@@ -24,11 +24,13 @@ const useStyles = createUseStyles({
   }
 });
 
-interface HorizontalHeadingProps {
+interface IHorizontalHeadingProps {
   title: string;
 }
 
-export const HorizontalHeading: React.FC<HorizontalHeadingProps> = ({ title }) => {
+export const HorizontalHeading: React.FC<IHorizontalHeadingProps> = ({
+  title
+}) => {
   const classes = useStyles();
   return <div className={classes.heading}>{title}</div>;
 };

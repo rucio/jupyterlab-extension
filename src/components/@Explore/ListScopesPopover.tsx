@@ -106,20 +106,23 @@ const useStyles = createUseStyles({
   }
 });
 
-interface ListScopesPopoverProps {
+interface IListScopesPopoverProps {
   onScopeClicked?: (scope: string) => void;
 }
 
-type MyProps = React.HTMLAttributes<HTMLDivElement> & ListScopesPopoverProps;
+type MyProps = React.HTMLAttributes<HTMLDivElement> & IListScopesPopoverProps;
 
-export const ListScopesPopover: React.FC<MyProps> = ({ children, onScopeClicked }) => {
+export const ListScopesPopover: React.FC<MyProps> = ({
+  children,
+  onScopeClicked
+}) => {
   const classes = useStyles();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [scopes, setScopes] = useState<string[]>([]);
   const activeInstance = useStoreState(UIStore, s => s.activeInstance);
 
-  const escFunction = useCallback(event => {
+  const escFunction = useCallback((event: any) => {
     if (event.keyCode === 27) {
       setOpen(false);
     }
@@ -140,25 +143,37 @@ export const ListScopesPopover: React.FC<MyProps> = ({ children, onScopeClicked 
 
   const Row = ({ index, style }: any) => {
     const scope = scopes[index];
-    return <ListItem style={style} scope={scope} onClick={() => onClick(scope)} />;
+    return (
+      <ListItem style={style} scope={scope} onClick={() => onClick(scope)} />
+    );
   };
 
   const popoverBody = (
     <div className={classes.main}>
       <div className={classes.heading}>
         <div className={classes.headingText}>Available scopes</div>
-        <i className={`${classes.headingCloseButton} material-icons`} onClick={() => setOpen(false)}>
+        <i
+          className={`${classes.headingCloseButton} material-icons`}
+          onClick={() => setOpen(false)}
+        >
           close
         </i>
       </div>
       <div className={classes.content}>
         {loading && scopes.length === 0 && (
           <div className={classes.loading}>
-            <Spinning className={`${classes.loadingIcon} material-icons`}>hourglass_top</Spinning>
+            <Spinning className={`${classes.loadingIcon} material-icons`}>
+              hourglass_top
+            </Spinning>
             <span className={classes.iconText}>Loading...</span>
           </div>
         )}
-        <FixedSizeList height={Math.min(250, 32 * scopes.length)} itemCount={scopes.length} itemSize={32} width="100%">
+        <FixedSizeList
+          height={Math.min(250, 32 * scopes.length)}
+          itemCount={scopes.length}
+          itemSize={32}
+          width="100%"
+        >
           {Row}
         </FixedSizeList>
       </div>
@@ -198,7 +213,11 @@ export const ListScopesPopover: React.FC<MyProps> = ({ children, onScopeClicked 
   );
 };
 
-const ListItem: React.FC<{ scope: string; style: any; onClick?: () => void }> = ({ scope, style, onClick }) => {
+const ListItem: React.FC<{
+  scope: string;
+  style: any;
+  onClick?: () => void;
+}> = ({ scope, style, onClick }) => {
   const classes = useStyles();
 
   return (

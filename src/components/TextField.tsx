@@ -16,7 +16,8 @@ const useStyles = createUseStyles({
   control: {
     display: 'flex',
     flexDirection: 'row',
-    border: (props: TextFieldProps) => `1px solid ${props.outlineColor || 'var(--jp-border-color1)'}`,
+    border: (props: ITextFieldProps) =>
+      `1px solid ${props.outlineColor || 'var(--jp-border-color1)'}`,
     alignItems: 'stretch'
   },
   input: {
@@ -26,14 +27,14 @@ const useStyles = createUseStyles({
     outline: 'none',
     padding: '8px',
     minWidth: 0,
-    color: (props: TextFieldProps) => props.color || 'var(--jp-ui-font-color1)'
+    color: (props: ITextFieldProps) => props.color || 'var(--jp-ui-font-color1)'
   },
   block: {
     width: '100%'
   }
 });
 
-interface TextFieldProps {
+interface ITextFieldProps {
   outlineColor?: string;
   color?: string;
   block?: boolean;
@@ -42,10 +43,18 @@ interface TextFieldProps {
   containerStyle?: React.CSSProperties;
 }
 
-type MyProps = TextFieldProps & React.InputHTMLAttributes<HTMLInputElement>;
+type MyProps = ITextFieldProps & React.InputHTMLAttributes<HTMLInputElement>;
 
 const _TextField = (props: MyProps, ref: React.Ref<HTMLInputElement>) => {
-  const { block, before, after, outlineColor, className, containerStyle, ...carriedProps } = props;
+  const {
+    block,
+    before,
+    after,
+    outlineColor,
+    className,
+    containerStyle,
+    ...carriedProps
+  } = props;
   const classes = useStyles({ outlineColor });
 
   const inputClasses = [classes.input];
@@ -55,7 +64,12 @@ const _TextField = (props: MyProps, ref: React.Ref<HTMLInputElement>) => {
   return (
     <div className={classes.control} style={containerStyle}>
       {before}
-      <input ref={ref} type="text" className={inputClasses.join(' ') + ' ' + className || ''} {...carriedProps} />
+      <input
+        ref={ref}
+        type="text"
+        className={inputClasses.join(' ') + ' ' + className || ''}
+        {...carriedProps}
+      />
       {after}
     </div>
   );

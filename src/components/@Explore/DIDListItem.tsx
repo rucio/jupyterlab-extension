@@ -76,7 +76,7 @@ const useStyles = createUseStyles({
   }
 });
 
-export interface DIDItem {
+export interface IDIDItem {
   did: string;
   size?: number;
   type: 'dataset' | 'container' | 'file';
@@ -85,33 +85,63 @@ export interface DIDItem {
   style?: any;
 }
 
-export const DIDListItem: React.FC<DIDItem> = ({ did, size, type, onClick, expand, style }) => {
+export const DIDListItem: React.FC<IDIDItem> = ({
+  did,
+  size,
+  type,
+  onClick,
+  expand,
+  style
+}) => {
   const classes = useStyles();
 
-  const handleViewFilesClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+  const handleViewFilesClick = (
+    e: React.MouseEvent<HTMLDivElement, MouseEvent>
+  ) => {
     e.stopPropagation();
   };
 
   return (
     <div className={classes.listItemContainer} style={style}>
-      <div className={expand ? classes.listItemExpanded : classes.listItemCollapsed} onClick={onClick}>
+      <div
+        className={
+          expand ? classes.listItemExpanded : classes.listItemCollapsed
+        }
+        onClick={onClick}
+      >
         <div className={classes.iconContainer}>
-          {type === 'file' && <i className={`${classes.fileIcon} material-icons`}>attachment</i>}
-          {type === 'container' && <i className={`${classes.containerIcon} material-icons`}>folder</i>}
-          {type === 'dataset' && <i className={`${classes.datasetIcon} material-icons`}>folder_open</i>}
+          {type === 'file' && (
+            <i className={`${classes.fileIcon} material-icons`}>attachment</i>
+          )}
+          {type === 'container' && (
+            <i className={`${classes.containerIcon} material-icons`}>folder</i>
+          )}
+          {type === 'dataset' && (
+            <i className={`${classes.datasetIcon} material-icons`}>
+              folder_open
+            </i>
+          )}
         </div>
         <div className={classes.textContainer}>{did}</div>
-        {type === 'file' && !!size && <div className={classes.sizeContainer}>{toHumanReadableSize(size)}</div>}
+        {type === 'file' && !!size && (
+          <div className={classes.sizeContainer}>
+            {toHumanReadableSize(size)}
+          </div>
+        )}
         {(type === 'container' || type === 'dataset') && (
           <div onClick={handleViewFilesClick}>
             <ListAttachedFilesPopover did={did}>
-              <i className={`${classes.listFilesIcon} material-icons`}>visibility</i>
+              <i className={`${classes.listFilesIcon} material-icons`}>
+                visibility
+              </i>
             </ListAttachedFilesPopover>
           </div>
         )}
       </div>
       {!!expand && type === 'file' && <FileDIDItemDetails did={did} />}
-      {!!expand && (type === 'container' || type === 'dataset') && <CollectionDIDItemDetails did={did} />}
+      {!!expand && (type === 'container' || type === 'dataset') && (
+        <CollectionDIDItemDetails did={did} />
+      )}
     </div>
   );
 };

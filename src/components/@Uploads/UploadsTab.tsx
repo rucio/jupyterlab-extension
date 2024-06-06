@@ -84,12 +84,20 @@ export const UploadsTab: React.FC<MyProps> = ({ visible }) => {
           <React.Fragment>
             <HorizontalHeading title="Upload Jobs" />
             {jobs.map(job => (
-              <UploadJobListItem key={job.id} job={job} onDeleteClick={() => onDelete(job.id)} />
+              <UploadJobListItem
+                key={job.id}
+                job={job}
+                onDeleteClick={() => onDelete(job.id)}
+              />
             ))}
           </React.Fragment>
         </div>
       )}
-      {jobs.length === 0 && <div className={classes.messageContainer}>You do not have upload jobs.</div>}
+      {jobs.length === 0 && (
+        <div className={classes.messageContainer}>
+          You do not have upload jobs.
+        </div>
+      )}
     </div>
   );
 };
