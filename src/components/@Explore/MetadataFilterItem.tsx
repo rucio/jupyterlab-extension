@@ -42,6 +42,7 @@ export interface MetadataFilterItemProps {
   showBoolOperatorDropdown: boolean;
   onDelete: () => any;
   onChange: (updatedFilter: MetadataFilter) => any;
+  onKeyPress: (e: React.KeyboardEvent<HTMLInputElement>) => any;
 }
 
 export const MetadataFilterItem: React.FC<MetadataFilterItemProps> = ({
@@ -49,6 +50,7 @@ export const MetadataFilterItem: React.FC<MetadataFilterItemProps> = ({
   showBoolOperatorDropdown,
   onDelete,
   onChange,
+  onKeyPress
 }) => {
   const classes = useStyles();
 
@@ -82,6 +84,7 @@ export const MetadataFilterItem: React.FC<MetadataFilterItemProps> = ({
         placeholder="Key"
         value={filter.key}
         onChange={handleKeyChange}
+        onKeyPress={onKeyPress}
       />
       <select value={filter.operator} onChange={handleOperatorChange}>
         {operators.map((op) => (
@@ -94,6 +97,7 @@ export const MetadataFilterItem: React.FC<MetadataFilterItemProps> = ({
         placeholder="Value"
         value={filter.value}
         onChange={handleValueChange}
+        onKeyPress={onKeyPress}
       />
       <div className={classes.deleteButton} onClick={onDelete}>
         <i className={`${classes.deleteIcon} material-icons`}>delete</i>
