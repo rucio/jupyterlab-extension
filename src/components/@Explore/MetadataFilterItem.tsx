@@ -5,13 +5,34 @@ import { TextField } from '../../components/TextField';
 const useStyles = createUseStyles({
   control: {
     display: "flex",
+    flexWrap: "nowrap",
     flexDirection: "row",
-    alignItems: "stretch",
+    alignItems: "center",
     position: "relative",
-    marginBottom: "8px",
+    padding: '4px 16px 0 16px'
+  },
+  where: {
+    marginRight: '5pt'
+  },
+  logic: {
+    display: 'flex',
+    alignSelf: 'stretch'
+  },
+  key: {
+    flex: 1,
+    minWidth: 0
+  },
+  operator: {
+    display: 'flex',
+    alignSelf: 'stretch'
+  },
+  value: {
+    marginRight: '4px',
+    flex: 1,
+    minWidth: 0
   },
   deleteButton: {
-    fontSize: '9pt',
+    fontSize: '13pt',
     cursor: 'pointer',
     opacity: 0.5,
     '&:hover': {
@@ -19,7 +40,7 @@ const useStyles = createUseStyles({
     }
   },
   deleteIcon: {
-    fontSize: '9pt',
+    fontSize: '13pt',
     cursor: 'pointer',
     opacity: 0.5,
     '&:hover': {
@@ -73,32 +94,42 @@ export const MetadataFilterItem: React.FC<MetadataFilterItemProps> = ({
   return (
     <div className={classes.control}>
       {showBoolOperatorDropdown ? (
-        <div>Where</div>
+        <div className={classes.where}>
+          <div>Where</div>
+        </div>
       ) : (
-        <select value={filter.logic} onChange={handleLogicChange}>
-          <option value="And">And</option>
-          <option value="Or">Or</option>
-        </select>
+        <div className={classes.logic}>
+          <select value={filter.logic} onChange={handleLogicChange}>
+            <option value="And">And</option>
+            <option value="Or">Or</option>
+          </select>
+        </div>
       )}
-      <TextField
-        placeholder="Key"
-        value={filter.key}
-        onChange={handleKeyChange}
-        onKeyPress={onKeyPress}
-      />
-      <select value={filter.operator} onChange={handleOperatorChange}>
-        {operators.map((op) => (
-          <option key={op} value={op}>
-            {op}
-          </option>
-        ))}
-      </select>
-      <TextField
-        placeholder="Value"
-        value={filter.value}
-        onChange={handleValueChange}
-        onKeyPress={onKeyPress}
-      />
+      <div className={classes.key}>
+        <TextField
+          placeholder="Key"
+          value={filter.key}
+          onChange={handleKeyChange}
+          onKeyPress={onKeyPress}
+        />
+      </div>
+      <div className={classes.operator}>
+        <select value={filter.operator} onChange={handleOperatorChange}>
+          {operators.map((op) => (
+            <option key={op} value={op}>
+              {op}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className={classes.value}>
+        <TextField
+          placeholder="Value"
+          value={filter.value}
+          onChange={handleValueChange}
+          onKeyPress={onKeyPress}
+        />
+      </div>
       <div className={classes.deleteButton} onClick={onDelete}>
         <i className={`${classes.deleteIcon} material-icons`}>delete</i>
       </div>

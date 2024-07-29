@@ -76,7 +76,10 @@ const useStyles = createUseStyles({
     marginLeft: '4px'
   },
   addMetadataFilterButton: {
-    padding: '0 16px 0 16px',
+    marginTop: '4px',
+    marginRight: '16px',
+    marginLeft: '16px',
+    width: 'fit-content',
     fontSize: '9pt',
     cursor: 'pointer',
     opacity: 0.5,
@@ -85,6 +88,12 @@ const useStyles = createUseStyles({
     }
   },
   deleteFiltersButton: {
+    marginTop: '4px',
+    marginRight: '16px',
+    marginLeft: '16px',
+    width: 'fit-content',
+    display: 'flex',
+    alignItems: 'center',
     fontSize: '9pt',
     cursor: 'pointer',
     opacity: 0.5,
