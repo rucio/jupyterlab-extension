@@ -123,3 +123,7 @@ dmypy.json
 
 # Yarn cache
 .yarn/
+
+# jest files
+src/__tests__/__snapshots__/
+junit.xml
