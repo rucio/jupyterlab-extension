@@ -28,9 +28,9 @@ def test_search_did__with_wildcard__wildcard_enabled__should_return_correct_resp
     ])
 
     handler = DIDSearchHandlerImpl(MOCK_ACTIVE_INSTANCE, rucio)
-    result = handler.search_did('scope', 'name*', 'all', 100)
+    result = handler.search_did('scope', 'name*', 'all', None, 100)
 
-    rucio.search_did.assert_called_once_with('scope', 'name*', 'all', 100)
+    rucio.search_did.assert_called_once_with('scope', 'name*', 'all', None, 100)
 
     expected = [
         {'did': 'scope:name1', 'size': None, 'type': 'container'},
@@ -51,9 +51,9 @@ def test_search_did__without_wildcard__wildcard_disabled__should_return_correct_
     ])
 
     handler = DIDSearchHandlerImpl(MOCK_ACTIVE_INSTANCE, rucio)
-    result = handler.search_did('scope', 'name', 'all', 100)
+    result = handler.search_did('scope', 'name', 'all', None, 100)
 
-    rucio.search_did.assert_called_once_with('scope', 'name', 'all', 100)
+    rucio.search_did.assert_called_once_with('scope', 'name', 'all', None, 100)
 
     expected = [
         {'did': 'scope:name1', 'size': None, 'type': 'container'},
@@ -76,8 +76,8 @@ def test_search_did__with_wildcard__wildcard_disabled__should_raise_exception(mo
     handler = DIDSearchHandlerImpl(MOCK_ACTIVE_INSTANCE, rucio)
 
     with pytest.raises(WildcardDisallowedException):
-        handler.search_did('scope', 'name*', 'all', 100)
-        rucio.search_did.assert_called_once_with('scope', 'name', 'all', 100)
+        handler.search_did('scope', 'name*', 'all', None, 100)
+        rucio.search_did.assert_called_once_with('scope', 'name', 'all', None, 100)
 
 
 def test_search_did__with_percent_wildcard__wildcard_disabled__should_raise_exception(mocker, rucio):
@@ -92,8 +92,8 @@ def test_search_did__with_percent_wildcard__wildcard_disabled__should_raise_exce
     handler = DIDSearchHandlerImpl(MOCK_ACTIVE_INSTANCE, rucio)
 
     with pytest.raises(WildcardDisallowedException):
-        handler.search_did('scope', 'name%', 'all', 100)
-        rucio.search_did.assert_called_once_with('scope', 'name', 'all', 100)
+        handler.search_did('scope', 'name%', 'all', None, 100)
+        rucio.search_did.assert_called_once_with('scope', 'name', 'all', None, 100)
 
 
 def test_get_handler__inputs_correct__should_not_error(mocker, rucio):
@@ -111,7 +111,7 @@ def test_get_handler__inputs_correct__should_not_error(mocker, rucio):
 
     class MockDIDSearchHandler(DIDSearchHandlerImpl):
         @staticmethod
-        def search_did(scope, name, search_type='all', limit=100):
+        def search_did(scope, name, search_type='all', filter=None, limit=100):
             return [
                 {'did': 'scope:name1', 'size': None, 'type': 'container'},
                 {'did': 'scope:name2', 'size': None, 'type': 'dataset'},
@@ -156,7 +156,7 @@ def test_get_handler__wildcard_disabled__should_print_error(mocker, rucio):
 
     class MockDIDSearchHandler(DIDSearchHandlerImpl):
         @staticmethod
-        def search_did(scope, name, search_type='all', limit=100):
+        def search_did(scope, name, search_type='all', filter=None, limit=100):
             raise WildcardDisallowedException()
 
     mocker.patch('rucio_jupyterlab.handlers.did_search.DIDSearchHandlerImpl', MockDIDSearchHandler)
