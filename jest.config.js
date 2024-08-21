@@ -23,6 +23,6 @@ module.exports = {
     '!src/**/.ipynb_checkpoints/*'
   ],
   coverageReporters: ['lcov', 'text'],
-  testRegex: 'src/.*/.*.spec.ts[x]?$',
+  testRegex: 'src/\_\_tests\_\_/.*\.ts',
   transformIgnorePatterns: [`/node_modules/(?!${esModules}).+`]
 };
