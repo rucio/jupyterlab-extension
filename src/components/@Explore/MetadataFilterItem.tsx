@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { createUseStyles } from 'react-jss';
 import { TextField } from '../../components/TextField';
 
 const useStyles = createUseStyles({
   control: {
-    display: "flex",
-    flexWrap: "nowrap",
-    flexDirection: "row",
-    alignItems: "center",
-    position: "relative",
+    display: 'flex',
+    flexWrap: 'nowrap',
+    flexDirection: 'row',
+    alignItems: 'center',
+    position: 'relative',
     padding: '4px 16px 0 16px'
   },
   where: {
@@ -46,27 +46,27 @@ const useStyles = createUseStyles({
     '&:hover': {
       opacity: 1
     }
-  },
-})
+  }
+});
 
-const operators = ["=", "≠", "<", ">", "≤", "≥"];
+const operators = ['=', '≠', '<', '>', '≤', '≥'];
 
-export interface MetadataFilter {
+export interface IMetadataFilter {
   logic: string;
   key: string;
   operator: string;
   value: string;
 }
 
-export interface MetadataFilterItemProps {
-  filter: MetadataFilter;
+export interface IMetadataFilterItemProps {
+  filter: IMetadataFilter;
   showBoolOperatorDropdown: boolean;
   onDelete: () => any;
-  onChange: (updatedFilter: MetadataFilter) => any;
+  onChange: (updatedFilter: IMetadataFilter) => any;
   onKeyPress: (e: React.KeyboardEvent<HTMLInputElement>) => any;
 }
 
-export const MetadataFilterItem: React.FC<MetadataFilterItemProps> = ({
+export const MetadataFilterItem: React.FC<IMetadataFilterItemProps> = ({
   filter,
   showBoolOperatorDropdown,
   onDelete,
@@ -115,7 +115,7 @@ export const MetadataFilterItem: React.FC<MetadataFilterItemProps> = ({
       </div>
       <div className={classes.operator}>
         <select value={filter.operator} onChange={handleOperatorChange}>
-          {operators.map((op) => (
+          {operators.map(op => (
             <option key={op} value={op}>
               {op}
             </option>
