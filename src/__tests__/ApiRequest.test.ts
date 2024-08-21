@@ -9,7 +9,7 @@
  * - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
  */
 
-import { requestAPI } from '../src/utils/ApiRequest';
+import { requestAPI } from '../utils/ApiRequest';
 
 jest.mock('@jupyterlab/services', () => ({
     ServerConnection: {
