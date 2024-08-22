@@ -24,9 +24,9 @@ import { DIDSearchType, IDIDSearchResult } from '../../types';
 import { InlineDropdown } from '../components/../@Explore/InlineDropdown';
 import { ListScopesPopover } from '../components/../@Explore/ListScopesPopover';
 import {
-  buildMetadataFilterString,
   MetadataFilterContainer
 } from '../components/../@Explore/MetadataFilterContainer';
+import { IMetadataFilter } from '../components/../@Explore/MetadataFilterItem';
 
 const useStyles = createUseStyles({
   mainContainer: {
@@ -114,9 +114,21 @@ const _Explore: React.FunctionComponent = props => {
   const [loading, setLoading] = useState(false);
   const [searchTrigger, setSearchTrigger] = useState(0);
   const activeInstance = useStoreState(UIStore, s => s.activeInstance);
+  const [metadataFilters, setMetadataFilters] = React.useState<
+    IMetadataFilter[]
+  >([]);
 
   const doSearch = () => {
     setSearchTrigger(prev => prev + 1); // Increment the counter to trigger the search
+  };
+
+  const buildMetadataFilterString = () => {
+    return metadataFilters
+      .map((filter, index) => {
+        const logic = index === 0 ? '' : filter.logic === 'And' ? ',' : ';';
+        return `${logic}${filter.key}${filter.operator}${filter.value}`;
+      })
+      .join('');
   };
 
   const itemsSortFunction = (
@@ -224,6 +236,8 @@ const _Explore: React.FunctionComponent = props => {
     );
   };
 
+  const filterString = '';
+
   return (
     <div className={classes.mainContainer}>
       <div className={classes.searchContainer}>
@@ -249,6 +263,8 @@ const _Explore: React.FunctionComponent = props => {
       </div>
       <MetadataFilterContainer
         onKeyPress={handleKeyPress}
+        metadataFilters={metadataFilters}
+        setMetadataFilters={setMetadataFilters}
       />
       {loading && (
         <div className={classes.loading}>

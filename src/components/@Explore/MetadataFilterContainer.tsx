@@ -42,29 +42,20 @@ const useStyles = createUseStyles({
   }
 });
 
-const [metadataFilters, setMetadataFilters] = React.useState<
-  IMetadataFilter[]
->([]);
-
-export const buildMetadataFilterString = () => {
-  return metadataFilters
-    .map((filter, index) => {
-      const logic = index === 0 ? '' : filter.logic === 'And' ? ',' : ';';
-      return `${logic}${filter.key}${filter.operator}${filter.value}`;
-    })
-    .join('');
-};
-
 export interface IMetadataFilterContainer {
   onKeyPress: (e: React.KeyboardEvent<HTMLInputElement>) => any;
+  metadataFilters: IMetadataFilter[];
+  setMetadataFilters: React.Dispatch<React.SetStateAction<IMetadataFilter[]>>;
 }
 
 export const MetadataFilterContainer: React.FunctionComponent<IMetadataFilterContainer> = ({
-  onKeyPress
+  onKeyPress,
+  metadataFilters,
+  setMetadataFilters
 }) => {
 
   const classes = useStyles();
-
+  
   const handleAddMetadataFilter = () => {
     setMetadataFilters([
       ...metadataFilters,
