@@ -6,8 +6,7 @@ import {
 } from '../components/../@Explore/MetadataFilterItem';
 
 const useStyles = createUseStyles({
-  metadataFilterContainer: {
-  },
+  metadataFilterContainer: {},
   addMetadataFilterButton: {
     marginTop: '4px',
     marginRight: '16px',
@@ -50,14 +49,11 @@ export interface IMetadataFilterContainer {
   setMetadataFilters: React.Dispatch<React.SetStateAction<IMetadataFilter[]>>;
 }
 
-export const MetadataFilterContainer: React.FunctionComponent<IMetadataFilterContainer> = ({
-  onKeyPress,
-  metadataFilters,
-  setMetadataFilters
-}) => {
-
+export const MetadataFilterContainer: React.FunctionComponent<
+  IMetadataFilterContainer
+> = ({ onKeyPress, metadataFilters, setMetadataFilters }) => {
   const classes = useStyles();
-  
+
   const handleAddMetadataFilter = () => {
     setMetadataFilters([
       ...metadataFilters,
@@ -131,4 +127,4 @@ export const MetadataFilterContainer: React.FunctionComponent<IMetadataFilterCon
       )}
     </div>
   );
-}
+};

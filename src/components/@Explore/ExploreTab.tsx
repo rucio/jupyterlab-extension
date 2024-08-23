@@ -23,9 +23,7 @@ import { withRequestAPI, IWithRequestAPIProps } from '../../utils/Actions';
 import { DIDSearchType, IDIDSearchResult } from '../../types';
 import { InlineDropdown } from '../components/../@Explore/InlineDropdown';
 import { ListScopesPopover } from '../components/../@Explore/ListScopesPopover';
-import {
-  MetadataFilterContainer
-} from '../components/../@Explore/MetadataFilterContainer';
+import { MetadataFilterContainer } from '../components/../@Explore/MetadataFilterContainer';
 import { IMetadataFilter } from '../components/../@Explore/MetadataFilterItem';
 
 const useStyles = createUseStyles({
@@ -235,8 +233,6 @@ const _Explore: React.FunctionComponent = props => {
       />
     );
   };
-
-  const filterString = '';
 
   return (
     <div className={classes.mainContainer}>
