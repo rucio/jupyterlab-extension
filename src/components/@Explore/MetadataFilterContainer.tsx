@@ -6,6 +6,8 @@ import {
 } from '../components/../@Explore/MetadataFilterItem';
 
 const useStyles = createUseStyles({
+  metadataFilterContainer: {
+  },
   addMetadataFilterButton: {
     marginTop: '4px',
     marginRight: '16px',
@@ -89,7 +91,7 @@ export const MetadataFilterContainer: React.FunctionComponent<IMetadataFilterCon
   };
 
   return (
-    <div>
+    <div className={classes.metadataFilterContainer}>
       {!metadataFilters.length && (
         <div
           className={classes.addMetadataFilterButton}

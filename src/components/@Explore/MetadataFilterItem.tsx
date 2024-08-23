@@ -3,7 +3,7 @@ import { createUseStyles } from 'react-jss';
 import { TextField } from '../../components/TextField';
 
 const useStyles = createUseStyles({
-  control: {
+  metadataFilter: {
     display: 'flex',
     flexWrap: 'nowrap',
     flexDirection: 'row',
@@ -92,7 +92,7 @@ export const MetadataFilterItem: React.FC<IMetadataFilterItemProps> = ({
   };
 
   return (
-    <div className={classes.control}>
+    <div className={classes.metadataFilter}>
       {showBoolOperatorDropdown ? (
         <div className={classes.where}>
           <div>Where</div>
