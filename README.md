@@ -31,7 +31,7 @@ pip install rucio-jupyterlab
 For JupyterLab 3.x, please use the last supported version.
 
 ```bash
-pip install rucio-jupyterlab==0.9.10
+pip install rucio-jupyterlab==0.10.0
 ```
 
 #### Download mode

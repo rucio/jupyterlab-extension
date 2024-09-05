@@ -9,8 +9,8 @@
  * - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020-2021
  */
 
-import { computeCollectionState, toHumanReadableSize, checkVariableNameValid } from '../src/utils/Helpers';
-import { IFileDIDDetails } from '../src/types';
+import { computeCollectionState, toHumanReadableSize, checkVariableNameValid } from '../utils/Helpers';
+import { IFileDIDDetails } from '../types';
 
 describe('toHumanReadableSize', () => {
     test('return bytes value', () => {

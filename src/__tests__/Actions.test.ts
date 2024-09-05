@@ -9,13 +9,13 @@
  * - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
  */
 
-jest.mock('../src/utils/ApiRequest');
-jest.mock('../src/stores/UIStore');
+jest.mock('../utils/ApiRequest');
+jest.mock('../stores/UIStore');
 
-import { requestAPI } from '../src/utils/ApiRequest';
-import { Actions } from '../src/utils/Actions';
-import { IInstance, IAttachedFile, IFileDIDDetails, RucioAuthCredentials } from '../src/types';
-import { UIStore } from '../src/stores/UIStore';
+import { requestAPI } from '../utils/ApiRequest';
+import { Actions } from '../utils/Actions';
+import { IInstance, IAttachedFile, IFileDIDDetails, RucioAuthCredentials } from '../types';
+import { UIStore } from '../stores/UIStore';
 
 describe('fetchInstancesConfig', () => {
     test('should call /instances endpoint', async () => {
