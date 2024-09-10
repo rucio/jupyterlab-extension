@@ -74,7 +74,7 @@ def parse_did_filter_from_string_fe(input_string, name='*', type='collection', o
                     # substitute input operator with the nominal operator defined by the LUT, <operators_suffix_LUT>.
                     operator_mapped = operators_suffix_LUT.get(operator)
 
-                    filter_key_full = key
+                    filter_key_full = key = "'{}'".format(key)
                     if operator_mapped is not None:
                         if operator_mapped:
                             filter_key_full = "{}.{}".format(key, operator_mapped)
@@ -84,6 +84,8 @@ def parse_did_filter_from_string_fe(input_string, name='*', type='collection', o
                     if filter_key_full in and_group_filters:
                         raise ValueError(filter_key_full)
                     else:
+                        if not is_numeric(value):
+                            value = "'{}'".format(value)
                         and_group_filters[filter_key_full] = value
                 elif len(and_group_split_by_operator) == 5:     # this is a compound inequality
                     value1, operator1, key, operator2, value2 = [token.strip() for token in and_group_split_by_operator]
@@ -92,6 +94,7 @@ def parse_did_filter_from_string_fe(input_string, name='*', type='collection', o
                     operator1_mapped = operator_opposites_LUT.get(operators_suffix_LUT.get(operator1))
                     operator2_mapped = operators_suffix_LUT.get(operator2)
 
+                    key = "'{}'".format(key)
                     filter_key1_full = filter_key2_full = key
                     if operator1_mapped is not None and operator2_mapped is not None:
                         if operator1_mapped:    # ignore '' operator (maps from equals)
@@ -104,10 +107,14 @@ def parse_did_filter_from_string_fe(input_string, name='*', type='collection', o
                     if filter_key1_full in and_group_filters:
                         raise ValueError(filter_key1_full)
                     else:
+                        if not is_numeric(value1):
+                            value1 = "'{}'".format(value1)
                         and_group_filters[filter_key1_full] = value1
                     if filter_key2_full in and_group_filters:
                         raise ValueError(filter_key2_full)
                     else:
+                        if not is_numeric(value2):
+                            value2 = "'{}'".format(value2)
                         and_group_filters[filter_key2_full] = value2
                 else:
                     raise ValueError(and_group)
@@ -123,6 +130,14 @@ def parse_did_filter_from_string_fe(input_string, name='*', type='collection', o
                 'name': name
             })
     return filters, type
+
+
+def is_numeric(value):
+    try:
+        float(value)
+        return True
+    except ValueError:
+        return False
 
 
 class RucioAPI:
