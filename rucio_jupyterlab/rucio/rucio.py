@@ -190,7 +190,7 @@ class RucioAPI:
             'name': name
         }
         if filters:
-            filters, _ = parse_did_filter_from_string_fe(filters)
+            filters, _ = parse_did_filter_from_string_fe(filters, name=name)
             params['filters'] = filters
         urlencoded_params = urlencode(params)
 
