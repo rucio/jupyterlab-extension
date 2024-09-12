@@ -14,17 +14,15 @@ const useStyles = createUseStyles({
   where: {
     marginRight: '5pt'
   },
-  logic: {
+  select: {
     display: 'flex',
-    alignSelf: 'stretch'
+    alignSelf: 'stretch',
+    color: 'var(--jp-ui-font-color1)',
+    background: 'var(--jp-layout-color1)',
   },
   key: {
     flex: 1,
     minWidth: 0
-  },
-  operator: {
-    display: 'flex',
-    alignSelf: 'stretch'
   },
   value: {
     marginRight: '4px',
@@ -98,12 +96,14 @@ export const MetadataFilterItem: React.FC<IMetadataFilterItemProps> = ({
           <div>Where</div>
         </div>
       ) : (
-        <div className={classes.logic}>
-          <select value={filter.logic} onChange={handleLogicChange}>
-            <option value="And">And</option>
-            <option value="Or">Or</option>
-          </select>
-        </div>
+        <select
+          className={classes.select}
+          value={filter.logic}
+          onChange={handleLogicChange}
+        >
+          <option value="And">And</option>
+          <option value="Or">Or</option>
+        </select>
       )}
       <div className={classes.key}>
         <TextField
@@ -113,15 +113,17 @@ export const MetadataFilterItem: React.FC<IMetadataFilterItemProps> = ({
           onKeyPress={onKeyPress}
         />
       </div>
-      <div className={classes.operator}>
-        <select value={filter.operator} onChange={handleOperatorChange}>
-          {operators.map(op => (
-            <option key={op} value={op}>
-              {op}
-            </option>
-          ))}
-        </select>
-      </div>
+      <select
+        className={classes.select}
+        value={filter.operator}
+        onChange={handleOperatorChange}
+      >
+        {operators.map(op => (
+          <option key={op} value={op}>
+            {op}
+          </option>
+        ))}
+      </select>
       <div className={classes.value}>
         <TextField
           placeholder="Value"
