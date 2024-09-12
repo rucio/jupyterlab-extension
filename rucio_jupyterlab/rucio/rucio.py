@@ -191,7 +191,7 @@ class RucioAPI:
         }
         if filters:
             filters, _ = parse_did_filter_from_string_fe(filters)
-            params['filters'] = json.dumps(filters)
+            params['filters'] = filters
         urlencoded_params = urlencode(params)
 
         response = requests.get(url=f'{self.base_url}/dids/{scope}/dids/search?{urlencoded_params}', headers=headers, verify=self.rucio_ca_cert)
