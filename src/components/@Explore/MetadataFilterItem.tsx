@@ -18,7 +18,7 @@ const useStyles = createUseStyles({
     display: 'flex',
     alignSelf: 'stretch',
     color: 'var(--jp-ui-font-color1)',
-    background: 'var(--jp-layout-color1)',
+    background: 'var(--jp-layout-color1)'
   },
   key: {
     flex: 1,
