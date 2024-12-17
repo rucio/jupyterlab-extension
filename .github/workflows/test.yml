@@ -9,9 +9,11 @@ on:
 
 jobs:
   Test:
-    matrix:
-      python-version: ["3.9", "3.11", "3.12"]
-      node-version: ["18.x", "20.x"]
+    name: Test
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.11", "3.12"]
+        node-version: ["18.x", "20.x"]
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
