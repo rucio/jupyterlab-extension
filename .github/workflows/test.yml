@@ -35,5 +35,7 @@ jobs:
         uses: ./.github/actions/build-ext
         
       - name: Post Test
+        env:
+            JLAB_BROWSER_TYPE: firefox
         uses: ./.github/actions/post-test
 
