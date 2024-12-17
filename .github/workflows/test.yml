@@ -22,6 +22,9 @@ jobs:
       - name: Base Setup
         uses: jupyterlab/maintainer-tools/.github/actions/base-setup@v1
         
+      - name: Setup firefox
+        uses: browser-actions/setup-firefox@latest  
+        
       - name: Custom Setup
         uses: ./.github/actions/setup
         
