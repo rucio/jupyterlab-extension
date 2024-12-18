@@ -5,24 +5,28 @@ on:
     tags: 'v*'
 
 jobs:
-  build:
-    name: Build and Publish to PyPI
+
+  Test:
+    uses: ./.github/workflows/test.yml
+    
+  Build:
+    needs: [Test]
     runs-on: ubuntu-latest
-    environment:
-      name: pypi
-      url: https://pypi.org/p/rucio-jupyterlab
-    permissions:
-      id-token: write
     steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/setup
-      - uses: ./.github/actions/test
-      - uses: ./.github/actions/build-ext
-      - uses: ./.github/actions/post-test
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Base Setup
+        uses: jupyterlab/maintainer-tools/.github/actions/base-setup@v1
+        
+      - name: Custom Setup
+        uses: ./.github/actions/setup
+        
       - name: Build sdist
         run: |
           pip install build
           python -m build --sdist
+          
       - name: Publish distribution to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
