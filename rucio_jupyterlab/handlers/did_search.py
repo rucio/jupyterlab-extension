@@ -28,14 +28,20 @@ class DIDSearchHandlerImpl:
         self.rucio = rucio
         self.db = get_db()  # pylint: disable=invalid-name
 
-    def search_did(self, scope, name, search_type, limit):
+    def search_did(self, scope, name, search_type, filters, limit):
         wildcard_enabled = self.rucio.instance_config.get('wildcard_enabled', False)
 
         if ('*' in name or '%' in name) and not wildcard_enabled:
             raise WildcardDisallowedException()
 
-        dids = self.rucio.search_did(scope, name, search_type, limit)
+        dids = self.rucio.search_did(scope, name, search_type, filters, limit)
 
+        for did in dids:
+            if did['did_type'] is None:  # JSON plugin was used lacking data
+                metadata = self.rucio.get_metadata(scope, did['name'])[0]
+                did['did_type'] = f"DIDType.{metadata['did_type']}"
+                did['bytes'] = metadata['bytes']
+                did['length'] = metadata['length']
 
         def mapper(entry, _):
             return {
@@ -54,13 +60,14 @@ class DIDSearchHandler(RucioAPIHandler):
         namespace = self.get_query_argument('namespace')
         search_type = self.get_query_argument('type', 'collection')
         did = self.get_query_argument('did')
+        filters = self.get_query_argument('filters', default=None)
         rucio = self.rucio.for_instance(namespace)
 
         (scope, name) = did.split(':')
         handler = DIDSearchHandlerImpl(namespace, rucio)
 
         try:
-            dids = handler.search_did(scope, name, search_type, ROW_LIMIT)
+            dids = handler.search_did(scope, name, search_type, filters, ROW_LIMIT)
             self.finish(json.dumps(dids))
         except RucioAuthenticationException:
             self.set_status(401)

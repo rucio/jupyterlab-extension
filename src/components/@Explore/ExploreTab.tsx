@@ -23,6 +23,8 @@ import { withRequestAPI, IWithRequestAPIProps } from '../../utils/Actions';
 import { DIDSearchType, IDIDSearchResult } from '../../types';
 import { InlineDropdown } from '../components/../@Explore/InlineDropdown';
 import { ListScopesPopover } from '../components/../@Explore/ListScopesPopover';
+import { MetadataFilterContainer } from '../components/../@Explore/MetadataFilterContainer';
+import { IMetadataFilter } from '../components/../@Explore/MetadataFilterItem';
 
 const useStyles = createUseStyles({
   mainContainer: {
@@ -107,12 +109,24 @@ const _Explore: React.FunctionComponent = props => {
     {}
   );
   const [error, setError] = useState<string>();
-  const [lastQuery, setLastQuery] = useState('');
   const [loading, setLoading] = useState(false);
+  const [searchTrigger, setSearchTrigger] = useState(0);
   const activeInstance = useStoreState(UIStore, s => s.activeInstance);
+  const [metadataFilters, setMetadataFilters] = React.useState<
+    IMetadataFilter[]
+  >([]);
 
   const doSearch = () => {
-    setLastQuery(searchQuery);
+    setSearchTrigger(prev => prev + 1); // Increment the counter to trigger the search
+  };
+
+  const buildMetadataFilterString = () => {
+    return metadataFilters
+      .map((filter, index) => {
+        const logic = index === 0 ? '' : filter.logic === 'And' ? ',' : ';';
+        return `${logic}${filter.key}${filter.operator}${filter.value}`;
+      })
+      .join('');
   };
 
   const itemsSortFunction = (
@@ -135,7 +149,7 @@ const _Explore: React.FunctionComponent = props => {
   };
 
   useEffect(() => {
-    if (!lastQuery || !activeInstance) {
+    if (!searchQuery || !activeInstance) {
       return;
     }
 
@@ -143,8 +157,9 @@ const _Explore: React.FunctionComponent = props => {
     setSearchResult(undefined);
     setDidExpanded({});
     setError(undefined);
+    const filterString = buildMetadataFilterString();
     actions
-      .searchDID(activeInstance.name, searchQuery, searchType)
+      .searchDID(activeInstance.name, searchQuery, searchType, filterString)
       .then(items => items.sort(itemsSortFunction))
       .then(result => setSearchResult(result))
       .catch(e => {
@@ -161,7 +176,7 @@ const _Explore: React.FunctionComponent = props => {
         }
       })
       .finally(() => setLoading(false));
-  }, [lastQuery, searchType]);
+  }, [searchTrigger, searchType]);
 
   const searchBoxRef = useRef<any>(null);
   const onScopeClicked = (scope: string) => {
@@ -178,10 +193,7 @@ const _Explore: React.FunctionComponent = props => {
   );
 
   const searchButton = (
-    <div
-      className={classes.searchButton}
-      onClick={() => setLastQuery(searchQuery)}
-    >
+    <div className={classes.searchButton} onClick={doSearch}>
       <i className={`${classes.searchIcon} material-icons`}>search</i>
     </div>
   );
@@ -245,6 +257,11 @@ const _Explore: React.FunctionComponent = props => {
           optionWidth="180px"
         />
       </div>
+      <MetadataFilterContainer
+        onKeyPress={handleKeyPress}
+        metadataFilters={metadataFilters}
+        setMetadataFilters={setMetadataFilters}
+      />
       {loading && (
         <div className={classes.loading}>
           <Spinning className={`${classes.icon} material-icons`}>

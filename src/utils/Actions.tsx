@@ -72,9 +72,10 @@ export class Actions {
   async searchDID(
     namespace: string,
     did: string,
-    type: DIDSearchType
+    type: DIDSearchType,
+    filters: string
   ): Promise<IDIDSearchResult[]> {
-    const query = { namespace, did, type };
+    const query = { namespace, did, type, filters };
     return requestAPI<IDIDSearchResult[]>(`did-search?${qs.encode(query)}`);
   }
 
