@@ -14,6 +14,7 @@ from rucio_jupyterlab.db import get_db
 from rucio_jupyterlab.rucio.authenticators import RucioAuthenticationException
 import rucio_jupyterlab.utils as utils
 from .base import RucioAPIHandler
+from rucio_jupyterlab.metrics import prometheus_metrics
 
 ROW_LIMIT = 1000
 
@@ -56,6 +57,7 @@ class DIDSearchHandlerImpl:
 
 class DIDSearchHandler(RucioAPIHandler):
     @tornado.web.authenticated
+    @prometheus_metrics
     def get(self):
         namespace = self.get_query_argument('namespace')
         search_type = self.get_query_argument('type', 'collection')

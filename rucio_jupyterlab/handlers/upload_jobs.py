@@ -11,10 +11,11 @@ import tornado
 import json
 from rucio_jupyterlab.rucio.upload import RucioFileUploader
 from .base import RucioAPIHandler
-
+from rucio_jupyterlab.metrics import prometheus_metrics
 
 class UploadJobsHandler(RucioAPIHandler):
     @tornado.web.authenticated
+    @prometheus_metrics
     def get(self):
         namespace = self.get_query_argument('namespace')
         rucio_instance = self.rucio.for_instance(namespace)
