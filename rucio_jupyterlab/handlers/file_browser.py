@@ -12,6 +12,7 @@ import json
 import tornado
 import rucio_jupyterlab.utils as utils
 from .base import RucioAPIHandler
+from rucio_jupyterlab.metrics import prometheus_metrics
 
 
 class FileBrowserHandlerImpl:
@@ -42,6 +43,7 @@ class FileBrowserHandlerImpl:
 
 class FileBrowserHandler(RucioAPIHandler):
     @tornado.web.authenticated
+    @prometheus_metrics
     def get(self):
         path = self.get_query_argument('path', default='')
         items = FileBrowserHandlerImpl.list_contents(path)

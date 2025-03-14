@@ -11,10 +11,11 @@ import tornado
 import multiprocessing as mp
 from rucio_jupyterlab.rucio.upload import RucioFileUploader
 from .base import RucioAPIHandler
-
+from rucio_jupyterlab.metrics import prometheus_metrics
 
 class UploadHandler(RucioAPIHandler):
     @tornado.web.authenticated
+    @prometheus_metrics
     def post(self):
         namespace = self.get_query_argument('namespace')
         json_body = self.get_json_body()

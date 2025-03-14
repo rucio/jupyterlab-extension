@@ -11,10 +11,11 @@ import json
 import tornado
 from rucio_jupyterlab.db import get_db
 from .base import RucioAPIHandler
-
+from rucio_jupyterlab.metrics import prometheus_metrics
 
 class PurgeCacheHandler(RucioAPIHandler):
     @tornado.web.authenticated
+    @prometheus_metrics
     def post(self):
         db = get_db()  # pylint: disable=invalid-name
         db.purge_cache()

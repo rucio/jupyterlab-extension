@@ -11,10 +11,11 @@ import json
 import tornado
 from rucio_jupyterlab.rucio.authenticators import RucioAuthenticationException
 from .base import RucioAPIHandler
-
+from rucio_jupyterlab.metrics import prometheus_metrics
 
 class ListRSEsHandler(RucioAPIHandler):
     @tornado.web.authenticated
+    @prometheus_metrics
     def get(self):
         namespace = self.get_query_argument('namespace')
         rse_expression = self.get_query_argument('expression', default='*')
