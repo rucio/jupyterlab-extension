@@ -78,7 +78,7 @@ jobs:
           tags: ${{ steps.metadata.outputs.tags }}
           labels: |
             org.opencontainers.image.created=(date +'%Y-%m-%dT%H:%M:%SZ')
-            org.opencontainers.image.url=https://github.com/garciagenrique/jupyterlab-extension
+            org.opencontainers.image.url=https://github.com/rucio/jupyterlab-extension
             org.opencontainers.image.title=rucio-jupyterlab
             org.opencontainers.image.description=JupyterLab extension for Rucio
             org.opencontainers.image.version=${{ steps.metadata.outputs.tags }}
