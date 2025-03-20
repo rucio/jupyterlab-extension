@@ -9,6 +9,7 @@ services:
       service: rucio
     depends_on:
       - ruciodb
+    image: docker.io/rucio/rucio-dev:${RUCIO_IMG}
   rucio-jupyterlab:
     image: "rucio-jupyterlab"
     build:
