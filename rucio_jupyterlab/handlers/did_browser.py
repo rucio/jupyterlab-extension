@@ -13,6 +13,7 @@ from rucio_jupyterlab.db import get_db
 from rucio_jupyterlab.entity import AttachedFile
 from rucio_jupyterlab.rucio.authenticators import RucioAuthenticationException
 from .base import RucioAPIHandler
+from rucio_jupyterlab.metrics import prometheus_metrics
 
 
 class DIDBrowserHandlerImpl:
@@ -36,6 +37,7 @@ class DIDBrowserHandlerImpl:
 
 class DIDBrowserHandler(RucioAPIHandler):
     @tornado.web.authenticated
+    @prometheus_metrics
     def get(self):
         namespace = self.get_query_argument('namespace')
         poll = self.get_query_argument('poll', '0') == '1'

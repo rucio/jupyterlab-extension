@@ -27,7 +27,6 @@ from .upload_jobs_details import UploadJobsDetailsHandler
 from .upload_jobs_log import UploadJobsLogHandler
 from .upload import UploadHandler
 
-
 def setup_handlers(web_app):  # pragma: no cover
     host_pattern = ".*$"
 
