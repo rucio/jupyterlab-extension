@@ -6,6 +6,7 @@ psutil
 pytest
 pytest-mock
 pytest-jupyter
+prometheus_client
 requests-mock
 traitlets
 pylint

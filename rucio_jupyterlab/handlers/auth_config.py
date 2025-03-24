@@ -12,6 +12,8 @@ import tornado
 from rucio_jupyterlab.db import get_db
 from rucio_jupyterlab.rucio import RucioAPI
 from .base import RucioAPIHandler
+from rucio_jupyterlab.metrics import prometheus_metrics
+
 
 
 class AuthConfigHandler(RucioAPIHandler):
@@ -20,6 +22,7 @@ class AuthConfigHandler(RucioAPIHandler):
     # Jupyter server
 
     @tornado.web.authenticated
+    @prometheus_metrics
     def get(self):
         namespace = self.get_query_argument('namespace')
         auth_type = self.get_query_argument('type')
@@ -34,6 +37,7 @@ class AuthConfigHandler(RucioAPIHandler):
             self.finish({'success': False, 'error': 'Auth credentials not set'})
 
     @tornado.web.authenticated
+    @prometheus_metrics
     def put(self):
         json_body = self.get_json_body()
         namespace = json_body['namespace']
