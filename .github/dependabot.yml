@@ -4,3 +4,5 @@ updates:
     directory: "/"
     schedule:
       interval: weekly
+    ignore:
+      - dependency-type: "all"  # Ensures only GitHub Actions are updated
