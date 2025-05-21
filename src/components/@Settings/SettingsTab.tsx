@@ -55,6 +55,15 @@ const useStyles = createUseStyles({
   buttonContainer: {
     extend: 'container'
   },
+  validateButton: {
+    marginTop: '8px',
+    extend: 'container'
+  },
+  validationMessage: {
+    extend: 'subtitle',
+    marginTop: '8px',
+    margin: '8px 8px 16px 8px'
+  },
   instanceName: {
     fontSize: '16pt'
   },
@@ -96,6 +105,13 @@ const useStyles = createUseStyles({
   },
   buttonSavedAcknowledgement: {
     background: '#689f38',
+    color: '#ffffff',
+    '&:hover': {
+      background: '#689f38'
+    }
+  },
+  buttonSavedError: {
+    background: '#f44336',
     color: '#ffffff',
     '&:hover': {
       background: '#689f38'
@@ -154,6 +170,7 @@ const _Settings: React.FunctionComponent = props => {
     useState<boolean>(false);
   const [purgingCache, setPurgingCache] = useState<boolean>(false);
   const [showCachePurged, setShowCachePurged] = useState<boolean>(false);
+  const [validationResult, setValidationResult] = useState<string | null>(null);
 
   const instanceOptions = useMemo(
     () => instances?.map(i => ({ label: i.displayName, value: i.name })),
@@ -178,12 +195,15 @@ const _Settings: React.FunctionComponent = props => {
       .catch(e => console.log(e));
   };
 
-  const saveSettings = () => {
+  const saveSettings = async () => {
     if (!selectedInstance) {
       return;
     }
-
+  
     const promises = [];
+    let putAuthConfigSuccess = false;
+    let putAuthConfigError: string | null = null;
+  
     if (selectedInstance && selectedAuthType) {
       const setActiveInstancePromise = setActiveInstance(
         selectedInstance,
@@ -191,7 +211,7 @@ const _Settings: React.FunctionComponent = props => {
       );
       promises.push(setActiveInstancePromise);
     }
-
+  
     if (selectedAuthType) {
       const rucioAuthCredentials = (() => {
         switch (selectedAuthType) {
@@ -201,28 +221,47 @@ const _Settings: React.FunctionComponent = props => {
             return rucioX509AuthCredentials;
           case 'x509_proxy':
             return rucioX509ProxyAuthCredentials;
+          default:
+            return null;
         }
       })();
-
+  
       if (rucioAuthCredentials) {
-        const setPutAuthConfigPromise = actions.putAuthConfig(
-          selectedInstance,
-          selectedAuthType,
-          rucioAuthCredentials
-        );
+        const setPutAuthConfigPromise = actions
+          .putAuthConfig(selectedInstance, selectedAuthType, rucioAuthCredentials)
+          .then(() => {
+            putAuthConfigSuccess = true;
+          })
+          .catch((err) => {
+            putAuthConfigError = err.message || 'Unknown error';
+          });
         promises.push(setPutAuthConfigPromise);
+      } else {
+        setValidationResult('❌ Missing authentication credentials');
+        return;
       }
     }
-
+  
     setLoading(true);
+  
     Promise.all(promises)
       .then(() => {
+        if (putAuthConfigSuccess) {
+          setValidationResult('✅ Connection successful!');
+        } else if (putAuthConfigError) {
+          setValidationResult(`❌ Connection failed: ${putAuthConfigError}`);
+        }
         setShowSaved(true);
         setTimeout(() => setShowSaved(false), 3000);
       })
-      .finally(() => setLoading(false));
+      .catch((err) => {
+        setValidationResult(`❌ Unexpected error: ${err.message || err}`);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
-
+    
   const reloadAuthConfig = () => {
     if (!selectedInstance) {
       return;
@@ -435,13 +474,22 @@ const _Settings: React.FunctionComponent = props => {
           className={
             !loading && showSaved
               ? classes.buttonSavedAcknowledgement
+              : !loading && validationResult?.startsWith('❌')
+              ? classes.buttonSavedError
               : undefined
           }
         >
-          {!loading && !showSaved && <>Save Settings</>}
           {loading && <>Saving...</>}
           {!loading && showSaved && <>Saved!</>}
+          {!loading && validationResult?.startsWith('❌') && <>Error!</>}
+          {!loading && !showSaved && !validationResult?.startsWith('❌') && <>Save Settings</>}
         </Button>
+
+        {validationResult && (
+          <div className={classes.validationMessage}>
+            {validationResult}
+          </div>
+        )}
       </div>
     </div>
   );
