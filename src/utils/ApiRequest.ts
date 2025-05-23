@@ -28,7 +28,9 @@ export async function requestAPI<T>(
   convertSnakeCase = true
 ): Promise<T> {
   const settings = ServerConnection.makeSettings();
-  const requestUrl = URLExt.join(settings.baseUrl, EXTENSION_ID, endPoint);
+  let [path, queryString] = endPoint.split('?');
+  const base = URLExt.join(settings.baseUrl, EXTENSION_ID, path);
+  const requestUrl = queryString ? `${base}?${queryString}` : base;
 
   let response: Response;
   try {

@@ -24,7 +24,8 @@ import {
   RucioAuthType,
   IRucioUserpassAuth,
   IRucioX509Auth,
-  IRucioX509ProxyAuth
+  IRucioX509ProxyAuth,
+  IRucioOIDCAuth
 } from '../../types';
 import { HorizontalHeading } from '../HorizontalHeading';
 
@@ -165,6 +166,8 @@ const _Settings: React.FunctionComponent = props => {
     useState<IRucioX509Auth>();
   const [rucioX509ProxyAuthCredentials, setRucioX509ProxyAuthCredentials] =
     useState<IRucioX509ProxyAuth>();
+  const [rucioOIDCAuthCredentials, setRucioOIDCAuthCredentials] =
+    useState<IRucioOIDCAuth>();
   const [credentialsLoading, setCredentialsLoading] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(false);
   const [showSaved, setShowSaved] = useState<boolean>(false);
@@ -207,6 +210,7 @@ const _Settings: React.FunctionComponent = props => {
     const promises = [];
     let putAuthConfigSuccess = false;
     let putAuthConfigError: string | null = null;
+
   
     if (selectedAuthType) {
       const rucioAuthCredentials = (() => {
@@ -214,6 +218,7 @@ const _Settings: React.FunctionComponent = props => {
           case 'userpass': return rucioUserpassAuthCredentials;
           case 'x509': return rucioX509AuthCredentials;
           case 'x509_proxy': return rucioX509ProxyAuthCredentials;
+          case 'oidc': return rucioOIDCAuthCredentials;
           default: return null;
         }
       })();
@@ -221,10 +226,57 @@ const _Settings: React.FunctionComponent = props => {
       if (!rucioAuthCredentials) {
         setValidationResult('❌ Missing authentication credentials');
         setLoading(false);
+        setTimeout(() => {
+          setShowSaved(false);
+          setValidationResult(null); // revert to default state
+        }, 2000);
         return;
       }
   
       promises.push(
+        actions
+          .putAuthConfig(
+            selectedInstance,
+            selectedAuthType,
+            rucioAuthCredentials
+          )
+          .then(response => {
+            putAuthConfigSuccess = true;
+
+            if (response.lifetime) {
+              const expiration = new Date(response.lifetime);
+              const now = new Date();
+
+              const diffMs = expiration.getTime() - now.getTime(); // milliseconds
+              const diffSec = Math.floor(diffMs / 1000);
+              const diffMin = Math.floor(diffSec / 60);
+              const diffHr = Math.floor(diffMin / 60);
+              const remainingMin = diffMin % 60;
+
+              let timeLeftStr = '';
+              if (diffMs <= 0) {
+                timeLeftStr = 'Token has expired';
+              } else if (diffHr > 0) {
+                timeLeftStr = `${diffHr}h ${remainingMin}m`;
+              } else {
+                timeLeftStr = `${diffMin} minute${diffMin !== 1 ? 's' : ''}`;
+              }
+              setValidationResult(
+                `✅ Connection successful!\n🕙 Time left: ${timeLeftStr}`
+              );
+            } else {
+              setValidationResult('✅ Connection successful!');
+            }
+          })
+          .catch(err => {
+            putAuthConfigError = `${err.message || 'Unknown error'}${
+              err.exception_class
+              ? ` (Exception Class: ${err.exception_class})` : ''
+            }${
+              err.exception_message
+                ? ` (Exception Message: ${err.exception_message})`
+                : ''
+            }`;
         actions.putAuthConfig(selectedInstance, selectedAuthType, rucioAuthCredentials)
           .then(() => { putAuthConfigSuccess = true; })
           .catch((err) => {
@@ -244,7 +296,6 @@ const _Settings: React.FunctionComponent = props => {
     try {
       await Promise.all(promises);
       if (putAuthConfigSuccess) {
-        setValidationResult('✅ Connection successful!');
         setShowSaved(true);
         setTimeout(() => {
           setShowSaved(false);
@@ -273,26 +324,60 @@ const _Settings: React.FunctionComponent = props => {
     setCredentialsLoading(true);
 
     if (selectedAuthType === 'userpass') {
+      console.log('Fetching userpass auth config');
+      console.log('Fetching userpass auth config for instance:', selectedInstance);
       actions
         .fetchAuthConfig<IRucioUserpassAuth>(selectedInstance, selectedAuthType)
-        .then(c => setRucioUserpassAuthCredentials(c))
-        .catch(() => setRucioUserpassAuthCredentials(undefined))
-        .finally(() => setCredentialsLoading(false));
+        .then(c => {
+          console.log('Fetched userpass auth config successfully:', c);
+          setRucioUserpassAuthCredentials(c);
+        })
+        .catch(err => {
+          console.error('Error fetching userpass auth config:', err);
+          setRucioUserpassAuthCredentials(undefined);
+        })
+        .finally(() => {
+          console.log('Finished fetching userpass auth config');
+          setCredentialsLoading(false);
+        });
     } else if (selectedAuthType === 'x509') {
+      console.log('Fetching X.509 auth config for instance:', selectedInstance);
       actions
         .fetchAuthConfig<IRucioX509Auth>(selectedInstance, selectedAuthType)
-        .then(c => setRucioX509AuthCredentials(c))
-        .catch(() => setRucioX509AuthCredentials(undefined))
-        .finally(() => setCredentialsLoading(false));
+        .then(c => {
+          console.log('Fetched X.509 auth config successfully:', c);
+          setRucioX509AuthCredentials(c);
+        })
+        .catch(err => {
+          console.error('Error fetching X.509 auth config:', err);
+          setRucioX509AuthCredentials(undefined);
+        })
+        .finally(() => {
+          console.log('Finished fetching X.509 auth config');
+          setCredentialsLoading(false);
+        });
     } else if (selectedAuthType === 'x509_proxy') {
       actions
-        .fetchAuthConfig<IRucioX509ProxyAuth>(
-          selectedInstance,
-          selectedAuthType
-        )
+        .fetchAuthConfig<IRucioX509ProxyAuth>(selectedInstance, selectedAuthType)
         .then(c => setRucioX509ProxyAuthCredentials(c))
         .catch(() => setRucioX509ProxyAuthCredentials(undefined))
         .finally(() => setCredentialsLoading(false));
+    } else if (selectedAuthType === 'oidc') {
+      console.log('Fetching OIDC auth config for instance:', selectedInstance);
+      actions
+        .fetchAuthConfig<IRucioOIDCAuth>(selectedInstance, selectedAuthType)
+        .then(c => {
+          console.log('Fetched OIDC auth config successfully:', c);
+          setRucioOIDCAuthCredentials(c);
+        })
+        .catch(err => {
+          console.error('Error fetching OIDC auth config:', err);
+          setRucioOIDCAuthCredentials(undefined);
+        })
+        .finally(() => {
+          console.log('Finished fetching OIDC auth config');
+          setCredentialsLoading(false);
+        });
     }
   };
 
@@ -468,6 +553,38 @@ const _Settings: React.FunctionComponent = props => {
         </div>
       </div>
       <div className={classes.buttonContainer}>
+        <Button
+          block
+          onClick={saveSettings}
+          disabled={!settingsComplete || loading}
+          outlineColor={showSaved ? '#689f38' : undefined}
+          color={showSaved ? '#FFFFFF' : undefined}
+          className={
+            showSaved
+              ? classes.buttonSavedAcknowledgement
+              : validationResult?.startsWith('❌')
+                ? classes.buttonSavedError
+                : undefined
+          }
+        >
+          {loading ? (
+            selectedAuthType === 'oidc' ?
+              <>Validating...</> 
+              : 
+              <>Saving...</>
+          ) : showSaved ? (
+            selectedAuthType === 'oidc' ? 
+            <>Validated!</> 
+            : 
+            <>Saved!</>
+          ) : validationResult?.startsWith('❌') ? (
+            <>Error!</>
+          ) : selectedAuthType === 'oidc' ? (
+            <>Validate</>
+          ) : (
+            <>Save Settings</>
+          )}
+        </Button>
       <Button
         block
         onClick={saveSettings}

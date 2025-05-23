@@ -2,6 +2,7 @@
 lib/
 node_modules/
 *.log
+*.pem
 .eslintcache
 .stylelintcache
 *.egg-info/

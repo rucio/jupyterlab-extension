@@ -27,8 +27,6 @@ class RucioAuthenticationException(Exception):
         super().__init__(f"Authentication failed: {self.status_code} {self.reason}. "
                          f"Message: {self.message}")
 
-
-
 def authenticate_userpass(base_url, username, password, account=None, vo=None, app_id=None, rucio_ca_cert=False):
     try:
         account = account if account != '' else None    # Empty string is considered None
@@ -50,60 +48,68 @@ def authenticate_userpass(base_url, username, password, account=None, vo=None, a
 
 def authenticate_x509(base_url, cert_path, key_path=None, account=None, vo=None, app_id=None, rucio_ca_cert=False):
     try:
+        print("Starting authenticate_x509...")
+        print(f"base_url: {base_url}")
+        print(f"cert_path: {cert_path}")
+        print(f"key_path: {key_path}")
+        print(f"account: {account}")
+        print(f"vo: {vo}")
+        print(f"app_id: {app_id}")
+        print(f"rucio_ca_cert: {rucio_ca_cert}")
+
         account = account if account != '' else None    # Empty string is considered None
+        print(f"Processed account: {account}")
 
         headers = {'X-Rucio-Account': account, 'X-Rucio-VO': vo, 'X-Rucio-AppID': app_id}
+        print(f"Initial headers: {headers}")
         headers = utils.remove_none_values(headers)
+        print(f"Headers after removing None values: {headers}")
 
         cert = (cert_path, key_path)
+        print(f"Certificate paths: {cert}")
+
+        print("Sending request to Rucio server...")
         response = requests.get(url=f'{base_url}/auth/x509', headers=headers, cert=cert, verify=rucio_ca_cert)
+        print(f"Response received. Status code: {response.status_code}")
+        print(f"Response headers: {response.headers}")
+
         response_headers = response.headers
+        auth_token = response_headers.get('X-Rucio-Auth-Token', None)
+        expires = response_headers.get('X-Rucio-Auth-Token-Expires', None)
+        print(f"Auth token: {auth_token}")
+        print(f"Token expiration (raw): {expires}")
 
-        auth_token = response_headers['X-Rucio-Auth-Token']
-        expires = response_headers['X-Rucio-Auth-Token-Expires']
+        if not auth_token or not expires:
+            print("Missing authentication token or expiration in response headers.")
+            raise RucioAuthenticationException(response)
+
         expires = parse_timestamp(expires)
+        print(f"Token expiration (parsed): {expires}")
 
+        print("Authentication successful.")
         return (auth_token, expires)
-    except:
-        traceback.print_exc()
-        raise RucioAuthenticationException()
-    
-
-def authenticate_x509_proxy(base_url, proxy_path=None, account=None, vo=None, app_id=None, rucio_ca_cert=False):
-    try:
-        account = account if account != '' else None    # Empty string is considered None
-
-        headers = {'X-Rucio-Account': account, 'X-Rucio-VO': vo, 'X-Rucio-AppID': app_id}
-        headers = utils.remove_none_values(headers)
-
-        cert = (proxy_path)
-        response = requests.get(url=f'{base_url}/auth/x509_proxy', headers=headers, cert=cert, verify=rucio_ca_cert)
-        response_headers = response.headers
-
-        auth_token = response_headers['X-Rucio-Auth-Token']
-        expires = response_headers['X-Rucio-Auth-Token-Expires']
-        expires = parse_timestamp(expires)
-
-        return (auth_token, expires)
-    except:
+    except Exception as e:
+        print("An error occurred during x509 authentication.")
         traceback.print_exc()
         raise RucioAuthenticationException(response)
-
-
+    
 def authenticate_oidc(base_url, oidc_auth, oidc_auth_source, rucio_ca_cert=False):
     try:
         oidc_token = get_oidc_token(oidc_auth, oidc_auth_source)
+        print("-------------------------------------------------")
+        print(f"oidc_token: {oidc_token}")  # Debugging line
+        print("-------------------------------------------------")
         headers = {'X-Rucio-Auth-Token': oidc_token}
 
-        response = requests.get(url=f'{base_url}/accounts/whoami', headers=headers, verify=rucio_ca_cert)
+        response = requests.get(url=f'{base_url}/auth/validate', headers=headers, verify=rucio_ca_cert)
 
         if response.status_code != 200:
             raise RucioAuthenticationException(response)
 
         jwt_payload = jwt.decode(oidc_token, options={"verify_signature": False})
-        expires = jwt_payload['exp']
+        lifetime = jwt_payload['exp']
 
-        return (oidc_token, expires)
+        return (jwt_payload.get('sub', None), lifetime)
     except:
         traceback.print_exc()
         raise RucioAuthenticationException(response)

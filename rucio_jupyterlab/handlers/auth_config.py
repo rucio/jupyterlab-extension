@@ -9,6 +9,7 @@
 
 import json
 import tornado
+from datetime import datetime, timezone
 from rucio_jupyterlab.db import get_db
 from rucio_jupyterlab.rucio import RucioAPI
 from .base import RucioAPIHandler
@@ -72,12 +73,16 @@ class AuthConfigHandler(RucioAPIHandler):
         app_id = instance.instance_config.get('app_id')
         vo = instance.instance_config.get('vo')
         base_url = instance.instance_config.get("rucio_base_url")
+        auth_url = instance.instance_config.get("rucio_auth_url")
         rucio_ca_cert = instance.instance_config.get("rucio_ca_cert", False)
+        oidc_auth = instance.instance_config.get("oidc_auth")
+
+        lifetime = None  # Initialize lifetime to avoid NameError
 
         try:
             if auth_type == 'userpass':
                 authenticate_userpass(
-                    base_url=base_url,
+                    base_url=auth_url,
                     username=params.get('username'),
                     password=params.get('password'),
                     account=params.get('account'),
@@ -87,7 +92,7 @@ class AuthConfigHandler(RucioAPIHandler):
                 )
             elif auth_type == 'x509':
                 authenticate_x509(
-                    base_url=base_url,
+                    base_url=auth_url,
                     cert_path=params.get('certificate'),
                     key_path=params.get('key'),
                     account=params.get('account'),
@@ -96,21 +101,24 @@ class AuthConfigHandler(RucioAPIHandler):
                     rucio_ca_cert=rucio_ca_cert
                 )
             elif auth_type == 'x509_proxy':
-                proxy = params.get('proxy')
+                print(f"params: {params}")  # Debugging line
                 authenticate_x509(
-                    base_url=base_url,
-                    cert_path=proxy,
-                    key_path=proxy,
+                    base_url=auth_url,
+                    cert_path=params.get('proxy'),
+                    key_path=params.get('proxy'),
                     account=params.get('account'),
                     vo=vo,
                     app_id=app_id,
                     rucio_ca_cert=rucio_ca_cert
                 )
             elif auth_type == 'oidc':
-                oidc_auth = params.get('oidc_auth')
-                oidc_auth_source = params.get('oidc_env_name') if oidc_auth == 'env' else params.get('oidc_file_name')
-                authenticate_oidc(
-                    base_url=base_url,
+                print("-------------------------------------------------")
+                print(f"params: {params}")  # Debugging line
+                print(f"oidc_auth: {oidc_auth}") # Debugging line
+                oidc_auth_source = params.get('oidcAuthSource')
+                print(f"oidc_auth_source: {oidc_auth_source}") # Debugging line
+                _, lifetime = authenticate_oidc(
+                    base_url=auth_url,
                     oidc_auth=oidc_auth,
                     oidc_auth_source=oidc_auth_source,
                     rucio_ca_cert=rucio_ca_cert
@@ -118,16 +126,22 @@ class AuthConfigHandler(RucioAPIHandler):
             else:
                 raise ValueError("Unsupported authentication type")
 
-            # If no exception, authentication was successful
-            self.finish(json.dumps({'success': True}))
+            if lifetime:
+                # Convert to UTC datetime
+                expiration_date = datetime.fromtimestamp(lifetime, tz=timezone.utc)
+
+                # Format to ISO 8601 (can be printed directly in TSX)
+                expiration_iso = expiration_date.isoformat()
+
+                # If your TSX expects a 'Z' instead of '+00:00', you can replace it
+                expiration_tsx_format = expiration_iso.replace('+00:00', 'Z')
+
+                # If no exception, authentication was successful
+                self.finish(json.dumps({'success': True, 'lifetime': expiration_tsx_format}))
+            else:
+                self.finish(json.dumps({'success': True}))
         except Exception as e:
             self.set_status(e.status_code or 401)
-
-            formatted_error = (
-                f"{e.message} "
-                f"(ExceptionClass: {e.exception_class}, "
-                f"ExceptionMessage: {e.exception_message})"
-            )
 
             self.finish(json.dumps({
                 'success': False,
