@@ -107,14 +107,16 @@ const useStyles = createUseStyles({
     background: '#689f38',
     color: '#ffffff',
     '&:hover': {
-      background: '#689f38'
+      color: '#ffffff',
+      background: '#79C13A'
     }
   },
   buttonSavedError: {
     background: '#f44336',
     color: '#ffffff',
     '&:hover': {
-      background: '#689f38'
+      color: '#ffffff',
+      background: '#DC3125'
     }
   },
   buttonPurgedAcknowledgement: {
@@ -196,71 +198,72 @@ const _Settings: React.FunctionComponent = props => {
   };
 
   const saveSettings = async () => {
-    if (!selectedInstance) {
-      return;
-    }
+    if (!selectedInstance) return;
+  
+    setLoading(true);
+    setValidationResult(null);
+    setShowSaved(false);
   
     const promises = [];
     let putAuthConfigSuccess = false;
     let putAuthConfigError: string | null = null;
   
-    if (selectedInstance && selectedAuthType) {
-      const setActiveInstancePromise = setActiveInstance(
-        selectedInstance,
-        selectedAuthType
-      );
-      promises.push(setActiveInstancePromise);
-    }
-  
     if (selectedAuthType) {
       const rucioAuthCredentials = (() => {
         switch (selectedAuthType) {
-          case 'userpass':
-            return rucioUserpassAuthCredentials;
-          case 'x509':
-            return rucioX509AuthCredentials;
-          case 'x509_proxy':
-            return rucioX509ProxyAuthCredentials;
-          default:
-            return null;
+          case 'userpass': return rucioUserpassAuthCredentials;
+          case 'x509': return rucioX509AuthCredentials;
+          case 'x509_proxy': return rucioX509ProxyAuthCredentials;
+          default: return null;
         }
       })();
   
-      if (rucioAuthCredentials) {
-        const setPutAuthConfigPromise = actions
-          .putAuthConfig(selectedInstance, selectedAuthType, rucioAuthCredentials)
-          .then(() => {
-            putAuthConfigSuccess = true;
-          })
-          .catch((err) => {
-            putAuthConfigError = err.message || 'Unknown error';
-          });
-        promises.push(setPutAuthConfigPromise);
-      } else {
+      if (!rucioAuthCredentials) {
         setValidationResult('❌ Missing authentication credentials');
+        setLoading(false);
         return;
       }
+  
+      promises.push(
+        actions.putAuthConfig(selectedInstance, selectedAuthType, rucioAuthCredentials)
+          .then(() => { putAuthConfigSuccess = true; })
+          .catch((err) => {
+            putAuthConfigError = `${err.message || 'Unknown error'}${
+              err.exception_class ? ` (Exception Class: ${err.exception_class})` : ''
+            }${
+              err.exception_message ? ` (Exception Message: ${err.exception_message})` : ''
+            }`;
+          })
+      );
     }
   
-    setLoading(true);
+    if (selectedInstance && selectedAuthType) {
+      promises.push(setActiveInstance(selectedInstance, selectedAuthType));
+    }
   
-    Promise.all(promises)
-      .then(() => {
-        if (putAuthConfigSuccess) {
-          setValidationResult('✅ Connection successful!');
-        } else if (putAuthConfigError) {
-          setValidationResult(`❌ Connection failed: ${putAuthConfigError}`);
-        }
+    try {
+      await Promise.all(promises);
+      if (putAuthConfigSuccess) {
+        setValidationResult('✅ Connection successful!');
         setShowSaved(true);
-        setTimeout(() => setShowSaved(false), 3000);
-      })
-      .catch((err) => {
-        setValidationResult(`❌ Unexpected error: ${err.message || err}`);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+        setTimeout(() => {
+          setShowSaved(false);
+          setValidationResult(null); // revert to default state
+        }, 3000);
+      } else if (putAuthConfigError) {
+        setValidationResult(`❌ ${putAuthConfigError}`);
+        setTimeout(() => {
+          setShowSaved(false);
+          setValidationResult(null); // revert to default state
+        }, 5000);
+      }
+    } catch (err) {
+      setValidationResult(`❌ Unexpected error: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setLoading(false);
+    }
   };
+  
     
   const reloadAuthConfig = () => {
     if (!selectedInstance) {
@@ -465,25 +468,30 @@ const _Settings: React.FunctionComponent = props => {
         </div>
       </div>
       <div className={classes.buttonContainer}>
-        <Button
-          block
-          onClick={saveSettings}
-          disabled={!settingsComplete || loading}
-          outlineColor={!loading && showSaved ? '#689f38' : undefined}
-          color={!loading && showSaved ? '#FFFFFF' : undefined}
-          className={
-            !loading && showSaved
-              ? classes.buttonSavedAcknowledgement
-              : !loading && validationResult?.startsWith('❌')
-              ? classes.buttonSavedError
-              : undefined
-          }
-        >
-          {loading && <>Saving...</>}
-          {!loading && showSaved && <>Saved!</>}
-          {!loading && validationResult?.startsWith('❌') && <>Error!</>}
-          {!loading && !showSaved && !validationResult?.startsWith('❌') && <>Save Settings</>}
-        </Button>
+      <Button
+        block
+        onClick={saveSettings}
+        disabled={!settingsComplete || loading}
+        outlineColor={showSaved ? '#689f38' : undefined}
+        color={showSaved ? '#FFFFFF' : undefined}
+        className={
+          showSaved
+            ? classes.buttonSavedAcknowledgement
+            : validationResult?.startsWith('❌')
+            ? classes.buttonSavedError
+            : undefined
+        }
+      >
+        {loading ? (
+          <>Saving...</>
+        ) : showSaved ? (
+          <>Saved!</>
+        ) : validationResult?.startsWith('❌') ? (
+          <>Error!</>
+        ) : (
+          <>Save Settings</>
+        )}
+      </Button>
 
         {validationResult && (
           <div className={classes.validationMessage}>

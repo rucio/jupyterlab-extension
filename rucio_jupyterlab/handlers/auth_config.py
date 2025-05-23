@@ -121,5 +121,17 @@ class AuthConfigHandler(RucioAPIHandler):
             # If no exception, authentication was successful
             self.finish(json.dumps({'success': True}))
         except Exception as e:
-            self.set_status(401)
-            self.finish(json.dumps({'success': False, 'error': str(e)}))
+            self.set_status(e.status_code or 401)
+
+            formatted_error = (
+                f"{e.message} "
+                f"(ExceptionClass: {e.exception_class}, "
+                f"ExceptionMessage: {e.exception_message})"
+            )
+
+            self.finish(json.dumps({
+                'success': False,
+                'error': e.message,
+                'exception_class': e.exception_class,
+                'exception_message': e.exception_message
+            }))

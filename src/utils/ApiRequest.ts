@@ -27,13 +27,8 @@ export async function requestAPI<T>(
   init: RequestInit = {},
   convertSnakeCase = true
 ): Promise<T> {
-  // Make request to Jupyter API
   const settings = ServerConnection.makeSettings();
-  const requestUrl = URLExt.join(
-    settings.baseUrl,
-    EXTENSION_ID, // API Namespace
-    endPoint
-  );
+  const requestUrl = URLExt.join(settings.baseUrl, EXTENSION_ID, endPoint);
 
   let response: Response;
   try {
@@ -45,7 +40,11 @@ export async function requestAPI<T>(
   const data = await response.json();
 
   if (!response.ok) {
-    throw new ServerConnection.ResponseError(response, data.message);
+    const error = new ServerConnection.ResponseError(response, data.message);
+    (error as any).exception_class = data.exception_class;
+    (error as any).exception_message = data.exception_message;
+    (error as any).error = data.error; // Optional
+    throw error;
   }
 
   return convertSnakeCase ? camelcaseKeysDeep(data) : data;
