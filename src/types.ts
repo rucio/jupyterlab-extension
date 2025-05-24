@@ -21,10 +21,7 @@ interface IRucioAuth {
   account?: string;
 }
 
-export interface IRucioOIDCAuth extends IRucioAuth {
-  oidc_auth: string;
-  oidc_auth_source: string;
-}
+export interface IRucioOIDCAuth extends IRucioAuth {}
 
 export interface IRucioUserpassAuth extends IRucioAuth {
   username: string;

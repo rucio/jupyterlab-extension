@@ -8,7 +8,8 @@
 # - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
 
 from .handlers import setup_handlers
-
+from .logging_config import setup_logging
+import logging
 
 def load_jupyter_server_extension(lab_app):  # pragma: no cover
     """Registers the API handler to receive HTTP requests from the frontend extension.
@@ -20,6 +21,11 @@ def load_jupyter_server_extension(lab_app):  # pragma: no cover
     """
     setup_handlers(lab_app.web_app)
     lab_app.log.info("Registered Rucio JupyterLab extension at URL path /rucio-jupyterlab")
+
+    setup_logging()  # Will use RUCIO_JUPYTERLAB_LOGLEVEL or default to WARNING
+
+    logger = logging.getLogger("rucio_jupyterlab")
+    logger.info("Rucio JupyterLab server extension loaded.")
 
 
 _load_jupyter_server_extension = load_jupyter_server_extension
