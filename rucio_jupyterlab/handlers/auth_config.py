@@ -28,7 +28,6 @@ class AuthConfigHandler(RucioAPIHandler):
     def get(self):
         namespace = self.get_query_argument('namespace')
         auth_type = self.get_query_argument('type')
-        print(f"namespace: {namespace}, auth_type: {auth_type}")  # Debugging line
         
         if auth_type == 'oidc':
             instance = self.rucio.for_instance(namespace)
@@ -36,18 +35,14 @@ class AuthConfigHandler(RucioAPIHandler):
             auth_credentials = {}
             # If the auth type is oidc, we need to check if the credentials are set
             # and if the oidc_auth is set to env or file
-            print(f"Auth type is OIDC. Instance config: {instance.instance_config}")  # Debugging line
             if instance.instance_config.get('oidc_auth') == 'env':
                 auth_credentials['oidc_auth_source'] = instance.instance_config.get('oidc_env_name')
-                print(f"OIDC auth source set to env: {auth_credentials['oidc_auth_source']}")  # Debugging line
             elif instance.instance_config.get('oidc_auth') == 'file':
                 auth_credentials['oidc_auth_source'] = instance.instance_config.get('oidc_file_name')
-                print(f"OIDC auth source set to file: {auth_credentials['oidc_auth_source']}")  # Debugging line
         else:
             db = get_db()  # pylint: disable=invalid-name
             auth_credentials = db.get_rucio_auth_credentials(namespace=namespace, auth_type=auth_type)
                 
-        print(f"auth_credentials: {auth_credentials}")  # Debugging line
         if auth_credentials:
             self.finish(json.dumps(auth_credentials))
         else:
@@ -72,7 +67,6 @@ class AuthConfigHandler(RucioAPIHandler):
         instance = self.rucio.for_instance(namespace)
         app_id = instance.instance_config.get('app_id')
         vo = instance.instance_config.get('vo')
-        base_url = instance.instance_config.get("rucio_base_url")
         auth_url = instance.instance_config.get("rucio_auth_url")
         rucio_ca_cert = instance.instance_config.get("rucio_ca_cert", False)
         oidc_auth = instance.instance_config.get("oidc_auth")
@@ -101,7 +95,6 @@ class AuthConfigHandler(RucioAPIHandler):
                     rucio_ca_cert=rucio_ca_cert
                 )
             elif auth_type == 'x509_proxy':
-                print(f"params: {params}")  # Debugging line
                 authenticate_x509(
                     base_url=auth_url,
                     cert_path=params.get('proxy'),
@@ -112,11 +105,7 @@ class AuthConfigHandler(RucioAPIHandler):
                     rucio_ca_cert=rucio_ca_cert
                 )
             elif auth_type == 'oidc':
-                print("-------------------------------------------------")
-                print(f"params: {params}")  # Debugging line
-                print(f"oidc_auth: {oidc_auth}") # Debugging line
                 oidc_auth_source = params.get('oidcAuthSource')
-                print(f"oidc_auth_source: {oidc_auth_source}") # Debugging line
                 _, lifetime = authenticate_oidc(
                     base_url=auth_url,
                     oidc_auth=oidc_auth,
