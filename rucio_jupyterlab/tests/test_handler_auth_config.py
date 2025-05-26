@@ -41,10 +41,38 @@ def test_put_instances(mocker):
     mock_self = MockHandler()
     mock_db = MockDatabaseInstance()
 
+    # Patch DB and body
     mocker.patch('rucio_jupyterlab.handlers.auth_config.get_db', return_value=mock_db)
     mocker.patch.object(mock_db, 'set_rucio_auth_credentials')
-    mocker.patch.object(mock_self, 'get_json_body', return_value={'namespace': MOCK_ACTIVE_INSTANCE, 'type': 'userpass', 'params': MOCK_AUTH_CREDENTIALS})
+    mocker.patch.object(
+        mock_self, 'get_json_body',
+        return_value={'namespace': MOCK_ACTIVE_INSTANCE, 'type': 'userpass', 'params': MOCK_AUTH_CREDENTIALS}
+    )
 
+    # Mock self.rucio and its method for_instance
+    mock_instance = mocker.MagicMock()
+    mock_instance.instance_config = {
+        'app_id': 'test_app',
+        'vo': 'test_vo',
+        'rucio_auth_url': 'https://rucio-auth.test',
+        'rucio_ca_cert': False,
+        'oidc_auth': None
+    }
+
+    mock_rucio = mocker.MagicMock()
+    mock_rucio.for_instance.return_value = mock_instance
+    mock_self.rucio = mock_rucio
+
+    # Also patch the authentication function to avoid real calls
+    mocker.patch('rucio_jupyterlab.handlers.auth_config.authenticate_userpass', return_value=None)
+    mocker.patch('rucio_jupyterlab.handlers.auth_config.RucioAPI.clear_auth_token_cache', return_value=None)
+    
+    # Run the method
     AuthConfigHandler.put(mock_self)
 
-    mock_db.set_rucio_auth_credentials.assert_called_once_with(namespace=MOCK_ACTIVE_INSTANCE, auth_type='userpass', params=MOCK_AUTH_CREDENTIALS)   # pylint: disable=no-member
+    # Check expected call
+    mock_db.set_rucio_auth_credentials.assert_called_once_with( # pylint: disable=no-member
+        namespace=MOCK_ACTIVE_INSTANCE,
+        auth_type='userpass',
+        params=MOCK_AUTH_CREDENTIALS
+    )

@@ -76,8 +76,9 @@ def test_authenticate_oidc_call_requests(requests_mock, mocker):
         'X-Rucio-Auth-Token': mock_auth_token
     }
 
-    requests_mock.get(f'{mock_base_url}/accounts/whoami', request_headers=request_headers)
+    requests_mock.get(f'{mock_base_url}/auth/validate', request_headers=request_headers, status_code=200)
 
-    expected_output = (mock_auth_token, mock_exp)
+    mocker.patch('rucio_jupyterlab.rucio.authenticators.jwt.decode', return_value={'sub': '***', 'exp': mock_exp})
+    expected_output = ('***', mock_exp)
     response = authenticate_oidc(mock_base_url, oidc_auth='env', oidc_auth_source='ACCESS_TOKEN')
     assert response == expected_output, "Invalid return value"

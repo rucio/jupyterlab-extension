@@ -98,6 +98,7 @@ def authenticate_x509(base_url, cert_path, key_path=None, account=None, vo=None,
 
 
 def authenticate_oidc(base_url, oidc_auth, oidc_auth_source, rucio_ca_cert=False):
+    response = None
     try:
         logger.debug("Starting OIDC authentication...")
         oidc_token = get_oidc_token(oidc_auth, oidc_auth_source)
@@ -116,6 +117,6 @@ def authenticate_oidc(base_url, oidc_auth, oidc_auth_source, rucio_ca_cert=False
 
         logger.debug(f"OIDC authentication successful. Token subject: {jwt_payload.get('sub')}, expires at: {lifetime}")
         return (jwt_payload.get('sub', None), lifetime)
-    except Exception:
+    except Exception as e:
         logger.exception("An error occurred during OIDC authentication.")
-        raise RucioAuthenticationException(response)
+        raise RucioAuthenticationException(response if response else str(e))
