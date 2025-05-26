@@ -2,7 +2,7 @@ name: Test
 
 on:
   push:
-    branches: master
+    branches: publish_gguerrie-auth-validation
   pull_request:
     branches: '*'
   workflow_dispatch:
@@ -69,7 +69,7 @@ jobs:
         with:
           tags: |
             type=ref,event=branch
-          images: rucio/jupyterlab
+          images: garciagenrique/rucio_jupyterlab
 
       - name: Build and push the Docker image
         uses: docker/build-push-action@v6.16.0
@@ -81,7 +81,6 @@ jobs:
           tags: ${{ steps.metadata.outputs.tags }}
           labels: |
             org.opencontainers.image.created=(date +'%Y-%m-%dT%H:%M:%SZ')
-            org.opencontainers.image.url=https://github.com/rucio/jupyterlab-extension
             org.opencontainers.image.title=rucio-jupyterlab
             org.opencontainers.image.description=JupyterLab extension for Rucio
             org.opencontainers.image.version=${{ steps.metadata.outputs.tags }}
