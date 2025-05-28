@@ -28,4 +28,6 @@ def setup_logging(level: str = None):
     handler.setLevel(numeric_level)
     logger.addHandler(handler)
 
+    logger.propagate = False
+
     logger.debug(f"Logging initialized at level: {level}")
