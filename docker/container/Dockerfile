@@ -1,4 +1,4 @@
-FROM jupyter/docker-stacks-foundation:python-3.11
+FROM quay.io/jupyter/docker-stacks-foundation:python-3.11
 LABEL maintainer="Muhammad Aditya Hilmy <mhilmy@hey.com>, Francesc Torradeflot <torradeflot@pic.es>"
 
 ENV CONTAINER_PURPOSE="test"
