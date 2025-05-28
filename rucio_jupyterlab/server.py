@@ -10,16 +10,14 @@
 from .handlers import setup_handlers
 
 
-def load_jupyter_server_extension(lab_app):  # pragma: no cover
+def load_jupyter_server_extension(server_app):  # pragma: no cover
     """Registers the API handler to receive HTTP requests from the frontend extension.
 
     Parameters
     ----------
-    lab_app: jupyterlab.labapp.LabApp
-        JupyterLab application instance
+    server_app : jupyter_server.serverapp.ServerApp
+        Jupyter Server application instance.
     """
-    setup_handlers(lab_app.web_app)
-    lab_app.log.info("Registered Rucio JupyterLab extension at URL path /rucio-jupyterlab")
+    setup_handlers(server_app.web_app)
+    server_app.log.info("Registered Rucio JupyterLab extension at URL path /rucio-jupyterlab")
 
-
-_load_jupyter_server_extension = load_jupyter_server_extension
