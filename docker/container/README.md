@@ -10,19 +10,9 @@ We rely on the `docker-stacks-foundation` image from the
 It is an image containing a minimal conda/mamba environment, we want to use this image to make
 sure the extension works in a "clean" environment.
 
-### Building a custom base image
+You can pull this image from 
 
-In our case we want to set the python version to 3.9, and there's no image publicly available with this version.
-
-So we clone the [Jupyter Docker Stacks repository](https://github.com/jupyter/docker-stacks/tree/main)
-
-	git clone git@github.com:jupyter/docker-stacks.git jupyter-docker-stacks
-	cd jupyter-docker-stacks/images/docker-stacks-foundation/
-
-Tune the Dockerfile to install python=3.9, and build/tag the image that will be used as the basis
-for our `rucio-jupyterlab` image.
-
-	docker build . -t jupyter/docker-stacks-foundation:python-3.9
+	docker pull quay.io/jupyter/docker-stacks-foundation:python-3.11
 
 ### Building the `rucio-jupyterlab` docker image
 
