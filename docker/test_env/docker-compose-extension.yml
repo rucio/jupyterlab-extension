@@ -42,9 +42,24 @@ services:
     ports:
       - "8888:8888"
   xrd1:
+    image: docker.io/rucio/test-xrootd
     extends:
       file: docker-compose.yml
       service: xrd1
     volumes:
       - /tmp/rucio_xrd1:/rucio:z
-  
+  xrd2:
+    image: docker.io/rucio/test-xrootd
+    extends:
+      file: docker-compose.yml
+      service: xrd2
+  xrd3:
+    image: docker.io/rucio/test-xrootd
+    extends:
+      file: docker-compose.yml
+      service: xrd3
+  xrd4:
+    image: docker.io/rucio/test-xrootd
+    extends:
+      file: docker-compose.yml
+      service: xrd4
