@@ -130,7 +130,7 @@ class AuthConfigHandler(RucioAPIHandler):
             else:
                 self.finish(json.dumps({'success': True}))
         except Exception as e:
-            self.set_status(e.status_code or 401)
+            self.set_status(e.status_code or 401) 
 
             self.finish(json.dumps({
                 'success': False,
