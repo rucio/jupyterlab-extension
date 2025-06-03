@@ -5,6 +5,8 @@
 # You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
 #
 # Authors:
+# - Giovanni Guerrieri, <giovanni.guerrieri@cern.ch>, 2025
+# - Enrique Garcia, <enrique.garcia.garcia@cern.ch>, 2025
 # - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
 
 import logging
@@ -14,7 +16,17 @@ import json
 from urllib.parse import urlencode, quote
 import requests
 from rucio_jupyterlab.db import get_db
-from .authenticators import RucioAuthenticationException, authenticate_userpass, authenticate_x509, authenticate_oidc
+from .exceptions import RucioAPIException, RucioAuthenticationException
+from .authenticators import authenticate_userpass, authenticate_x509, authenticate_oidc
+
+# Setup logging
+logger = logging.getLogger(__name__)
+
+if not logger.hasHandlers():
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
 
 
 def parse_did_filter_from_string_fe(input_string, name='*', type='collection', omit_name=False):
@@ -155,8 +167,6 @@ class RucioAPI:
         self.auth_url = instance_config.get('rucio_auth_url', self.base_url)
         self.rucio_ca_cert = instance_config.get('rucio_ca_cert', False)    # TODO default should be True
 
-<<<<<<< HEAD
-=======
     def _build_url(self, endpoint, scope=None, name=None, params=None):
         """
         Constructs the full URL with optional scope, name and params.
@@ -204,40 +214,31 @@ class RucioAPI:
             else:
                 return response.text
 
-        except Exception:
-            logger.exception(f"An error occurred during the {method.upper()} request to {url}")
-            raise RucioAPIException(response)
+        except requests.exceptions.HTTPError as e:
+            logger.exception(f"HTTP error during {method.upper()} request to {url}")
+            raise RucioAPIException(e.response)
+        
+        except requests.exceptions.RequestException as e:
+            # For other requests-related errors like connection, timeout
+            logger.exception(f"Request error during {method.upper()} request to {url}: {str(e)}")
+            raise RucioAPIException(None, str(e))
+        
+        except Exception as e:
+             # For errors unrelated to requests itself (e.g., JSON parse)
+            logger.exception(f"An error occurred during the {method.upper()} request to {url}: {str(e)}")
+            raise RucioAPIException(None, str(e))
 
->>>>>>> 1cf7b8f (fix: improve error habdling to avoid UnboundLocalError)
     def get_scopes(self):
-        token = self._get_auth_token()
-        headers = {'X-Rucio-Auth-Token': token}
-        response = requests.get(url=f'{self.base_url}/scopes/', headers=headers, verify=self.rucio_ca_cert)
-        return response.json()
+        #DEBUG: response = requests.get(url=f'{self.base_url}/scopes/', headers=headers, verify=self.rucio_ca_cert)
+        return self._make_rucio_request('GET', 'scopes/')
 
     def get_rses(self, rse_expression=None):
-        token = self._get_auth_token()
-        headers = {'X-Rucio-Auth-Token': token}
-
-        urlencoded_params = urlencode({
-            'expression': rse_expression
-        })
-
-        response = requests.get(url=f'{self.base_url}/rses?{urlencoded_params}', headers=headers, verify=self.rucio_ca_cert)
-
-        if response.text == '':
-            return []
-
-        lines = response.text.rstrip('\n').splitlines()
-        results = [json.loads(l)['rse']  for l in lines]
-
-        return results
+        # DEBUG: response = requests.get(url=f'{self.base_url}/rses?{urlencoded_params}', headers=headers, verify=self.rucio_ca_cert)
+        params = {'expression': rse_expression} if rse_expression else None
+        return self._make_rucio_request('GET', 'rses', params=params, parse_json=True, parse_lines=True)
 
     def search_did(self, scope, name, search_type='collection', filters=None, limit=None):
-        token = self._get_auth_token()
-        headers = {'X-Rucio-Auth-Token': token}
-
-        scope = quote(scope)
+        # DEBUG: response = requests.get(url=f'{self.base_url}/dids/{scope}/dids/search?{urlencoded_params}', headers=headers, verify=self.rucio_ca_cert)
         params = {
             'type': search_type,
             'long': '1',
@@ -246,109 +247,41 @@ class RucioAPI:
         if filters:
             filters, _ = parse_did_filter_from_string_fe(filters, name=name)
             params['filters'] = filters
-        urlencoded_params = urlencode(params)
-
-        response = requests.get(url=f'{self.base_url}/dids/{scope}/dids/search?{urlencoded_params}', headers=headers, verify=self.rucio_ca_cert)
-
-        if response.text == '':
-            return []
-
-        lines = response.text.rstrip('\n').splitlines()
-        results = [json.loads(l) for l in lines]
-
-        # Apply limit, TODO: use endpoint parameter once Rucio PR #3872 is merged and released.
+        
+        results = self._make_rucio_request(
+            'GET',
+            f'dids/{scope}/dids/search',
+            params=params,
+            parse_json=True,
+            parse_lines=True
+        )
         if limit is not None:
             results = results[:limit]
-
         return results
 
     def get_metadata(self, scope, name):
-        token = self._get_auth_token()
-        headers = {'X-Rucio-Auth-Token': token}
-
-        scope = quote(scope)
-        name = quote(name)
-
-        response = requests.get(url=f'{self.base_url}/dids/{scope}/{name}/meta', headers=headers, verify=self.rucio_ca_cert)
-
-        if response.text == '':
-            return []
-
-        lines = response.text.rstrip('\n').splitlines()
-        results = [json.loads(l) for l in lines]
-
-        return results
+        # DEBUG: response = requests.get(url=f'{self.base_url}/dids/{scope}/{name}/meta', headers=headers, verify=self.rucio_ca_cert)
+        return self._make_rucio_request('GET', 'dids', scope, name + '/meta', parse_lines=True)
 
     def get_files(self, scope, name):
-        token = self._get_auth_token()
-        headers = {'X-Rucio-Auth-Token': token}
-
-        scope = quote(scope)
-        name = quote(name)
-
-        response = requests.get(url=f'{self.base_url}/dids/{scope}/{name}/files', headers=headers, verify=self.rucio_ca_cert)
-
-        if response.text == '':
-            return []
-
-        lines = response.text.rstrip('\n').splitlines()
-        files = [json.loads(l) for l in lines]
-        return files
+        # DEBUG: response = requests.get(url=f'{self.base_url}/dids/{scope}/{name}/files', headers=headers, verify=self.rucio_ca_cert)
+        return self._make_rucio_request('GET', 'dids', scope, name + '/files', parse_json=True, parse_lines=True)
 
     def get_parents(self, scope, name):
-        token = self._get_auth_token()
-        headers = {'X-Rucio-Auth-Token': token}
-
-        scope = quote(scope)
-        name = quote(name)
-
-        response = requests.get(url=f'{self.base_url}/dids/{scope}/{name}/parents', headers=headers, verify=self.rucio_ca_cert)
-
-        if response.text == '':
-            return []
-
-        lines = response.text.rstrip('\n').splitlines()
-        files = [json.loads(l) for l in lines]
-        return files
+        # DEBUG: response = requests.get(url=f'{self.base_url}/dids/{scope}/{name}/parents', headers=headers, verify=self.rucio_ca_cert)
+        return self._make_rucio_request('GET', 'dids', scope, name + '/parents', parse_json=True, parse_lines=True)
 
     def get_rules(self, scope, name):
-        token = self._get_auth_token()
-        headers = {'X-Rucio-Auth-Token': token}
-
-        scope = quote(scope)
-        name = quote(name)
-
-        response = requests.get(url=f'{self.base_url}/dids/{scope}/{name}/rules', headers=headers, verify=self.rucio_ca_cert)
-
-        if response.text == '':
-            return []
-
-        lines = response.text.rstrip('\n').splitlines()
-        rules = [json.loads(l) for l in lines]
-        return rules
+        # DEBUG: response = requests.get(url=f'{self.base_url}/dids/{scope}/{name}/rules', headers=headers, verify=self.rucio_ca_cert)
+        return self._make_rucio_request('GET', 'dids', scope, name + '/rules', parse_json=True, parse_lines=True)
 
     def get_rule_details(self, rule_id):
-        token = self._get_auth_token()
-        headers = {'X-Rucio-Auth-Token': token}
-        rule_id = quote(rule_id)
-        response = requests.get(url=f'{self.base_url}/rules/{rule_id}', headers=headers, verify=self.rucio_ca_cert)
-        return response.json()
+        # DEBUG: response = requests.get(url=f'{self.base_url}/rules/{rule_id}', headers=headers, verify=self.rucio_ca_cert)
+        return self._make_rucio_request('GET', 'rules', rule_id, parse_json=True)
 
     def get_replicas(self, scope, name):
-        token = self._get_auth_token()
-        headers = {'X-Rucio-Auth-Token': token}
-
-        scope = quote(scope)
-        name = quote(name)
-
-        response = requests.get(url=f'{self.base_url}/replicas/{scope}/{name}', headers=headers, verify=self.rucio_ca_cert)
-
-        if response.text == '':
-            return []
-
-        lines = response.text.rstrip('\n').splitlines()
-        replicas = [json.loads(l) for l in lines]
-        return replicas
+        # DEBUG: response = requests.get(url=f'{self.base_url}/replicas/{scope}/{name}', headers=headers, verify=self.rucio_ca_cert)
+        return self._make_rucio_request('GET', 'replicas', scope, name, parse_json=True, parse_lines=True)
 
     def add_replication_rule(self, dids, copies, rse_expression, weight=None, lifetime=None, grouping='DATASET', account=None,
                              locked=False, source_replica_expression=None, activity=None, notify='N', purge_replicas=False,
