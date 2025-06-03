@@ -155,6 +155,60 @@ class RucioAPI:
         self.auth_url = instance_config.get('rucio_auth_url', self.base_url)
         self.rucio_ca_cert = instance_config.get('rucio_ca_cert', False)    # TODO default should be True
 
+<<<<<<< HEAD
+=======
+    def _build_url(self, endpoint, scope=None, name=None, params=None):
+        """
+        Constructs the full URL with optional scope, name and params.
+        """
+        url_parts = [self.base_url]
+        if endpoint:
+            url_parts.append(endpoint)
+        if scope:
+            url_parts.append(quote(scope))
+        if name:
+            url_parts.append(quote(name))
+        url = '/'.join(url_parts)
+        if params:
+            url = f"{url}?{urlencode(params)}"
+        return url
+
+    def _make_rucio_request(self, method, endpoint, scope=None, name=None, params=None, data=None,
+                            parse_json=False, parse_lines=False):
+        """
+        Centralizes logic for making Rucio API requests and handling errors.
+        """
+        url = self._build_url(endpoint, scope, name, params)
+
+        try:
+            token = self._get_auth_token()
+            headers = {'X-Rucio-Auth-Token': token}
+
+            response = requests.request(
+                method=method,
+                url=url,
+                headers=headers,
+                data=data,
+                verify=self.rucio_ca_cert
+            )
+
+            response.raise_for_status()
+
+            if parse_json:
+                if parse_lines:
+                    if response.text.strip():
+                        return [json.loads(line) for line in response.text.strip().splitlines()]
+                    else:
+                        return []
+                return response.json() if response.text else {}
+            else:
+                return response.text
+
+        except Exception:
+            logger.exception(f"An error occurred during the {method.upper()} request to {url}")
+            raise RucioAPIException(response)
+
+>>>>>>> 1cf7b8f (fix: improve error habdling to avoid UnboundLocalError)
     def get_scopes(self):
         token = self._get_auth_token()
         headers = {'X-Rucio-Auth-Token': token}
