@@ -308,7 +308,7 @@ singleuser:
     RUCIO_OIDC_AUTH: "env"
     RUCIO_OIDC_ENV_NAME: "RUCIO_ACCESS_TOKEN"
     RUCIO_DEFAULT_AUTH_TYPE: "oidc"
-    RUCIO_DEFAULT_LOGLEVEL: "warning"
+    RUCIO_LOG_LEVEL: "warning"
     RUCIO_OAUTH_ID: "<your-rucio-oauth-id>" # audience
     RUCIO_DEFAULT_INSTANCE: "<your-rucio-instance-name>""
     RUCIO_DESTINATION_RSE: "EOS RSE"

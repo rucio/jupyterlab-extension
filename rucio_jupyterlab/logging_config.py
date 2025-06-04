@@ -21,7 +21,7 @@ def setup_logging(web_app):  # pragma: no cover
     if logger.hasHandlers():
         return  # Avoid adding multiple handlers
     
-    level = config.get_default_loglevel().upper()
+    level = config.get_log_level().upper()
     numeric_level = getattr(logging, level, logging.WARNING)
 
     handler = logging.StreamHandler(sys.stdout)
