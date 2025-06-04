@@ -91,8 +91,12 @@ class RucioFileUploader:
 
         upload_logger = logging.getLogger('UploadLogger')
         upload_logger.setLevel(logging.DEBUG)
-        upload_logger.addHandler(logging.FileHandler(logfile_path))
-        upload_logger.addHandler(logging.StreamHandler())
+        
+        if not upload_logger.hasHandlers():
+            upload_logger.addHandler(logging.FileHandler(logfile_path))
+            upload_logger.addHandler(logging.StreamHandler())
+
+        upload_logger.propagate = False  # prevent bubbling up to root
 
         item = {
             'path': os.path.abspath(file_path),

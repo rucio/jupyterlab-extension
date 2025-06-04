@@ -58,6 +58,7 @@ def write_jupyterlab_config():
         'instances': [instance_config],
         "default_instance": os.getenv('RUCIO_DEFAULT_INSTANCE'),
         "default_auth_type": os.getenv('RUCIO_DEFAULT_AUTH_TYPE'),
+        "default_loglevel": os.getenv('RUCIO_DEFAULT_LOGLEVEL'),
     }
 
     config_file = open(file_path, 'w')
