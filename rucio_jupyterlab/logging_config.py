@@ -7,16 +7,21 @@
 # Authors:
 # - Giovanni Guerrieri, <giovanni.guerrieri@cern.ch>, 2025
 
+from rucio_jupyterlab.config.config import RucioConfig, Config
 import logging
 import os
 import sys
+def setup_logging(web_app):  # pragma: no cover
+    host_pattern = ".*$"
 
-def setup_logging(level: str = None):
+    rucio_config = RucioConfig(config=web_app.settings['config'])
+    config = Config(rucio_config)
+    
     logger = logging.getLogger("rucio_jupyterlab")
     if logger.hasHandlers():
         return  # Avoid adding multiple handlers
-
-    level = level or os.environ.get("RUCIO_JUPYTERLAB_LOGLEVEL", "WARNING").upper()
+    
+    level = config.get_default_loglevel().upper()
     numeric_level = getattr(logging, level, logging.WARNING)
 
     handler = logging.StreamHandler(sys.stdout)
@@ -30,4 +35,4 @@ def setup_logging(level: str = None):
 
     logger.propagate = False
 
-    logger.debug(f"Logging initialized at level: {level}")
+    logger.info(f"Logging initialized at level: {level}")

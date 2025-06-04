@@ -7,8 +7,9 @@
 # Authors:
 # - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
 
-from .handlers import setup_handlers
-from .logging_config import setup_logging
+from rucio_jupyterlab.handlers import setup_handlers
+from rucio_jupyterlab.config.config import RucioConfig, Config
+from rucio_jupyterlab.logging_config import setup_logging
 import logging
 
 def load_jupyter_server_extension(server_app):  # pragma: no cover
@@ -22,10 +23,7 @@ def load_jupyter_server_extension(server_app):  # pragma: no cover
     setup_handlers(server_app.web_app)
     server_app.log.info("Registered Rucio JupyterLab extension at URL path /rucio-jupyterlab")
 
-    setup_logging()  # Will use RUCIO_JUPYTERLAB_LOGLEVEL or default to WARNING
+    setup_logging(server_app.web_app)  # Will use the default value in the jupyter_server_config.json or default to INFO (see RucioConfig in rucio_jupyterlab.config.config)
 
     logger = logging.getLogger("rucio_jupyterlab")
     logger.info("Rucio JupyterLab server extension loaded.")
-
-
-_load_jupyter_server_extension = load_jupyter_server_extension

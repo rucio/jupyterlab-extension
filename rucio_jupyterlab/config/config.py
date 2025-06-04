@@ -20,6 +20,7 @@ class RucioConfig(Configurable):  # pragma: no cover
     instances = List(Dict(config=True), config=True)
     default_instance = Unicode(config=True, default_value=None, allow_none=True)
     default_auth_type = Enum(["userpass", "x509", "x509_proxy", "oidc", None], default_value=None, config=True)
+    default_loglevel = Enum(["debug", "info", "warning", "error", "critical"], default_value="warning", config=True)
 
 
 class Config:
@@ -77,6 +78,9 @@ class Config:
 
     def get_default_instance(self):
         return self.config.default_instance
+    
+    def get_default_loglevel(self):
+        return self.config.default_loglevel
 
     def get_default_auth_type(self):
         return self.config.default_auth_type
