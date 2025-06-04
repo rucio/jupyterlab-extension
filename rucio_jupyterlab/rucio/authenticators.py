@@ -165,7 +165,7 @@ def authenticate_oidc(base_url, oidc_auth, oidc_auth_source, rucio_ca_cert=False
         lifetime = jwt_payload['exp']
 
         logger.debug(f"OIDC authentication successful. Token subject: {jwt_payload.get('sub')}, expires at: {lifetime}")
-        return (jwt_payload.get('sub', None), lifetime)
+        return (oidc_token, lifetime)
     except requests.exceptions.HTTPError as e:
         logger.exception("HTTP error during OIDC authentication.")
         raise RucioAuthenticationException(e.response)
