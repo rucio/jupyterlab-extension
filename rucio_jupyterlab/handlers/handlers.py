@@ -54,7 +54,6 @@ def setup_handlers(web_app):  # pragma: no cover
         (url_path_join(base_path, 'upload', 'jobs'), UploadJobsHandler, handler_params),
         (url_path_join(base_path, 'upload', 'jobs', 'details'), UploadJobsDetailsHandler, handler_params),
         (url_path_join(base_path, 'upload', 'jobs', 'log'), UploadJobsLogHandler, handler_params),
-        (url_path_join(base_path, 'upload'), UploadHandler, handler_params),
-
+        (url_path_join(base_path, 'upload'), UploadHandler, handler_params)
     ]
     web_app.add_handlers(host_pattern, handlers)

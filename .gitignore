@@ -2,6 +2,7 @@
 lib/
 node_modules/
 *.log
+*.pem
 .eslintcache
 .stylelintcache
 *.egg-info/
@@ -28,6 +29,7 @@ __pycache__/
 *.so
 
 # Distribution / packaging
+env/
 .Python
 build/
 develop-eggs/

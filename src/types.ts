@@ -21,6 +21,8 @@ interface IRucioAuth {
   account?: string;
 }
 
+export interface IRucioOIDCAuth extends IRucioAuth {}
+
 export interface IRucioUserpassAuth extends IRucioAuth {
   username: string;
   password: string;
@@ -38,7 +40,8 @@ export interface IRucioX509ProxyAuth extends IRucioAuth {
 export type RucioAuthCredentials =
   | IRucioUserpassAuth
   | IRucioX509Auth
-  | IRucioX509ProxyAuth;
+  | IRucioX509ProxyAuth
+  | IRucioOIDCAuth;
 
 export type RucioAuthType = 'userpass' | 'x509' | 'x509_proxy' | 'oidc';
 
