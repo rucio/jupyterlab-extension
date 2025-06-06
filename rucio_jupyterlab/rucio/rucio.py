@@ -6,6 +6,8 @@
 #
 # Authors:
 # - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
+# - Giovanni Guerrieri, <giovanni.guerrieri@cern.ch>, 2025
+# - Enrique Garcia, <enrique.garcia.garcia@cern.ch>, 2025
 
 import logging
 import re
@@ -321,7 +323,7 @@ class RucioAPI:
         if cached_token:
             return cached_token
 
-        token, expiry = self._authenticate()
+        token, expiry = self.authenticate(self.auth_config, self.auth_type)
         RucioAPI.rucio_auth_token_cache[instance_name] = (token, expiry)
         return token
 
@@ -333,9 +335,7 @@ class RucioAPI:
 
         return None
 
-    def _authenticate(self):
-        auth_config = self.auth_config
-        auth_type = self.auth_type
+    def authenticate(self, auth_config, auth_type):
 
         if not auth_type:
             raise RucioAuthenticationException()

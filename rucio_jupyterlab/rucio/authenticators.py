@@ -12,7 +12,7 @@ import logging
 import requests
 import jwt
 from rucio_jupyterlab import utils
-from .utils import parse_timestamp, get_oidc_token
+from rucio_jupyterlab.rucio.utils import parse_timestamp, get_oidc_token
 
 # Setup logging
 logger = logging.getLogger(__name__)
