@@ -14,8 +14,6 @@ from rucio_jupyterlab.db import get_db
 from rucio_jupyterlab.rucio import RucioAPI
 from .base import RucioAPIHandler
 from rucio_jupyterlab.metrics import prometheus_metrics
-from rucio_jupyterlab.rucio.authenticators import authenticate_userpass, authenticate_x509, authenticate_oidc
-
 
 
 class AuthConfigHandler(RucioAPIHandler):
