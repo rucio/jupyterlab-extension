@@ -91,7 +91,6 @@ class DIDSearchHandler(RucioAPIHandler):
         except RucioAPIException as e:
             # Set the HTTP status from the exception, falling back to 500 if not present
             self.set_status(e.status_code or 500)
-            
             # Finish the request with a detailed JSON error payload
             self.finish(json.dumps({
                 'success': False,
