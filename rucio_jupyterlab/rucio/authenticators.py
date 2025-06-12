@@ -13,31 +13,10 @@ import requests
 import jwt
 from rucio_jupyterlab import utils
 from rucio_jupyterlab.rucio.utils import parse_timestamp, get_oidc_token
+from rucio_jupyterlab.rucio.exceptions import RucioAuthenticationException, RucioRequestsException, RucioHTTPException
 
 # Setup logging
 logger = logging.getLogger(__name__)
-
-
-class RucioAuthenticationException(Exception):
-    def __init__(self, response):
-        if isinstance(response, str):
-            logger.debug(f"RucioAuthenticationException initialized with string response: {response}")
-            self.status_code = None
-            self.reason = 'Unknown'
-            self.headers = {}
-            self.exception_class = None
-            self.exception_message = None
-            self.message = response
-        else:
-            self.status_code = getattr(response, 'status_code', None)
-            self.reason = getattr(response, 'reason', 'Unknown')
-            self.headers = getattr(response, 'headers', {})
-            self.exception_class = self.headers.get('ExceptionClass', None)
-            self.exception_message = self.headers.get('ExceptionMessage', None)
-            self.message = self.exception_message or (response.text if hasattr(response, 'text') else 'Unknown authentication error')
-
-        super().__init__(f"Authentication failed: {self.status_code} {self.reason}. "
-                         f"Message: {self.message}")
 
 def authenticate_userpass(base_url, username, password, account=None, vo=None, app_id=None, rucio_ca_cert=False):
     response = None  # predefine response to avoid UnboundLocalError
@@ -73,16 +52,16 @@ def authenticate_userpass(base_url, username, password, account=None, vo=None, a
     
     except requests.exceptions.HTTPError as e:
         logger.debug(f"HTTP error during userpass authentication: {e.response.status_code} {e.response.reason}")
-        logger.exception("HTTP error during userpass authentication.")
-        raise RucioAuthenticationException(e.response)
+        logger.error("HTTP error during userpass authentication.")
+        raise RucioHTTPException(e.response)
 
     except requests.exceptions.RequestException as e:
         logger.debug(f"Request failed during userpass authentication: {str(e)}")
-        logger.exception("Request failed during userpass authentication.")
-        raise RucioAuthenticationException(str(e))
+        logger.error("Request failed during userpass authentication.")
+        raise RucioRequestsException(str(e))
 
     except Exception as e:
-        logger.exception("Unexpected error during userpass authentication.")
+        logger.error("Unexpected error during userpass authentication.")
         # fallback: may still raise with partial response
         raise RucioAuthenticationException(response if response is not None else str(e))
 
@@ -127,15 +106,15 @@ def authenticate_x509(base_url, cert_path, key_path=None, account=None, vo=None,
         return (auth_token, expires)
     
     except requests.exceptions.HTTPError as e:
-        logger.exception("HTTP error during x509 authentication.")
-        raise RucioAuthenticationException(e.response)
+        logger.error("HTTP error during x509 authentication.")
+        raise RucioHTTPException(e.response)
 
     except requests.exceptions.RequestException as e:
-        logger.exception("Request failed during x509 authentication.")
-        raise RucioAuthenticationException(str(e))
+        logger.error("Request failed during x509 authentication.")
+        raise RucioRequestsException(str(e))
 
     except Exception as e:
-        logger.exception("Unexpected error during x509 authentication.")
+        logger.error("Unexpected error during x509 authentication.")
         # fallback: may still raise with partial response
         raise RucioAuthenticationException(response if response is not None else str(e))
 
@@ -167,14 +146,14 @@ def authenticate_oidc(base_url, oidc_auth, oidc_auth_source, rucio_ca_cert=False
         logger.debug(f"OIDC authentication successful. Token subject: {jwt_payload.get('sub')}, expires at: {lifetime}")
         return (oidc_token, lifetime)
     except requests.exceptions.HTTPError as e:
-        logger.exception("HTTP error during OIDC authentication.")
-        raise RucioAuthenticationException(e.response)
+        logger.error("HTTP error during OIDC authentication.")
+        raise RucioHTTPException(e.response)
 
     except requests.exceptions.RequestException as e:
-        logger.exception("Request failed during OIDC authentication.")
-        raise RucioAuthenticationException(str(e))
+        logger.error("Request failed during OIDC authentication.")
+        raise RucioRequestsException(str(e))
 
     except Exception as e:
-        logger.exception("Unexpected error during OIDC authentication.")
+        logger.error("Unexpected error during OIDC authentication.")
         # fallback: may still raise with partial response
         raise RucioAuthenticationException(response if response is not None else str(e))
