@@ -188,10 +188,27 @@ export const ListScopesPopover: React.FC<MyProps> = ({
     actions
       .fetchScopes(activeInstance.name)
       .then(result => {
-        result.sort((a, b) => a.localeCompare(b));
-        setScopes(result);
+        // Check if the request was successful and result.scopes is an array
+        if (result && result.success && Array.isArray(result.scopes)) {
+          // Correctly access the 'scopes' property which is a string array
+          const scopesArray = result.scopes;
+          
+          // Now, sort the array. This works because scopesArray is a string[]
+          scopesArray.sort((a, b) => a.localeCompare(b));
+          
+          // Update the state with the sorted array
+          setScopes(scopesArray);
+          
+          console.log('Scopes fetched and sorted:', scopesArray);
+        } else {
+          // Handle API errors or unexpected data structure
+          console.error('Failed to fetch scopes:', result?.error || 'Data is not in the expected format.');
+        }
       })
-      .catch(e => console.log(e)) // TODO handle error
+      .catch(e => {
+        console.error('An error occurred while fetching scopes:', e);
+        // Optionally, update the UI to show an error message
+      })
       .finally(() => setLoading(false));
   };
 

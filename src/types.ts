@@ -56,6 +56,12 @@ export interface IAttachedFile {
   size: number;
 }
 
+export interface IFetchScopesResult {
+  success: boolean;
+  scopes: string[];
+  error?: string; // Optional property for error messages
+}
+
 export interface IFileDIDDetails {
   status: FileStatus;
   did: string;
