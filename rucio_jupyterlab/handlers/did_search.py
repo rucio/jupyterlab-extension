@@ -12,7 +12,7 @@ import json
 import logging
 import tornado
 from rucio_jupyterlab.db import get_db
-from rucio_jupyterlab.rucio.authenticators import RucioAuthenticationException
+from rucio_jupyterlab.rucio.exceptions import RucioAPIException
 import rucio_jupyterlab.utils as utils
 from .base import RucioAPIHandler
 from rucio_jupyterlab.metrics import prometheus_metrics
@@ -84,11 +84,18 @@ class DIDSearchHandler(RucioAPIHandler):
             dids = handler.search_did(scope, name, search_type, filters, ROW_LIMIT)
             logger.info(f"DID search successful. Returning {len(dids)} results.")
             self.finish(json.dumps(dids))
-        except RucioAuthenticationException:
-            logger.error("Authentication error during DID search.")
-            self.set_status(401)
-            self.finish(json.dumps({'error': 'authentication_error'}))
         except WildcardDisallowedException:
             logger.warning("Wildcard search is disabled and was attempted.")
             self.set_status(400)
             self.finish(json.dumps({'error': 'wildcard_disabled'}))
+        except RucioAPIException as e:
+            # Set the HTTP status from the exception, falling back to 500 if not present
+            self.set_status(e.status_code or 500)
+            
+            # Finish the request with a detailed JSON error payload
+            self.finish(json.dumps({
+                'success': False,
+                'error': e.message,
+                'exception_class': e.exception_class,
+                'exception_message': e.exception_message
+            }))

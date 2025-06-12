@@ -19,6 +19,7 @@ import {
   RucioAuthType,
   RucioAuthCredentials,
   IInstanceConfig,
+  IFetchScopesResult,
   IDirectoryItem,
   DIDSearchType,
   IDIDSearchResult,
@@ -90,9 +91,9 @@ export class Actions {
     return requestAPI<IDIDSearchResult[]>(`did-search?${qs.encode(query)}`);
   }
 
-  async fetchScopes(namespace: string): Promise<string[]> {
+  async fetchScopes(namespace: string): Promise<IFetchScopesResult> {
     const query = { namespace };
-    return requestAPI<string[]>(`list-scopes?${qs.encode(query)}`);
+    return requestAPI<IFetchScopesResult>(`list-scopes?${qs.encode(query)}`);
   }
 
   async fetchRSEs(namespace: string, expression?: string): Promise<string[]> {
