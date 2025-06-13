@@ -284,7 +284,7 @@ const _Settings: React.FunctionComponent = props => {
             putAuthConfigError = `${errorMessage}${
               exceptionClass ? ` (Exception Class: ${exceptionClass})` : ''
             }${
-              exceptionMessage
+              exceptionMessage && exceptionMessage !== errorMessage
                 ? ` (Exception Message: ${exceptionMessage})`
                 : ''
             }`;

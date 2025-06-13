@@ -80,9 +80,9 @@ def authenticate_x509(base_url, cert_path, key_path=None, account=None, vo=None,
             key_path = cert_path  # Use cert_path as key_path if not provided
 
         if not os.path.exists(cert_path):
-            raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), cert_path)
+            raise FileNotFoundError(errno.ENOENT, "File not found during x509 authentication: " + os.strerror(errno.ENOENT), cert_path)
         if not os.path.exists(key_path):
-            raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), key_path)
+            raise FileNotFoundError(errno.ENOENT, "File not found during x509 authentication: " + os.strerror(errno.ENOENT), key_path)
 
         account = account if account != '' else None
         headers = {
@@ -123,7 +123,7 @@ def authenticate_x509(base_url, cert_path, key_path=None, account=None, vo=None,
         logger.error("Request failed during x509 authentication.")
         raise RucioRequestsException(str(e))
     except FileNotFoundError as e:
-        logger.error(f"File(s) not found: {key_path}")
+        logger.error(e)
         raise FileNotFoundError(e)
     except Exception as e:
         logger.error("Unexpected error during x509 authentication.")
