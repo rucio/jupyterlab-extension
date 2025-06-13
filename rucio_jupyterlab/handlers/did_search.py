@@ -55,10 +55,19 @@ class DIDSearchHandlerImpl:
 
         def mapper(entry, _):
             logger.debug(f"Mapping entry: {entry}")
+            did_type = entry.get('did_type')
+            type_str = ''
+            if isinstance(did_type, str):
+                if '.' in did_type:
+                    type_str = did_type.split('.', 1)[-1].lower()
+                else:
+                    type_str = did_type.lower()
+            else:
+                logger.warning(f"Unexpected did_type format: {did_type!r}")
             return {
-                'did': entry.get('scope') + ':' + entry.get('name'),
+                'did': f"{entry.get('scope')}:{entry.get('name')}",
                 'size': entry.get('bytes'),
-                'type': (entry.get('did_type').lower()).split(".")[1]
+                'type': type_str
             }
 
         result = utils.map(dids, mapper)
