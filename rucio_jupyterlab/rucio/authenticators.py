@@ -10,7 +10,7 @@
 
 import logging
 import requests
-import jwt
+import jwt, os, errno
 from rucio_jupyterlab import utils
 from rucio_jupyterlab.rucio.utils import parse_timestamp, get_oidc_token
 from rucio_jupyterlab.rucio.exceptions import RucioAuthenticationException, RucioRequestsException, RucioHTTPException
@@ -73,6 +73,17 @@ def authenticate_x509(base_url, cert_path, key_path=None, account=None, vo=None,
         logger.debug("Starting x509 authentication...")
         logger.debug(f"base_url: {base_url}, cert_path: {cert_path}, key_path: {key_path}, account: {account}, vo: {vo}, app_id: {app_id}, rucio_ca_cert: {rucio_ca_cert}")
 
+        if not cert_path:
+            logger.error("cert_path must be provided for x509 authentication")
+            raise ValueError("cert_path must be provided for x509 authentication")
+        if not key_path:
+            key_path = cert_path  # Use cert_path as key_path if not provided
+
+        if not os.path.exists(cert_path):
+            raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), cert_path)
+        if not os.path.exists(key_path):
+            raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), key_path)
+
         account = account if account != '' else None
         headers = {
             'X-Rucio-Account': account,
@@ -108,14 +119,14 @@ def authenticate_x509(base_url, cert_path, key_path=None, account=None, vo=None,
     except requests.exceptions.HTTPError as e:
         logger.error("HTTP error during x509 authentication.")
         raise RucioHTTPException(e.response)
-
     except requests.exceptions.RequestException as e:
         logger.error("Request failed during x509 authentication.")
         raise RucioRequestsException(str(e))
-
+    except FileNotFoundError as e:
+        logger.error(f"File(s) not found: {key_path}")
+        raise FileNotFoundError(e)
     except Exception as e:
         logger.error("Unexpected error during x509 authentication.")
-        # fallback: may still raise with partial response
         raise RucioAuthenticationException(response if response is not None else str(e))
 
 
