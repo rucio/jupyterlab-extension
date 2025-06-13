@@ -33,6 +33,4 @@ def setup_logging(web_app):  # pragma: no cover
     handler.setLevel(numeric_level)
     logger.addHandler(handler)
 
-    logger.propagate = False
-
     logger.info(f"Logging initialized at level: {level}")
