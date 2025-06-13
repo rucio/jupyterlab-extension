@@ -310,7 +310,7 @@ singleuser:
     RUCIO_DEFAULT_AUTH_TYPE: "oidc"
     RUCIO_LOG_LEVEL: "warning"
     RUCIO_OAUTH_ID: "<your-rucio-oauth-id>" # audience
-    RUCIO_DEFAULT_INSTANCE: "<your-rucio-instance-name>""
+    RUCIO_DEFAULT_INSTANCE: "<your-rucio-instance-name>"
     RUCIO_DESTINATION_RSE: "EOS RSE"
     RUCIO_RSE_MOUNT_PATH: "/eos/eos-rse"
     RUCIO_PATH_BEGINS_AT: "4"

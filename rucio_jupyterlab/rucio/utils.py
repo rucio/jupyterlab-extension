@@ -9,8 +9,10 @@
 
 import time
 import calendar
-import os
+import os, errno
+import logging
 
+logger = logging.getLogger(__name__)
 
 def parse_timestamp(timestr):
     time_struct = time.strptime(timestr, '%a, %d %b %Y %H:%M:%S %Z')
@@ -20,9 +22,17 @@ def parse_timestamp(timestr):
 def get_oidc_token(oidc_auth, oidc_auth_source):
     try:
         if oidc_auth == 'env':
+            if oidc_auth_source not in os.environ:
+                raise KeyError(f"Environment variable '{oidc_auth_source}' not found.")
             return os.environ[oidc_auth_source]
         elif oidc_auth == 'file':
+            if not os.path.exists(oidc_auth_source):
+                raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), cert_path)
             with open(oidc_auth_source) as f:
                 return f.read()
-    except:
-        return None
+    except FileNotFoundError as e:
+        logger.error(f"Token file not found: {oidc_auth_source}")
+        raise FileNotFoundError(e)
+    except KeyError as e:
+        logger.error(f"Environment variable not found: {oidc_auth_source}")
+        raise KeyError(e)
