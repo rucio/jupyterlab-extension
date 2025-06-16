@@ -44,6 +44,10 @@ class DIDSearchHandlerImpl:
         dids = self.rucio.search_did(scope, name, search_type, filters, limit)
         logger.debug(f"Initial search results: {dids}")
 
+        # Check if dids is empty
+        if not dids:
+            raise ValueError(f"No DIDs found for scope: \"{scope}\". Please check the parameters or try a different search.")
+
         for did in dids:
             if did['did_type'] is None:  # JSON plugin was used lacking data
                 logger.debug(f"Fetching metadata for DID with scope: {scope}, name: {did['name']}")
@@ -86,7 +90,18 @@ class DIDSearchHandler(RucioAPIHandler):
         logger.info(f"Received DID search request: namespace={namespace}, type={search_type}, did={did}, filters={filters}")
         rucio = self.rucio.for_instance(namespace)
 
-        (scope, name) = did.split(':')
+        try:
+            (scope, name) = did.split(':')
+            if not scope or not name:
+                raise ValueError()
+        except ValueError as e:
+            logger.error(f"Malformed DID received: '{did}'. Expected format: scope:name")
+            self.set_status(400)
+            self.finish(json.dumps({
+                'success': False,
+                'error': str(f"Malformed DID received: '{did}'. Expected format: scope:name")
+            }))
+            return
         handler = DIDSearchHandlerImpl(namespace, rucio)
 
         try:
@@ -106,4 +121,11 @@ class DIDSearchHandler(RucioAPIHandler):
                 'error': e.message,
                 'exception_class': e.exception_class,
                 'exception_message': e.exception_message
+            }))
+        except ValueError as e:
+            logger.warning(e)
+            self.set_status(404)
+            self.finish(json.dumps({
+                'success': False,
+                'error': str(e)
             }))
