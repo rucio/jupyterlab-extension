@@ -157,10 +157,8 @@ export const ListScopesPopover: React.FC<MyProps> = ({
   const popoverBody = (
     <div className={classes.main}>
       <div className={classes.heading}>
-        { scopeResult.length > 0 ? (
-          <div className={classes.errorText}>
-            {scopeResult.join(', ')}
-          </div>
+        {scopeResult.length > 0 ? (
+          <div className={classes.errorText}>{scopeResult.join(', ')}</div>
         ) : (
           <div className={classes.headingText}>Available scopes</div>
         )}
@@ -203,28 +201,31 @@ export const ListScopesPopover: React.FC<MyProps> = ({
       .fetchScopes(activeInstance.name)
       .then(result => {
         console.log('Fetched scopes:', result);
-  
+
         if (!result.success) {
           const errorMsg = result.error || 'Failed to fetch scopes';
           setScopeResult([errorMsg]);
           setLoading(false);
           return;
         }
-  
+
         if (result && result.success && Array.isArray(result.scopes)) {
           // Correctly access the 'scopes' property which is a string array
           const scopesArray = result.scopes;
-          
+
           // Now, sort the array. This works because scopesArray is a string[]
           scopesArray.sort((a, b) => a.localeCompare(b));
-          
+
           // Update the state with the sorted array
           setScopes(scopesArray);
-          
+
           console.log('Scopes fetched and sorted:', scopesArray);
         } else {
           // Handle API errors or unexpected data structure
-          console.error('Failed to fetch scopes:', result?.error || 'Data is not in the expected format.');
+          console.error(
+            'Failed to fetch scopes:',
+            result?.error || 'Data is not in the expected format.'
+          );
         }
       })
       .catch(e => {
