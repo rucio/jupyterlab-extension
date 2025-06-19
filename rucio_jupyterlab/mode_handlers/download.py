@@ -6,6 +6,7 @@
 #
 # Authors:
 # - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
+# - Giovanni Guerrieri, <giovanni.guerrieri@cern.ch>, 2025
 
 import os
 import multiprocessing as mp
@@ -153,7 +154,6 @@ class DownloadModeHandler:
 
             results = utils.map(attached_files, result_mapper)
             logger.info("Successfully fetched details for %d files for DID '%s'.", len(results), did)
-            print(f"Results for DID '{did}': {results}")  # Debugging output 
             return results
             
         except RucioAPIException as e:
@@ -168,7 +168,6 @@ class DownloadModeHandler:
         Checks for and reads an error.json file.
         """
         dest_folder = RucioFileDownloader.get_dest_folder(self.namespace, did)
-        print(f"Checking for error file in destination folder: {dest_folder}")  # Debugging output
         error_file_path = os.path.join(dest_folder, 'error.json')
         if os.path.exists(error_file_path):
             try:

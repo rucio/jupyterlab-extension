@@ -6,6 +6,7 @@
 #
 # Authors:
 # - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
+# - Giovanni Guerrieri, <giovanni.guerrieri@cern.ch>, 2025
 
 import os
 import time
@@ -49,10 +50,6 @@ class RucioFileDownloader:
     def start_download_target(namespace, did, rucio):
         dest_folder = RucioFileDownloader.get_dest_folder(namespace, did)
         logger.info(f"Preparing to download DID '{did}' to '{dest_folder}'.")
-
-        # if RucioFileDownloader.is_downloading(dest_folder):
-        #     logger.warning(f"Download already in progress for DID '{did}'. Skipping.")
-        #     return
 
         try:
             with RucioClientEnvironment(rucio) as rucio_home:
