@@ -25,25 +25,25 @@ class DIDMakeAvailableHandler(RucioAPIHandler):
     def post(self):
         logger.info("Received request to make DID available")
         namespace = self.get_query_argument('namespace')
-        logger.info(f"Namespace: {namespace}")
+        logger.debug(f"Namespace: {namespace}")
         
         json_body = self.get_json_body()
         did = json_body['did']
-        logger.info(f"DID: {did}")
+        logger.debug(f"DID: {did}")
         
         scope, name = did.split(':')
-        logger.info(f"Scope: {scope}, Name: {name}")
+        logger.debug(f"Scope: {scope}, Name: {name}")
 
         rucio_instance = self.rucio.for_instance(namespace)
         mode = rucio_instance.instance_config.get('mode', 'replica')
-        logger.info(f"Mode: {mode}")
+        logger.debug(f"Mode: {mode}")
 
         if mode == 'replica':
             handler = ReplicaModeHandler(namespace, rucio_instance)
-            logger.info("Using ReplicaModeHandler")
+            logger.debug("Using ReplicaModeHandler")
         elif mode == 'download':
             handler = DownloadModeHandler(namespace, rucio_instance)
-            logger.info("Using DownloadModeHandler")
+            logger.debug("Using DownloadModeHandler")
 
         try:
             output = handler.make_available(scope, name)

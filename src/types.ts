@@ -68,6 +68,7 @@ export interface IFileDIDDetails {
   path?: string;
   pfn?: string;
   size: number;
+  error?: string;
 }
 
 export interface INotebookDIDAttachment {
@@ -82,7 +83,7 @@ export interface IDirectoryItem {
   path: string;
 }
 
-export type FileStatus = 'OK' | 'REPLICATING' | 'NOT_AVAILABLE' | 'STUCK';
+export type FileStatus = 'OK' | 'REPLICATING' | 'NOT_AVAILABLE' | 'STUCK' | 'FAILED';
 export type CollectionStatus =
   | 'NOT_AVAILABLE'
   | 'AVAILABLE'

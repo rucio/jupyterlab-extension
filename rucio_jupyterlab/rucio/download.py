@@ -8,6 +8,7 @@
 # - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
 
 import os
+import time
 import logging
 import base64
 import json
@@ -26,35 +27,60 @@ def rucio_logger(level, msg, *args, **kwargs):
 
 class RucioFileDownloader:
     @staticmethod
+    def write_errorfile(dest_folder, exception):
+        """
+        Writes exception details to an error.json file in the destination folder.
+        """
+        error_file_path = os.path.join(dest_folder, 'error.json')
+        
+        # Create a serializable payload from the exception
+        error_payload = {
+            'success': False,
+            'error': 'DownloadFailed',
+            'exception_class': exception.__class__.__name__,
+            # Use getattr to safely access optional attributes on the exception
+            'exception_message': str(exception)
+        }
+        
+        logger.error(f"Writing error file to '{error_file_path}' with details: {error_payload}")
+        with open(error_file_path, 'w') as f:
+            json.dump(error_payload, f)
+
     def start_download_target(namespace, did, rucio):
         dest_folder = RucioFileDownloader.get_dest_folder(namespace, did)
         logger.info(f"Preparing to download DID '{did}' to '{dest_folder}'.")
 
-        if RucioFileDownloader.is_downloading(dest_folder):
-            logger.warning(f"Download already in progress for DID '{did}' in '{dest_folder}'. Skipping new download request.")
-            return
+        # if RucioFileDownloader.is_downloading(dest_folder):
+        #     logger.warning(f"Download already in progress for DID '{did}'. Skipping.")
+        #     return
 
         try:
             with RucioClientEnvironment(rucio) as rucio_home:
-                logger.debug(f"Rucio environment prepared at '{rucio_home}'.")
                 os.makedirs(dest_folder, exist_ok=True)
-                logger.debug(f"Ensured destination folder exists: '{dest_folder}'.")
-                RucioFileDownloader.write_lockfile(dest_folder)
-                logger.info(f"Lockfile written for '{dest_folder}'.")
-
+                
                 try:
                     results = RucioFileDownloader.download(dest_folder, did)
-                    logger.info(f"Download results for DID '{did}': {results}")
+                    logger.info(f"Download successful for DID '{did}'.")
                     RucioFileDownloader.write_donefile(dest_folder, results)
                     logger.info(f"Donefile written for '{dest_folder}'.")
+                
                 except Exception as e:
-                    logger.exception(f"Download failed for DID '{did}' in '{dest_folder}': {e}")
-                    raise
+                    # Log the exception and write the error file
+                    logger.exception(f"Download failed for DID '{did}': {e}")
+                    RucioFileDownloader.write_errorfile(dest_folder, e)
+                
                 finally:
+                    # Always remove the lockfile when the operation is complete (or has failed)
                     RucioFileDownloader.delete_lockfile(dest_folder)
                     logger.debug(f"Lockfile deleted for '{dest_folder}'.")
+
         except Exception as e:
-            logger.error(f"Failed to start download for DID '{did}' in '{dest_folder}': {e}")
+            # Catch any other exception during setup (e.g., permissions)
+            logger.error(f"A critical error occurred before download could start for DID '{did}': {e}")
+            # Ensure the destination folder exists to write the error file
+            os.makedirs(dest_folder, exist_ok=True)
+            RucioFileDownloader.write_errorfile(dest_folder, e)
+            RucioFileDownloader.delete_lockfile(dest_folder)
 
     @staticmethod
     def is_downloading(dest_path):
@@ -110,16 +136,26 @@ class RucioFileDownloader:
             raise
 
     @staticmethod
-    def write_lockfile(dest_folder):
-        file_path = os.path.join(dest_folder, '.lockfile')
+    def write_lockfile(dest_path):
+        """
+        Atomically creates a lockfile. Returns True on success, False if lock exists.
+        """
+        lockfile_path = os.path.join(dest_path, '.lockfile')
         try:
-            with open(file_path, 'w') as lockfile:
-                content = str(os.getpid())
-                lockfile.write(content)
-            logger.debug(f"Lockfile written at '{file_path}' with PID {os.getpid()}.")
+            # os.O_CREAT | os.O_EXCL is the key. It's an atomic "create if not exists" operation.
+            # It will raise FileExistsError if the lockfile already exists.
+            fd = os.open(lockfile_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            with os.fdopen(fd, 'w') as f:
+                f.write(str(os.getpid()))
+            logger.info(f"Successfully acquired lock for '{dest_path}'.")
+            return True
+        except FileExistsError:
+            logger.warning(f"Lockfile already exists at '{lockfile_path}'. Another process is active.")
+            # Optional: Add logic here to check if the lock is stale (e.g., older than 24 hours)
+            return False
         except Exception as e:
-            logger.error(f"Failed to write lockfile at '{file_path}': {e}")
-            raise
+            logger.error(f"Failed to create lockfile at '{lockfile_path}': {e}")
+            return False
 
     @staticmethod
     def delete_lockfile(dest_folder):
@@ -132,6 +168,22 @@ class RucioFileDownloader:
                 logger.debug(f"No lockfile to delete at '{file_path}'.")
         except Exception as e:
             logger.warning(f"Failed to delete lockfile at '{file_path}': {e}")
+
+    @staticmethod
+    def delete_errorfile(dest_folder):
+        """
+        Deletes the error.json file in the specified destination folder if it exists.
+        Logs the action or any errors encountered.
+        """
+        file_path = os.path.join(dest_folder, 'error.json')
+        try:
+            if os.path.exists(file_path):
+                os.unlink(file_path)
+                logger.debug(f"Error file '{file_path}' deleted.")
+            else:
+                logger.debug(f"No error file to delete at '{file_path}'.")
+        except Exception as e:
+            logger.warning(f"Failed to delete error file at '{file_path}': {e}")
 
     @staticmethod
     def write_donefile(dest_folder, results):
@@ -156,3 +208,19 @@ class RucioFileDownloader:
         except Exception as e:
             logger.error(f"Failed to write donefile at '{file_path}': {e}")
             raise
+    
+    @staticmethod
+    def delete_donefile(dest_folder):
+        """
+        Deletes the .donefile in the specified destination folder if it exists.
+        Logs the action or any errors encountered.
+        """
+        file_path = os.path.join(dest_folder, '.donefile')
+        try:
+            if os.path.exists(file_path):
+                os.unlink(file_path)
+                logger.debug(f"Donefile '{file_path}' deleted.")
+            else:
+                logger.debug(f"No donefile to delete at '{file_path}'.")
+        except Exception as e:
+            logger.warning(f"Failed to delete donefile at '{file_path}': {e}")
