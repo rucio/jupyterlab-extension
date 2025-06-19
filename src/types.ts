@@ -83,7 +83,12 @@ export interface IDirectoryItem {
   path: string;
 }
 
-export type FileStatus = 'OK' | 'REPLICATING' | 'NOT_AVAILABLE' | 'STUCK' | 'FAILED';
+export type FileStatus =
+  | 'OK'
+  | 'REPLICATING'
+  | 'NOT_AVAILABLE'
+  | 'STUCK'
+  | 'FAILED';
 export type CollectionStatus =
   | 'NOT_AVAILABLE'
   | 'AVAILABLE'

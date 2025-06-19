@@ -125,7 +125,9 @@ const _FileDIDItemDetails: React.FC<IDIDItem> = ({ did, ...props }) => {
         console.error('Error making file available:', e);
         // The error 'e' is the rich ResponseError object from requestAPI
         if (e.response && e.response.status === 401) {
-          setError('Authentication error. Perhaps you set an invalid credential?');
+          setError(
+            'Authentication error. Perhaps you set an invalid credential?'
+          );
           return;
         }
 
@@ -136,7 +138,7 @@ const _FileDIDItemDetails: React.FC<IDIDItem> = ({ did, ...props }) => {
           // Fallback to the general error message if e.error is not present
           setError(e.message || 'An unknown error occurred.');
         }
-      })
+      });
   };
 
   const settings = ServerConnection.makeSettings();
@@ -168,7 +170,7 @@ const _FileDIDItemDetails: React.FC<IDIDItem> = ({ did, ...props }) => {
         />
       )}
       {!!fileDetails && fileDetails.status === 'NOT_AVAILABLE' && (
-        <FileNotAvailable 
+        <FileNotAvailable
           onMakeAvailableClicked={makeAvailable}
           error={error}
         />
@@ -188,13 +190,15 @@ const _FileDIDItemDetails: React.FC<IDIDItem> = ({ did, ...props }) => {
           showReplicationRuleUrl={showReplicationRuleUrl}
         />
       )}
-      {!!fileDetails && fileDetails.status === 'FAILED' && (
-        console.error('File details retrieval failed:', fileDetails),
-        <FileNotAvailable
-          onMakeAvailableClicked={makeAvailable}
-          error={fileDetails.error || 'Failed to retrieve file details.'}
-        />
-      )}
+      {!!fileDetails &&
+        fileDetails.status === 'FAILED' &&
+        (console.error('File details retrieval failed:', fileDetails),
+        (
+          <FileNotAvailable
+            onMakeAvailableClicked={makeAvailable}
+            error={fileDetails.error || 'Failed to retrieve file details.'}
+          />
+        ))}
     </div>
   );
 };
@@ -236,7 +240,8 @@ const FileAvailable: React.FC<{
 const FileNotAvailable: React.FC<{
   onMakeAvailableClicked?: () => void;
   error?: string; // Optional error prop to handle error messages
-}> = ({ onMakeAvailableClicked, error }) => { // Destructure error from props
+}> = ({ onMakeAvailableClicked, error }) => {
+  // Destructure error from props
   const classes = useStyles();
 
   return (
@@ -247,17 +252,20 @@ const FileNotAvailable: React.FC<{
       ) : (
         <i className={`${classes.icon} material-icons`}>lens</i>
       )}
-      
+
       {/* Display the error message if it exists */}
       {error && (
-        <div className={classes.statusText} style={{ color: 'var(--jp-error-color1)' }}>
+        <div
+          className={classes.statusText}
+          style={{ color: 'var(--jp-error-color1)' }}
+        >
           {error}
         </div>
       )}
 
       {/* Show the default text only when there is no error */}
       {!error && <div className={classes.statusText}>Not Available</div>}
-      
+
       <div className={classes.action} onClick={onMakeAvailableClicked}>
         {/* Change button text based on context */}
         {error ? 'Retry' : 'Make Available'}
@@ -312,7 +320,10 @@ const FileStuck: React.FC<{
     <div className={classes.statusNotAvailable}>
       <i className={`${classes.icon} material-icons`}>error</i>
       {error && (
-        <div className={classes.statusText} style={{ color: 'var(--jp-error-color1)' }}>
+        <div
+          className={classes.statusText}
+          style={{ color: 'var(--jp-error-color1)' }}
+        >
           {error}
         </div>
       )}

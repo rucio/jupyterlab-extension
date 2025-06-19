@@ -169,10 +169,12 @@ const _Explore: React.FunctionComponent = props => {
       .then(result => setSearchResult(result))
       .catch(e => {
         setSearchResult([]);
-        
+
         // The error 'e' is the rich ResponseError object from requestAPI
         if (e.response && e.response.status === 401) {
-          setError('Authentication error. Perhaps you set an invalid credential?');
+          setError(
+            'Authentication error. Perhaps you set an invalid credential?'
+          );
           return;
         }
 
@@ -194,7 +196,7 @@ const _Explore: React.FunctionComponent = props => {
   };
 
   const listScopesButton = (
-    <ListScopesPopover onScopeClicked={onScopeClicked}>
+    <ListScopesPopover onScopeClicked={onScopeClicked} key="list-scopes-button">
       <div className={classes.listScopesButton}>
         <i className={`${classes.listScopesIcon} material-icons`}>topic</i>
       </div>
@@ -202,7 +204,11 @@ const _Explore: React.FunctionComponent = props => {
   );
 
   const searchButton = (
-    <div className={classes.searchButton} onClick={doSearch}>
+    <div
+      className={classes.searchButton}
+      onClick={doSearch}
+      key="search-button"
+    >
       <i className={`${classes.searchIcon} material-icons`}>search</i>
     </div>
   );
@@ -282,8 +288,10 @@ const _Explore: React.FunctionComponent = props => {
       {!!searchResult && (
         <>
           {/* The heading can be shown as soon as a search is attempted or an error occurs */}
-          {(!error && !!searchResult) && <HorizontalHeading title="Search Results" />}
-          {(!!error) && <HorizontalHeading title="Error(s) found" />}
+          {!error && !!searchResult && (
+            <HorizontalHeading title="Search Results" />
+          )}
+          {!!error && <HorizontalHeading title="Error(s) found" />}
 
           {/* Priority 1: Display the error if it exists */}
           {!!error && <div className={classes.errorText}>{error}</div>}
