@@ -23,16 +23,16 @@ def get_oidc_token(oidc_auth, oidc_auth_source):
     try:
         if oidc_auth == 'env':
             if oidc_auth_source not in os.environ:
-                raise KeyError(f"Environment variable '{oidc_auth_source}' not found.")
+                logger.error(f"Environment variable not found: {oidc_auth_source}")
+                return None
             return os.environ[oidc_auth_source]
         elif oidc_auth == 'file':
             if not os.path.exists(oidc_auth_source):
-                raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), cert_path)
+                logger.error(f"Token file not found: {oidc_auth_source}")
+                return None
             with open(oidc_auth_source) as f:
                 return f.read()
-    except FileNotFoundError as e:
-        logger.error(f"Token file not found: {oidc_auth_source}")
-        raise FileNotFoundError(e)
-    except KeyError as e:
-        logger.error(f"Environment variable not found: {oidc_auth_source}")
-        raise KeyError(e)
+    except Exception as e:
+        logger.error(f"Unexpected error: {e}")
+        return None
+    return None
