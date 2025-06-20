@@ -20,24 +20,25 @@ from rucio_jupyterlab.metrics import prometheus_metrics
 # Configure logging
 logger = logging.getLogger(__name__)
 
+
 class DIDMakeAvailableHandler(RucioAPIHandler):
     @tornado.web.authenticated
     @prometheus_metrics
     def post(self):
         logger.info("Received request to make DID available")
         namespace = self.get_query_argument('namespace')
-        logger.debug(f"Namespace: {namespace}")
-        
+        logger.debug("Namespace: %s", namespace)
+
         json_body = self.get_json_body()
         did = json_body['did']
-        logger.debug(f"DID: {did}")
-        
+        logger.debug("DID: %s", did)
+
         scope, name = did.split(':')
-        logger.debug(f"Scope: {scope}, Name: {name}")
+        logger.debug("Scope: %s, Name: %s", scope, name)
 
         rucio_instance = self.rucio.for_instance(namespace)
         mode = rucio_instance.instance_config.get('mode', 'replica')
-        logger.debug(f"Mode: {mode}")
+        logger.debug("Mode: %s", mode)
 
         if mode == 'replica':
             handler = ReplicaModeHandler(namespace, rucio_instance)
@@ -48,11 +49,11 @@ class DIDMakeAvailableHandler(RucioAPIHandler):
 
         try:
             output = handler.make_available(scope, name)
-            logger.info(f"Handler output: {output}")
+            logger.info("Handler output: %s", output)
         except RucioAPIException as e:
             # Set the HTTP status from the exception, falling back to 500 if not present
             self.set_status(e.status_code or 500)
-            
+
             # Finish the request with a detailed JSON error payload
             self.finish(json.dumps({
                 'success': False,

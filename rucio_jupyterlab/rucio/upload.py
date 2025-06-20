@@ -91,7 +91,7 @@ class RucioFileUploader:
 
         upload_logger = logging.getLogger('UploadLogger')
         upload_logger.setLevel(logging.DEBUG)
-        
+
         if not upload_logger.hasHandlers():
             upload_logger.addHandler(logging.FileHandler(logfile_path))
             upload_logger.addHandler(logging.StreamHandler())
@@ -113,7 +113,7 @@ class RucioFileUploader:
             if status == 0:
                 self.db.mark_upload_job_finished(upload_job_id)
                 os.remove(logfile_path)
-        except:
+        except BaseException:
             upload_logger.exception("Upload failed")
 
     def add_upload_job(self, path, rse, scope, lifetime=None, dataset_scope=None, dataset_name=None):

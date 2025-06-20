@@ -10,7 +10,8 @@
 
 import os
 import multiprocessing as mp
-import logging, json
+import logging
+import json
 from logging.handlers import QueueHandler, QueueListener
 from rucio_jupyterlab.db import get_db
 from rucio_jupyterlab.entity import AttachedFile
@@ -21,6 +22,7 @@ from rucio_jupyterlab.rucio.exceptions import RucioAPIException
 logger = logging.getLogger(__name__)
 
 BASE_DIR = '~/rucio/downloads'
+
 
 class DownloadModeHandler:
     STATUS_NOT_AVAILABLE = "NOT_AVAILABLE"
@@ -33,24 +35,24 @@ class DownloadModeHandler:
         self.namespace = namespace
         self.rucio = rucio
         self.db = get_db()  # pylint: disable=invalid-name
-    
+
     def background_worker(self, log_queue, did):
 
-            # Attach a QueueHandler so logs go to the main process
-            queue_handler = QueueHandler(log_queue)
-            logger = logging.getLogger()
-            logger.setLevel(logging.DEBUG)
-            logger.handlers = []  # Clear any inherited handlers
-            logger.addHandler(queue_handler)
+        # Attach a QueueHandler so logs go to the main process
+        queue_handler = QueueHandler(log_queue)
+        logger = logging.getLogger()
+        logger.setLevel(logging.DEBUG)
+        logger.handlers = []  # Clear any inherited handlers
+        logger.addHandler(queue_handler)
 
-            # Now logging works as usual, but goes to the main process
-            logger.info(f"Starting download for DID '{did}'...")
-            
-            # Your actual download logic here
-            try:
-                RucioFileDownloader.start_download_target(self.namespace, did, self.rucio)
-            except Exception as e:
-                logger.exception(f"Error downloading {did}: {e}")
+        # Now logging works as usual, but goes to the main process
+        logger.info("Starting download for DID '%s'", did)
+
+        # Your actual download logic here
+        try:
+            RucioFileDownloader.start_download_target(self.namespace, did, self.rucio)
+        except Exception as e:
+            logger.exception("Error downloading %s: %s", did, e)
 
     def make_available(self, scope, name):
         """
@@ -70,16 +72,16 @@ class DownloadModeHandler:
 
         did = f'{scope}:{name}'
         logger.info("Attempting to make DID '%s' available.", did)
-        
+
         # Get the destination folder once to avoid repeated calls
         dest_folder = RucioFileDownloader.get_dest_folder(self.namespace, did)
 
         # --- This is the clean way to clear previous states ---
         # These functions internally handle if the file doesn't exist
         RucioFileDownloader.delete_errorfile(dest_folder)
-        RucioFileDownloader.delete_donefile(dest_folder) # Important: Clear previous success state too
-        RucioFileDownloader.delete_lockfile(dest_folder) # Important: Clear any stale lock files
-        
+        RucioFileDownloader.delete_donefile(dest_folder)  # Important: Clear previous success state too
+        RucioFileDownloader.delete_lockfile(dest_folder)  # Important: Clear any stale lock files
+
         try:
             paths = self._get_file_paths(did)
             if paths:
@@ -117,7 +119,7 @@ class DownloadModeHandler:
         """
         did = f'{scope}:{name}'
         logger.info("Fetching details for DID '%s' (force_fetch=%s).", did, force_fetch)
-        
+
         try:
             attached_files = self._get_attached_files(scope, name, force_fetch)
             if not attached_files:
@@ -131,31 +133,31 @@ class DownloadModeHandler:
 
             def result_mapper(file, _):
                 logger.debug("Mapping status for file '%s' in parent DID '%s'.", file.did, did)
-                
+
                 if error_details:
-                    return dict(status=self.STATUS_FAILED, did=file.did, path=None, size=file.size, error=error_details.get('exception_message', 'Unknown error'))
-                
+                    return {"status": self.STATUS_FAILED, "did": file.did, "path": None, "size": file.size, "error": error_details.get('exception_message', 'Unknown error')}
+
                 if not dest_dir_exists:
-                    return dict(status=self.STATUS_NOT_AVAILABLE, did=file.did, path=None, size=file.size)
+                    return {"status": self.STATUS_NOT_AVAILABLE, "did": file.did, "path": None, "size": file.size}
 
                 if is_downloading:
-                    return dict(status=self.STATUS_REPLICATING, did=file.did, path=None, size=file.size)
+                    return {"status": self.STATUS_REPLICATING, "did": file.did, "path": None, "size": file.size}
 
                 if not paths:
                     logger.warning("Paths not found for DID '%s'; file '%s' is STUCK.", did, file.did)
-                    return dict(status=self.STATUS_STUCK, did=file.did, path=None, size=file.size)
+                    return {"status": self.STATUS_STUCK, "did": file.did, "path": None, "size": file.size}
 
                 path = paths.get(file.did)
                 if not path or not os.path.isfile(path):
                     logger.warning("File '%s' not found at expected path '%s'. Status: STUCK.", file.did, path)
-                    return dict(status=self.STATUS_STUCK, did=file.did, path=None, size=file.size)
+                    return {"status": self.STATUS_STUCK, "did": file.did, "path": None, "size": file.size}
 
-                return dict(status=self.STATUS_OK, did=file.did, path=path, size=file.size)
+                return {"status": self.STATUS_OK, "did": file.did, "path": None, "size": file.size}
 
             results = utils.map(attached_files, result_mapper)
             logger.info("Successfully fetched details for %d files for DID '%s'.", len(results), did)
             return results
-            
+
         except RucioAPIException as e:
             logger.error("Rucio API error while fetching details for DID '%s': %s", did, e)
             raise

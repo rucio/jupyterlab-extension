@@ -6,16 +6,18 @@
 #
 # Authors:
 # - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020-2021
+# - Giovanni Guerrieri, <giovanni.guerrieri@cern.ch>, 2025
 
 import logging
-import tornado
 import multiprocessing as mp
 from rucio_jupyterlab.rucio.upload import RucioFileUploader
 from .base import RucioAPIHandler
 from rucio_jupyterlab.metrics import prometheus_metrics
 from rucio_jupyterlab.rucio.exceptions import RucioAPIException
+import tornado
 
 logger = logging.getLogger(__name__)
+
 
 class UploadHandler(RucioAPIHandler):
     @tornado.web.authenticated
@@ -47,12 +49,12 @@ class UploadHandler(RucioAPIHandler):
             try:
                 rucio_instance = self.rucio.for_instance(namespace)
             except Exception as e:
-                logger.error(f"Failed to get Rucio instance for namespace '{namespace}': {e}", exc_info=True)
+                logger.error("Failed to get Rucio instance for namespace '%s': %s", namespace, e, exc_info=True)
                 self.set_status(500)
                 self.finish({'success': False, 'error': "Failed to get Rucio instance."})
                 return
 
-            logger.info(f"Starting upload for files {file_paths} to RSE '{rse}' in scope '{scope}' (namespace '{namespace}').")
+            logger.info("Starting upload for files %s to RSE '%s' in scope '%s' (namespace '%s').", file_paths, rse, scope, namespace)
 
             UploadHandlerImpl.upload(
                 namespace=namespace,
@@ -68,11 +70,11 @@ class UploadHandler(RucioAPIHandler):
             self.finish({'success': True})
 
         except RucioAPIException as e:
-            logger.error(f"Rucio API error during upload: {e}", exc_info=True)
+            logger.error("Rucio API error during upload: %s", e, exc_info=True)
             self.set_status(502)
             self.finish({'success': False, 'error': f"Rucio error: {e}"})
         except Exception as e:
-            logger.error(f"Unexpected error in UploadHandler: {e}", exc_info=True)
+            logger.error("Unexpected error in UploadHandler: %s", e, exc_info=True)
             self.set_status(500)
             self.finish({'success': False, 'error': "Internal server error."})
 
@@ -83,9 +85,9 @@ class UploadHandlerImpl:
         for file_path in file_paths:
             args = (namespace, rucio, file_path, rse, scope, dataset_scope, dataset_name, lifetime)
             try:
-                logger.info(f"Spawning upload process for '{file_path}' to RSE '{rse}' in scope '{scope}'.")
+                logger.info("Spawning upload process for '%s' to RSE '%s' in scope '%s'.", file_path, rse, scope)
                 process = mp.Process(target=RucioFileUploader.start_upload_target, args=args)
                 process.start()
-                logger.debug(f"Started process {process.pid} for file '{file_path}'.")
+                logger.debug("Started process %s for file '%s'.", process.pid, file_path)
             except Exception as e:
-                logger.error(f"Failed to start upload process for '{file_path}': {e}", exc_info=True)
+                logger.error("Failed to start upload process for '%s': %s", file_path, e, exc_info=True)

@@ -13,6 +13,7 @@ from rucio_jupyterlab.rucio.exceptions import RucioAPIException
 from .base import RucioAPIHandler
 from rucio_jupyterlab.metrics import prometheus_metrics
 
+
 class ListScopesHandler(RucioAPIHandler):
     """
     Handler for retrieving the list of scopes from a Rucio instance.
@@ -42,7 +43,7 @@ class ListScopesHandler(RucioAPIHandler):
         except RucioAPIException as e:
             # Set the HTTP status from the exception, falling back to 500 if not present
             self.set_status(e.status_code or 500)
-            
+
             # Finish the request with a detailed JSON error payload
             self.finish(json.dumps({
                 'success': False,

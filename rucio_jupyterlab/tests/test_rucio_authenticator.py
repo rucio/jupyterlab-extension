@@ -6,10 +6,11 @@
 #
 # Authors:
 # - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
+# - Giovanni Guerrieri, <giovanni.guerrieri@cern.ch>, 2025
 
-from rucio_jupyterlab.rucio.authenticators import authenticate_userpass, authenticate_x509, authenticate_oidc
-import tempfile
 import os
+import tempfile
+from rucio_jupyterlab.rucio.authenticators import authenticate_userpass, authenticate_x509, authenticate_oidc
 
 
 def test_authenticate_userpass_call_requests(requests_mock):
@@ -39,10 +40,6 @@ def test_authenticate_userpass_call_requests(requests_mock):
     assert response == expected_output, "Invalid return value"
 
 
-import tempfile
-import os
-from rucio_jupyterlab.rucio import authenticate_x509
-
 def test_authenticate_x509_call_requests(requests_mock):
     with tempfile.TemporaryDirectory() as temp_dir:
         # Create fake certificate files
@@ -62,8 +59,8 @@ def test_authenticate_x509_call_requests(requests_mock):
         mock_auth_token = 'abcde_token_ghijk'
 
         request_headers = {
-            'X-Rucio-Account': mock_account, 
-            'X-Rucio-AppID': mock_app_id, 
+            'X-Rucio-Account': mock_account,
+            'X-Rucio-AppID': mock_app_id,
             'X-Rucio-VO': mock_vo
         }
 
@@ -73,21 +70,21 @@ def test_authenticate_x509_call_requests(requests_mock):
         }
 
         requests_mock.get(
-            f'{mock_base_url}/auth/x509', 
-            request_headers=request_headers, 
+            f'{mock_base_url}/auth/x509',
+            request_headers=request_headers,
             headers=response_headers
         )
 
         expected_output = (mock_auth_token, 1368440583)
         response = authenticate_x509(
-            mock_base_url, 
-            cert_path=mock_cert_path, 
-            key_path=mock_key_path, 
-            account=mock_account, 
-            vo=mock_vo, 
+            mock_base_url,
+            cert_path=mock_cert_path,
+            key_path=mock_key_path,
+            account=mock_account,
+            vo=mock_vo,
             app_id=mock_app_id
         )
-        
+
         assert response == expected_output, "Invalid return value"
         assert requests_mock.last_request.cert == (mock_cert_path, mock_key_path), "Invalid certs"
 

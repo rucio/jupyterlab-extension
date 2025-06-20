@@ -46,7 +46,7 @@ def parse_did_filter_from_string_fe(input_string, name='*', type='collection', o
     """
     # lookup table unifying all comprehended operators to a nominal suffix.
     # note that the order matters as the regex engine is eager, e.g. don't want to evaluate '<=' as '<' and '='.
-    operators_suffix_LUT = dict({
+    OPERATORS_SUFFIX_LUT = dict({  # Being this a lookup table, we define a constant.
         '≤': 'lte',
         '≥': 'gte',
         '==': '',
@@ -57,11 +57,11 @@ def parse_did_filter_from_string_fe(input_string, name='*', type='collection', o
     })
 
     # lookup table mapping operator opposites, used to reverse compound inequalities.
-    operator_opposites_LUT = {
+    OPERATORS_OPPOSITES_LUT = {  # Being this a lookup table, we define a constant.
         'lt': 'gt',
         'lte': 'gte'
     }
-    operator_opposites_LUT.update({op2: op1 for op1, op2 in operator_opposites_LUT.items()})
+    OPERATORS_OPPOSITES_LUT.update({op2: op1 for op1, op2 in OPERATORS_OPPOSITES_LUT.items()})
 
     filters = []
     if input_string:
@@ -73,13 +73,13 @@ def parse_did_filter_from_string_fe(input_string, name='*', type='collection', o
             for and_group in and_groups:
                 and_group = and_group.strip()
                 # tokenise this AND clause using operators as delimiters.
-                tokenisation_regex = "({})".format('|'.join(operators_suffix_LUT.keys()))
+                tokenisation_regex = "({})".format('|'.join(OPERATORS_SUFFIX_LUT.keys()))
                 and_group_split_by_operator = list(filter(None, re.split(tokenisation_regex, and_group)))
                 if len(and_group_split_by_operator) == 3:       # this is a one-sided inequality or expression
                     key, operator, value = [token.strip() for token in and_group_split_by_operator]
 
-                    # substitute input operator with the nominal operator defined by the LUT, <operators_suffix_LUT>.
-                    operator_mapped = operators_suffix_LUT.get(operator)
+                    # substitute input operator with the nominal operator defined by the LUT, <OPERATORS_SUFFIX_LUT>.
+                    operator_mapped = OPERATORS_SUFFIX_LUT.get(operator)
 
                     filter_key_full = key = "'{}'".format(key)
                     if operator_mapped is not None:
@@ -97,9 +97,9 @@ def parse_did_filter_from_string_fe(input_string, name='*', type='collection', o
                 elif len(and_group_split_by_operator) == 5:     # this is a compound inequality
                     value1, operator1, key, operator2, value2 = [token.strip() for token in and_group_split_by_operator]
 
-                    # substitute input operator with the nominal operator defined by the LUT, <operators_suffix_LUT>.
-                    operator1_mapped = operator_opposites_LUT.get(operators_suffix_LUT.get(operator1))
-                    operator2_mapped = operators_suffix_LUT.get(operator2)
+                    # substitute input operator with the nominal operator defined by the LUT, <OPERATORS_SUFFIX_LUT>.
+                    operator1_mapped = OPERATORS_OPPOSITES_LUT.get(OPERATORS_SUFFIX_LUT.get(operator1))
+                    operator2_mapped = OPERATORS_SUFFIX_LUT.get(operator2)
 
                     key = "'{}'".format(key)
                     filter_key1_full = filter_key2_full = key
@@ -160,7 +160,7 @@ class RucioAPI:
         self.auth_config = auth_config
         self.base_url = instance_config.get('rucio_base_url')
         self.auth_url = instance_config.get('rucio_auth_url', self.base_url)
-        self.rucio_ca_cert = instance_config.get('rucio_ca_cert', False)    # TODO default should be True
+        self.rucio_ca_cert = instance_config.get('rucio_ca_cert', True)    # Default should be True to use system CA certs
 
     def _build_url(self, endpoint, scope=None, name=None, params=None):
         """
@@ -196,8 +196,8 @@ class RucioAPI:
                 data=data,
                 verify=self.rucio_ca_cert
             )
-            logger.debug(f"RucioAPI: {method.upper()} request to {url} with headers: {headers} and params: {params}")
-            logger.debug(f"Response status code: {response.status_code}, response text: {response.text}")
+            logger.debug("RucioAPI: %s request to %s with headers: %s and params: %s", method.upper(), url, headers, params)
+            logger.debug("Response status code: %s, response text: %s", response.status_code, response.text)
 
             response.raise_for_status()
 
@@ -212,21 +212,21 @@ class RucioAPI:
                 return response.text
 
         except requests.exceptions.HTTPError as e:
-            logger.error(f"HTTP error for {method.upper()} request to {url}")
+            logger.error("HTTP error for %s request to %s: %s %s", method.upper(), url, e.response.status_code, e.response.reason)
             raise RucioHTTPException(e.response)
-        
+
         except requests.exceptions.RequestException as e:
             # For other requests-related errors like connection, timeout
-            logger.error(f"Request error for {method.upper()} request to {url}: {str(e)}")
+            logger.error("Request error for %s request to %s: %s", method.upper(), url, str(e))
             raise RucioRequestsException(None, str(e))
-        
+
         except Exception as e:
-             # For errors unrelated to requests itself (e.g., JSON parse)
-            logger.error(f"An error occurred during the {method.upper()} request to {url}: {str(e)}")
+            # For errors unrelated to requests itself (e.g., JSON parse)
+            logger.error("An error occurred during the %s request to %s: %s", method.upper(), url, str(e))
             raise RucioAPIException(None, str(e))
 
     def get_scopes(self):
-        #DEBUG: response = requests.get(url=f'{self.base_url}/scopes/', headers=headers, verify=self.rucio_ca_cert)
+        # DEBUG: response = requests.get(url=f'{self.base_url}/scopes/', headers=headers, verify=self.rucio_ca_cert)
         return self._make_rucio_request('GET', 'scopes/', parse_json=True)
 
     def get_rses(self, rse_expression=None):
@@ -244,7 +244,7 @@ class RucioAPI:
         if filters:
             filters, _ = parse_did_filter_from_string_fe(filters, name=name)
             params['filters'] = filters
-        
+
         results = self._make_rucio_request(
             'GET',
             f'dids/{scope}/dids/search',
@@ -352,19 +352,19 @@ class RucioAPI:
                 return authenticate_oidc(base_url=self.base_url, oidc_auth=oidc_auth, oidc_auth_source=oidc_auth_source, rucio_ca_cert=self.rucio_ca_cert)
 
         except requests.exceptions.HTTPError as e:
-            logger.error(f"HTTP error during authentication for {auth_type}: {e.response.status_code} {e.response.reason}")
+            logger.error("HTTP error during authentication for %s: %s %s", auth_type, e.response.status_code, e.response.reason)
             raise RucioHTTPException(e.response)
-        
+
         except requests.exceptions.RequestException as e:
             # For other requests-related errors like connection, timeout
-            logger.error(f"Request error during authentication for {auth_type}: {str(e)}")
+            logger.error("Request error during authentication for %s: %s", auth_type, str(e))
             raise RucioRequestsException(None, str(e))
-        
+
         except Exception as e:
-             # For errors unrelated to requests itself (e.g., JSON parse)
-            logger.error(f"An error occurred during authentication for {auth_type}: {str(e)}")
+            # For errors unrelated to requests itself (e.g., JSON parse)
+            logger.error("An error occurred during authentication for %s: %s", auth_type, str(e))
             raise RucioAPIException(None, str(e))
-        
+
         return None
 
 

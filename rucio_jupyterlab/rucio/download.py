@@ -18,6 +18,7 @@ from rucio_jupyterlab.rucio.client_environment import RucioClientEnvironment
 
 logger = logging.getLogger(__name__)
 
+
 def rucio_logger(level, msg, *args, **kwargs):
     # Try to detect if only a message is passed
     if isinstance(level, str):
@@ -26,6 +27,7 @@ def rucio_logger(level, msg, *args, **kwargs):
     logger = logging.getLogger("rucio.client.downloadclient")
     logger.log(level, msg, *args, **kwargs)
 
+
 class RucioFileDownloader:
     @staticmethod
     def write_errorfile(dest_folder, exception):
@@ -33,7 +35,7 @@ class RucioFileDownloader:
         Writes exception details to an error.json file in the destination folder.
         """
         error_file_path = os.path.join(dest_folder, 'error.json')
-        
+
         # Create a serializable payload from the exception
         error_payload = {
             'success': False,
@@ -42,38 +44,38 @@ class RucioFileDownloader:
             # Use getattr to safely access optional attributes on the exception
             'exception_message': str(exception)
         }
-        
-        logger.error(f"Writing error file to '{error_file_path}' with details: {error_payload}")
+
+        logger.error("Writing error file to '%s' with details: %s", error_file_path, error_payload)
         with open(error_file_path, 'w') as f:
             json.dump(error_payload, f)
 
     def start_download_target(namespace, did, rucio):
         dest_folder = RucioFileDownloader.get_dest_folder(namespace, did)
-        logger.info(f"Preparing to download DID '{did}' to '{dest_folder}'.")
+        logger.info("Preparing to download DID '%s' to '%s'.", did, dest_folder)
 
         try:
             with RucioClientEnvironment(rucio) as rucio_home:
                 os.makedirs(dest_folder, exist_ok=True)
-                
+
                 try:
                     results = RucioFileDownloader.download(dest_folder, did)
-                    logger.info(f"Download successful for DID '{did}'.")
+                    logger.info("Download successful for DID '%s'.", did)
                     RucioFileDownloader.write_donefile(dest_folder, results)
-                    logger.info(f"Donefile written for '{dest_folder}'.")
-                
+                    logger.info("Donefile written for '%s'.", dest_folder)
+
                 except Exception as e:
                     # Log the exception and write the error file
-                    logger.exception(f"Download failed for DID '{did}': {e}")
+                    logger.exception("Download failed for DID '%s': %s", did, e)
                     RucioFileDownloader.write_errorfile(dest_folder, e)
-                
+
                 finally:
                     # Always remove the lockfile when the operation is complete (or has failed)
                     RucioFileDownloader.delete_lockfile(dest_folder)
-                    logger.debug(f"Lockfile deleted for '{dest_folder}'.")
+                    logger.debug("Lockfile deleted for '%s'.", dest_folder)
 
         except Exception as e:
             # Catch any other exception during setup (e.g., permissions)
-            logger.error(f"A critical error occurred before download could start for DID '{did}': {e}")
+            logger.error("A critical error occurred before download could start for DID '%s': %s", did, e)
             # Ensure the destination folder exists to write the error file
             os.makedirs(dest_folder, exist_ok=True)
             RucioFileDownloader.write_errorfile(dest_folder, e)
@@ -83,25 +85,25 @@ class RucioFileDownloader:
     def is_downloading(dest_path):
         lockfile_path = os.path.join(dest_path, '.lockfile')
         if not os.path.isfile(lockfile_path):
-            logger.debug(f"No lockfile found at '{lockfile_path}'.")
+            logger.debug("No lockfile found at '%s'.", lockfile_path)
             return False
 
         try:
             with open(lockfile_path, 'r') as lockfile:
                 pid_str = lockfile.read().strip()
                 if not pid_str.isdigit():
-                    logger.warning(f"Invalid PID in lockfile '{lockfile_path}': '{pid_str}'")
+                    logger.warning("Invalid PID in lockfile '%s': '%s'", lockfile_path, pid_str)
                     return False
                 pid = int(pid_str)
                 if not psutil.pid_exists(pid):
-                    logger.debug(f"Process with PID {pid} from lockfile does not exist.")
+                    logger.debug("Process with PID %s from lockfile does not exist.", pid)
                     return False
                 process = psutil.Process(pid=pid)
                 is_active = process.is_running() and process.status() != psutil.STATUS_ZOMBIE
-                logger.debug(f"Lockfile PID {pid} is_active={is_active}.")
+                logger.debug("Lockfile PID %s is_active=%s.", pid, is_active)
                 return is_active
         except Exception as e:
-            logger.warning(f"Error reading or validating lockfile '{lockfile_path}': {e}")
+            logger.warning("Error reading or validating lockfile '%s': %s", lockfile_path, e)
             return False
 
     @staticmethod
@@ -113,12 +115,12 @@ class RucioFileDownloader:
         download_client = DownloadClient(client=client, logger=rucio_logger)
 
         try:
-            logger.info(f"Starting download for DID '{did}' into '{dest_path}'.")
+            logger.info("Starting download for DID '%s' into '%s'.", did, dest_path)
             results = download_client.download_dids([{'did': did, 'base_dir': dest_path}])
-            logger.info(f"Download completed for DID '{did}'.")
+            logger.info("Download completed for DID '%s'.", did)
             return results
         except Exception as e:
-            logger.exception(f"Exception during download for DID '{did}': {e}")
+            logger.exception("Exception during download for DID '%s': %s", did, e)
             raise
 
     @staticmethod
@@ -126,10 +128,10 @@ class RucioFileDownloader:
         try:
             did_folder_name = str(base64.b32encode(did.encode('utf-8')), 'utf-8').lower().replace('=', '')
             dest_path = os.path.expanduser(os.path.join('~', 'rucio', namespace, 'downloads', did_folder_name))
-            logger.debug(f"Destination folder for DID '{did}' is '{dest_path}'.")
+            logger.debug("Destination folder for DID '%s' is '%s'.", did, dest_path)
             return dest_path
         except Exception as e:
-            logger.error(f"Failed to compute destination folder for DID '{did}': {e}")
+            logger.error("Failed to compute destination folder for DID '%s': %s", did, e)
             raise
 
     @staticmethod
@@ -144,14 +146,14 @@ class RucioFileDownloader:
             fd = os.open(lockfile_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
             with os.fdopen(fd, 'w') as f:
                 f.write(str(os.getpid()))
-            logger.info(f"Successfully acquired lock for '{dest_path}'.")
+            logger.info("Successfully acquired lock for '%s'.", dest_path)
             return True
         except FileExistsError:
-            logger.warning(f"Lockfile already exists at '{lockfile_path}'. Another process is active.")
+            logger.warning("Lockfile already exists at '%s'. Another process is active.", lockfile_path)
             # Optional: Add logic here to check if the lock is stale (e.g., older than 24 hours)
             return False
         except Exception as e:
-            logger.error(f"Failed to create lockfile at '{lockfile_path}': {e}")
+            logger.error("Failed to create lockfile at '%s': %s", lockfile_path, e)
             return False
 
     @staticmethod
@@ -160,11 +162,11 @@ class RucioFileDownloader:
         try:
             if os.path.exists(file_path):
                 os.unlink(file_path)
-                logger.debug(f"Lockfile '{file_path}' deleted.")
+                logger.debug("Lockfile '%s' deleted.", file_path)
             else:
-                logger.debug(f"No lockfile to delete at '{file_path}'.")
+                logger.debug("No lockfile to delete at '%s'.", file_path)
         except Exception as e:
-            logger.warning(f"Failed to delete lockfile at '{file_path}': {e}")
+            logger.warning("Failed to delete lockfile at '%s': %s", file_path, e)
 
     @staticmethod
     def delete_errorfile(dest_folder):
@@ -176,11 +178,11 @@ class RucioFileDownloader:
         try:
             if os.path.exists(file_path):
                 os.unlink(file_path)
-                logger.debug(f"Error file '{file_path}' deleted.")
+                logger.debug("Error file '%s' deleted.", file_path)
             else:
-                logger.debug(f"No error file to delete at '{file_path}'.")
+                logger.debug("No error file to delete at '%s'.", file_path)
         except Exception as e:
-            logger.warning(f"Failed to delete error file at '{file_path}': {e}")
+            logger.warning("Failed to delete error file at '%s': %s", file_path, e)
 
     @staticmethod
     def write_donefile(dest_folder, results):
@@ -195,17 +197,17 @@ class RucioFileDownloader:
                 if dest_file_paths:
                     paths[did] = dest_file_paths[0]
                 else:
-                    logger.warning(f"No destination file path for DID '{did}' in results.")
+                    logger.warning("No destination file path for DID '%s' in results.", did)
 
             content = json.dumps({'paths': paths})
 
             with open(file_path, 'w') as donefile:
                 donefile.write(content)
-            logger.debug(f"Donefile written at '{file_path}'.")
+            logger.debug("Donefile written at '%s'.", file_path)
         except Exception as e:
-            logger.error(f"Failed to write donefile at '{file_path}': {e}")
+            logger.error("Failed to write donefile at '%s': %s", file_path, e)
             raise
-    
+
     @staticmethod
     def delete_donefile(dest_folder):
         """
@@ -216,8 +218,8 @@ class RucioFileDownloader:
         try:
             if os.path.exists(file_path):
                 os.unlink(file_path)
-                logger.debug(f"Donefile '{file_path}' deleted.")
+                logger.debug("Donefile '%s' deleted.", file_path)
             else:
-                logger.debug(f"No donefile to delete at '{file_path}'.")
+                logger.debug("No donefile to delete at '%s'.", file_path)
         except Exception as e:
-            logger.warning(f"Failed to delete donefile at '{file_path}': {e}")
+            logger.warning("Failed to delete donefile at '%s': %s", file_path, e)
