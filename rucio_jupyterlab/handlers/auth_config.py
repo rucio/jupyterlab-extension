@@ -14,8 +14,6 @@ from rucio_jupyterlab.db import get_db
 from rucio_jupyterlab.rucio import RucioAPI
 from .base import RucioAPIHandler
 from rucio_jupyterlab.metrics import prometheus_metrics
-from rucio_jupyterlab.rucio.authenticators import authenticate_userpass, authenticate_x509, authenticate_oidc
-
 
 
 class AuthConfigHandler(RucioAPIHandler):
@@ -28,7 +26,7 @@ class AuthConfigHandler(RucioAPIHandler):
     def get(self):
         namespace = self.get_query_argument('namespace')
         auth_type = self.get_query_argument('type')
-        
+
         if auth_type == 'oidc':
             instance = self.rucio.for_instance(namespace)
             # Initialize auth_credentials as an empty dictionary
@@ -42,13 +40,12 @@ class AuthConfigHandler(RucioAPIHandler):
         else:
             db = get_db()  # pylint: disable=invalid-name
             auth_credentials = db.get_rucio_auth_credentials(namespace=namespace, auth_type=auth_type)
-                
+
         if auth_credentials:
             self.finish(json.dumps(auth_credentials))
         else:
             self.set_status(404)
             self.finish({'success': False, 'error': 'Auth credentials not set'})
-
 
     @tornado.web.authenticated
     @prometheus_metrics
@@ -56,66 +53,24 @@ class AuthConfigHandler(RucioAPIHandler):
         json_body = self.get_json_body()
         namespace = json_body['namespace']
         auth_type = json_body['type']
-        params = json_body['params']
+        auth_config = json_body['params']
 
         db = get_db()  # pylint: disable=invalid-name
-        db.set_rucio_auth_credentials(namespace=namespace, auth_type=auth_type, params=params)
+        db.set_rucio_auth_credentials(namespace=namespace, auth_type=auth_type, params=auth_config)
 
         RucioAPI.clear_auth_token_cache()
 
         # Get instance config to perform connection test
         instance = self.rucio.for_instance(namespace)
-        app_id = instance.instance_config.get('app_id')
-        vo = instance.instance_config.get('vo')
-        auth_url = instance.instance_config.get("rucio_auth_url")
-        rucio_ca_cert = instance.instance_config.get("rucio_ca_cert", False)
-        oidc_auth = instance.instance_config.get("oidc_auth")
+
+        print(f"AuthConfigHandler: PUT request for namespace '{namespace}' with auth_type '{auth_type}' and params: {auth_config}")
 
         lifetime = None  # Initialize lifetime to avoid NameError
 
         try:
-            if auth_type == 'userpass':
-                authenticate_userpass(
-                    base_url=auth_url,
-                    username=params.get('username'),
-                    password=params.get('password'),
-                    account=params.get('account'),
-                    vo=vo,
-                    app_id=app_id,
-                    rucio_ca_cert=rucio_ca_cert
-                )
-            elif auth_type == 'x509':
-                authenticate_x509(
-                    base_url=auth_url,
-                    cert_path=params.get('certificate'),
-                    key_path=params.get('key'),
-                    account=params.get('account'),
-                    vo=vo,
-                    app_id=app_id,
-                    rucio_ca_cert=rucio_ca_cert
-                )
-            elif auth_type == 'x509_proxy':
-                authenticate_x509(
-                    base_url=auth_url,
-                    cert_path=params.get('proxy'),
-                    key_path=params.get('proxy'),
-                    account=params.get('account'),
-                    vo=vo,
-                    app_id=app_id,
-                    rucio_ca_cert=rucio_ca_cert
-                )
-            elif auth_type == 'oidc':
-                oidc_auth_source = params.get('oidcAuthSource')
-                _, lifetime = authenticate_oidc(
-                    base_url=auth_url,
-                    oidc_auth=oidc_auth,
-                    oidc_auth_source=oidc_auth_source,
-                    rucio_ca_cert=rucio_ca_cert
-                )
-            else:
-                raise ValueError("Unsupported authentication type")
+            _, lifetime = RucioAPI.authenticate(instance, auth_config, auth_type)
 
-            if lifetime:
+            if auth_type == 'x509_proxy' or auth_type == 'oidc':
                 # Convert to UTC datetime
                 expiration_date = datetime.fromtimestamp(lifetime, tz=timezone.utc)
 
@@ -130,7 +85,7 @@ class AuthConfigHandler(RucioAPIHandler):
             else:
                 self.finish(json.dumps({'success': True}))
         except Exception as e:
-            self.set_status(e.status_code or 401) 
+            self.set_status(e.status_code or 401)
 
             self.finish(json.dumps({
                 'success': False,

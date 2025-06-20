@@ -6,8 +6,10 @@
 #
 # Authors:
 # - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
+# - Giovanni Guerrieri, <giovanni.guerrieri@cern.ch>, 2025
 
 def find(pred, iterable):
+    """Finds the first element in an iterable for which a predicate is true."""
     for element in iterable:
         if pred(element):
             return element
@@ -15,6 +17,7 @@ def find(pred, iterable):
 
 
 def map(iterable, mapper):
+    """Maps an iterable to a new list, providing each element and its index to the mapper function."""
     result = []
     i = 0
     for element in iterable:
@@ -23,15 +26,17 @@ def map(iterable, mapper):
     return result
 
 
-def filter(iterable, filter):
+def filter(iterable, predicate):
+    """Filters an iterable, keeping elements for which the predicate (given element and index) is true."""
     result = []
     i = 0
     for element in iterable:
-        if filter(element, i):
+        if predicate(element, i):
             result.append(element)
         i += 1
     return result
 
 
 def remove_none_values(dictionary):
+    """Removes key-value pairs from a dictionary where the value is None."""
     return {k: v for k, v in dictionary.items() if v is not None}
