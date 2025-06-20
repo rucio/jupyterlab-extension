@@ -1,3 +1,13 @@
+# Copyright European Organization for Nuclear Research (CERN)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# You may not use this file except in compliance with the License.
+# You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+#
+# Authors:
+# - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
+# - Giovanni Guerrieri, <giovanni.guerrieri@cern.ch>, 2025
+
 import html
 import logging
 import tornado
@@ -39,11 +49,13 @@ template = """
 </html>
 """
 
+
 def render_rule_not_found_html(**kwargs):
     rendered = template
     for key, value in kwargs.items():
         rendered = rendered.replace("{{ " + key + " }}", html.escape(str(value)))
     return rendered
+
 
 class OpenReplicationRuleHandler(RucioHandler):
     """
@@ -56,10 +68,10 @@ class OpenReplicationRuleHandler(RucioHandler):
         try:
             namespace = self.get_query_argument('namespace')
             did = self.get_query_argument('did')
-            logger.info(f"Received request for DID '{did}' in namespace '{namespace}'.")
+            logger.info("Received request for DID '%s' in namespace '%s'.", did, namespace)
 
             if ':' not in did:
-                logger.warning(f"Malformed DID received: '{did}'")
+                logger.warning("Malformed DID received: '%s'", did)
                 self.set_status(400)
                 self.finish("Malformed DID. Expected format: scope:name")
                 return
@@ -69,7 +81,7 @@ class OpenReplicationRuleHandler(RucioHandler):
             try:
                 rucio_instance = self.rucio.for_instance(namespace)
             except Exception as e:
-                logger.error(f"Failed to get Rucio instance for namespace '{namespace}': {e}", exc_info=True)
+                logger.error("Failed to get Rucio instance for namespace '%s': %s", namespace, e, exc_info=True)
                 self.set_status(500)
                 self.finish("Internal server error: could not retrieve Rucio instance.")
                 return
@@ -84,7 +96,7 @@ class OpenReplicationRuleHandler(RucioHandler):
                 return
 
             if mode != 'replica':
-                logger.warning(f"Extension is not in Replica mode (mode={mode}).")
+                logger.warning("Extension is not in Replica mode (mode=%s).", mode)
                 self.set_status(400)
                 self.finish("Extension is not in Replica mode")
                 return
@@ -92,13 +104,13 @@ class OpenReplicationRuleHandler(RucioHandler):
             try:
                 replication_rule = self._resolve_did_replication_rule(rucio_instance, scope, name)
             except Exception as e:
-                logger.error(f"Failed to resolve replication rule for DID '{did}': {e}", exc_info=True)
+                logger.error("Failed to resolve replication rule for DID '%s': %s", did, e, exc_info=True)
                 self.set_status(500)
                 self.finish("Internal server error while resolving replication rule.")
                 return
 
             if not replication_rule:
-                logger.info(f"No replication rule found for DID '{did}' or its parents.")
+                logger.info("No replication rule found for DID '%s' or its parents.", did)
                 did_page_url = f"{rucio_webui_url}/did?scope={scope}&name={name}"
                 destination_rse = rucio_instance.instance_config.get('destination_rse', 'N/A')
                 self.set_status(404)
@@ -111,11 +123,11 @@ class OpenReplicationRuleHandler(RucioHandler):
 
             rule_id, _ = replication_rule
             url = f"{rucio_webui_url}/rule?rule_id={rule_id}"
-            logger.info(f"Redirecting to replication rule page: {url}")
+            logger.info("Redirecting to replication rule page: %s", url)
             self.redirect(url)
 
         except Exception as e:
-            logger.critical(f"Unhandled exception in OpenReplicationRuleHandler: {e}", exc_info=True)
+            logger.critical("Unhandled exception in OpenReplicationRuleHandler: %s", e, exc_info=True)
             self.set_status(500)
             self.finish("Internal server error.")
 
@@ -123,32 +135,32 @@ class OpenReplicationRuleHandler(RucioHandler):
         # Try direct rule
         replication_rule = self._fetch_replication_rule(rucio_instance, scope, name)
         if replication_rule:
-            logger.debug(f"Found replication rule for DID '{scope}:{name}'.")
+            logger.debug("Found replication rule for DID '%s:%s'.", scope, name)
             return replication_rule
 
         # Try parent DIDs
         try:
             parents = rucio_instance.get_parents(scope, name)
         except Exception as e:
-            logger.error(f"Error fetching parents for DID '{scope}:{name}': {e}", exc_info=True)
+            logger.error("Error fetching parents for DID '%s:%s': %s", scope, name, e, exc_info=True)
             return None
 
         if not parents:
-            logger.debug(f"No parents found for DID '{scope}:{name}'.")
+            logger.debug("No parents found for DID '%s:%s'.", scope, name)
             return None
 
         for parent in parents:
             parent_scope = parent.get('scope')
             parent_name = parent.get('name')
             if not parent_scope or not parent_name:
-                logger.warning(f"Malformed parent entry: {parent}")
+                logger.warning("Malformed parent entry: %s", parent)
                 continue
             replication_rule = self._fetch_replication_rule(rucio_instance, scope=parent_scope, name=parent_name)
             if replication_rule:
-                logger.debug(f"Found replication rule for parent DID '{parent_scope}:{parent_name}'.")
+                logger.debug("Found replication rule for parent DID '%s:%s'.", parent_scope, parent_name)
                 return replication_rule
 
-        logger.debug(f"No replication rule found for DID '{scope}:{name}' or any parents.")
+        logger.debug("No replication rule found for DID '%s:%s' or any parents.", scope, name)
         return None
 
     def _fetch_replication_rule(self, rucio_instance, scope, name):
@@ -160,11 +172,11 @@ class OpenReplicationRuleHandler(RucioHandler):
                 replication_rule = filtered_rules[0]
                 rule_id = replication_rule.get('id')
                 expires_at = replication_rule.get('expires_at')
-                logger.debug(f"Replication rule found for '{scope}:{name}', rule_id={rule_id}.")
+                logger.debug("Replication rule found for '%s:%s', rule_id=%s.", scope, name, rule_id)
                 return rule_id, expires_at
             else:
-                logger.debug(f"No matching replication rules for '{scope}:{name}' on RSE '{destination_rse}'.")
+                logger.debug("No matching replication rules for '%s:%s' on RSE '%s'.", scope, name, destination_rse)
                 return None
         except Exception as e:
-            logger.error(f"Error fetching rules for DID '{scope}:{name}': {e}", exc_info=True)
+            logger.error("Error fetching rules for DID '%s:%s': %s", scope, name, e, exc_info=True)
             return None

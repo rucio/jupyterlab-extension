@@ -43,4 +43,4 @@ def test_get_oidc_token__oidc_file__file_exists__should_return_file_value(mocker
 
 def test_get_oidc_token__oidc_file__file_not_exists__should_return_none(mocker):
     # Since we cannot mock a nonexisting file, we just enter a filename that should not exist in the test runner.
-    assert get_oidc_token(oidc_auth='file', oidc_auth_source='/tmp/oauth2-should-not-exists') == None
+    assert get_oidc_token(oidc_auth='file', oidc_auth_source='/tmp/oauth2-should-not-exists') is None

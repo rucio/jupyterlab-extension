@@ -26,7 +26,7 @@ class AuthConfigHandler(RucioAPIHandler):
     def get(self):
         namespace = self.get_query_argument('namespace')
         auth_type = self.get_query_argument('type')
-        
+
         if auth_type == 'oidc':
             instance = self.rucio.for_instance(namespace)
             # Initialize auth_credentials as an empty dictionary
@@ -40,13 +40,12 @@ class AuthConfigHandler(RucioAPIHandler):
         else:
             db = get_db()  # pylint: disable=invalid-name
             auth_credentials = db.get_rucio_auth_credentials(namespace=namespace, auth_type=auth_type)
-                
+
         if auth_credentials:
             self.finish(json.dumps(auth_credentials))
         else:
             self.set_status(404)
             self.finish({'success': False, 'error': 'Auth credentials not set'})
-
 
     @tornado.web.authenticated
     @prometheus_metrics
@@ -86,7 +85,7 @@ class AuthConfigHandler(RucioAPIHandler):
             else:
                 self.finish(json.dumps({'success': True}))
         except Exception as e:
-            self.set_status(e.status_code or 401) 
+            self.set_status(e.status_code or 401)
 
             self.finish(json.dumps({
                 'success': False,

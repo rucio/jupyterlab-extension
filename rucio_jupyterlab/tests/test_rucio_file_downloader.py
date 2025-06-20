@@ -6,6 +6,7 @@
 #
 # Authors:
 # - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020-2021
+# - Giovanni Guerrieri, <giovanni.guerrieri@cern.ch>, 2025
 
 import os
 from unittest.mock import patch, mock_open
@@ -97,28 +98,27 @@ def test_rucio_file_downloader_is_downloading__lockfile_exists__pid_exists__proc
 
 def test_rucio_file_downloader_write_lockfile__should_write_pid(mocker):
     mocker.patch.object(os, 'getpid', return_value=123)
-    
+
     # Mock low-level file operations
     mock_os_open = mocker.patch('os.open', return_value=3)  # 3 = fake file descriptor
     mock_os_fdopen = mocker.patch('os.fdopen')
-    
+
     # Create a mock file object
     mock_file = mocker.MagicMock()
     mock_os_fdopen.return_value = mock_file
     mock_file.__enter__.return_value = mock_file  # For context manager
-    
+
     # Call the function
     result = RucioFileDownloader.write_lockfile('/path')
-    
+
     # Verify file operations
     lockfile_path = os.path.join('/path', '.lockfile')
     mock_os_open.assert_called_once_with(
-        lockfile_path, 
+        lockfile_path,
         os.O_CREAT | os.O_EXCL | os.O_WRONLY
     )
     mock_os_fdopen.assert_called_once_with(3, 'w')
     mock_file.write.assert_called_once_with('123')
-    
+
     # Verify return value
     assert result is True
-

@@ -9,10 +9,12 @@
 
 import time
 import calendar
-import os, errno
+import os
+import errno
 import logging
 
 logger = logging.getLogger(__name__)
+
 
 def parse_timestamp(timestr):
     time_struct = time.strptime(timestr, '%a, %d %b %Y %H:%M:%S %Z')

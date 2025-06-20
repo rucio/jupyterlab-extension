@@ -51,6 +51,7 @@ def test_post_handler__mode_replica(mocker, rucio):
     mock_self.get_query_argument.assert_called_with('namespace')  # pylint: disable=no-member
     assert make_available_called, "Make available is not called"
 
+
 def test_post_handler__mode_download(mocker, rucio):
     """
     This unit test handles the POST handler for the endpoint.

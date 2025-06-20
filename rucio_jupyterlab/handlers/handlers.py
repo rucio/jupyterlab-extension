@@ -6,6 +6,7 @@
 #
 # Authors:
 # - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
+# - Giovanni Guerrieri, <giovanni.guerrieri@cern.ch>, 2025
 
 from jupyter_server.utils import url_path_join  # pylint: disable=import-error
 from rucio_jupyterlab.config import RucioConfig, Config
@@ -27,6 +28,7 @@ from .upload_jobs_details import UploadJobsDetailsHandler
 from .upload_jobs_log import UploadJobsLogHandler
 from .upload import UploadHandler
 
+
 def setup_handlers(web_app):  # pragma: no cover
     host_pattern = ".*$"
 
@@ -34,7 +36,7 @@ def setup_handlers(web_app):  # pragma: no cover
     config = Config(rucio_config)
     rucio_factory = RucioAPIFactory(config=config)
 
-    handler_params = dict(rucio_config=config, rucio=rucio_factory)
+    handler_params = {"rucio_config": config, "rucio": rucio_factory}
 
     base_url = web_app.settings["base_url"]
     base_path = url_path_join(base_url, 'rucio-jupyterlab')

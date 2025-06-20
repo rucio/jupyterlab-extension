@@ -14,6 +14,7 @@ from rucio_jupyterlab.mode_handlers.replica import ReplicaModeHandler
 from rucio_jupyterlab.rucio import RucioAPIFactory
 from .mocks.mock_handler import MockHandler
 
+
 def test_get_handler(mocker, rucio):
     mock_self = MockHandler()
     mock_active_instance = 'atlas'

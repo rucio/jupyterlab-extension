@@ -6,17 +6,19 @@
 #
 # Authors:
 # - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
+# - Giovanni Guerrieri, <giovanni.guerrieri@cern.ch>, 2025
 
 import json
-import tornado
 import logging
 from rucio_jupyterlab.rucio.exceptions import RucioAPIException
 from rucio_jupyterlab.mode_handlers.replica import ReplicaModeHandler
 from rucio_jupyterlab.mode_handlers.download import DownloadModeHandler
 from .base import RucioAPIHandler
 from rucio_jupyterlab.metrics import prometheus_metrics
+import tornado
 
 logger = logging.getLogger(__name__)
+
 
 class DIDDetailsHandler(RucioAPIHandler):
     STATUS_NOT_AVAILABLE = "NOT_AVAILABLE"
@@ -45,10 +47,10 @@ class DIDDetailsHandler(RucioAPIHandler):
             self.finish(json.dumps(output))
         except RucioAPIException as e:
             # Log the exception details
-            logger.error(f"RucioAPIException occurred: {e.message}, Class: {e.exception_class}, Message: {e.exception_message}")
+            logger.error("RucioAPIException occurred: %s, Class: %s, Message: %s", e.message, e.exception_class, e.exception_message)
             # Set the HTTP status from the exception, falling back to 500 if not present
             self.set_status(e.status_code or 500)
-            
+
             # Finish the request with a detailed JSON error payload
             self.finish(json.dumps({
                 'success': False,

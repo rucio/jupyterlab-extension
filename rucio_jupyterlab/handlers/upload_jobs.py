@@ -13,6 +13,7 @@ from rucio_jupyterlab.rucio.upload import RucioFileUploader
 from .base import RucioAPIHandler
 from rucio_jupyterlab.metrics import prometheus_metrics
 
+
 class UploadJobsHandler(RucioAPIHandler):
     @tornado.web.authenticated
     @prometheus_metrics

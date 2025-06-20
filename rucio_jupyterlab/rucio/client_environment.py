@@ -16,6 +16,7 @@ import subprocess
 
 logger = logging.getLogger(__name__)
 
+
 class RucioClientEnvironment:
     """
     A context manager to create a temporary, isolated environment for the Rucio client.
@@ -195,7 +196,7 @@ class RucioClientEnvironment:
             args = []
             for option, value in cmd_args.items():
                 args.extend([option, value])
-                
+
             process = subprocess.Popen([executable] + args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             stdout, stderr = process.communicate()
 
@@ -226,4 +227,3 @@ class RucioClientEnvironment:
         }
         # Filter out keys with None values to keep the config file clean
         return {k: v for k, v in config_all.items() if v is not None}
-
