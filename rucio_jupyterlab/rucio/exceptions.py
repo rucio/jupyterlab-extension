@@ -37,8 +37,8 @@ class RucioAPIException(Exception):
 
 
 class RucioAuthenticationException(RucioAPIException):
-    def __init__(self, response):
-        super().__init__(response)
+    def __init__(self, response, fallback_msg=None):
+        super().__init__(response, fallback_msg=fallback_msg)
         error_msg = (f"Authentication failed: {self.status_code} {self.reason}. "
                      f"Message: {self.message}")
 

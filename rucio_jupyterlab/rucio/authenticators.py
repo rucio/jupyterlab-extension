@@ -49,7 +49,7 @@ def authenticate_userpass(base_url, username, password, account=None, vo=None, a
         logger.debug(f"Response Status Code: {response.status_code}")
         logger.debug(f"Response Headers: {response.headers}")
 
-        response.raise_for_status()  # raises requests.exceptions.HTTPError for status_code >= 400
+        response.raise_for_status()  # raises HTTPError for bad status codes
 
         response_headers = response.headers
         auth_token = response_headers['X-Rucio-Auth-Token']
@@ -61,17 +61,20 @@ def authenticate_userpass(base_url, username, password, account=None, vo=None, a
     except requests.exceptions.HTTPError as e:
         logger.debug("HTTP error during userpass authentication: %s %s", e.response.status_code, e.response.reason)
         logger.error("Request error during authentication for %s: %s", "userpass", e)
-        raise RucioHTTPException(e.response)
+        raise RucioHTTPException(e.response) from e
 
     except requests.exceptions.RequestException as e:
         logger.debug("Request failed during userpass authentication: %s", e)
         logger.error("Request error during authentication for %s: %s", "userpass", e)
-        raise RucioRequestsException(str(e))
+        raise RucioRequestsException(str(e)) from e
 
     except Exception as e:
         logger.error("Unexpected error during authentication for %s: %s", "userpass", e)
-        # fallback: may still raise with partial response
-        raise RucioAuthenticationException(response if response is not None else str(e))
+        if response is not None:
+            logger.error("Partial response received: status code %s, content: %s", response.status_code, response.text)
+        else:
+            logger.error("No response received.")
+        raise RucioAuthenticationException(response, fallback_msg=str(e)) from e
 
 
 def authenticate_x509(base_url, cert_path, key_path=None, account=None, vo=None, app_id=None, rucio_ca_cert=False):
@@ -137,7 +140,7 @@ def authenticate_x509(base_url, cert_path, key_path=None, account=None, vo=None,
         raise FileNotFoundError(e)
     except Exception as e:
         logger.error("Unexpected error during authentication for %s: %s", "x509", e)
-        raise RucioAuthenticationException(response if response is not None else str(e))
+        raise RucioAuthenticationException(response, fallback_msg=str(e)) from e
 
 
 def authenticate_oidc(base_url, oidc_auth, oidc_auth_source, rucio_ca_cert=False):
@@ -177,4 +180,4 @@ def authenticate_oidc(base_url, oidc_auth, oidc_auth_source, rucio_ca_cert=False
     except Exception as e:
         logger.error("Unexpected error during authentication for %s: %s", "oidc", e)
         # fallback: may still raise with partial response
-        raise RucioAuthenticationException(response if response is not None else str(e))
+        raise RucioAuthenticationException(response, fallback_msg=str(e)) from e
