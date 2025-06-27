@@ -86,6 +86,11 @@ const useStyles = createUseStyles({
   iconText: {
     verticalAlign: 'middle',
     paddingLeft: '4px'
+  },
+  errorText: {
+    padding: '16px',
+    color: 'red',
+    flex: 1
   }
 });
 
@@ -164,15 +169,21 @@ const _Explore: React.FunctionComponent = props => {
       .then(result => setSearchResult(result))
       .catch(e => {
         setSearchResult([]);
-        if (e.response.status === 401) {
+
+        // The error 'e' is the rich ResponseError object from requestAPI
+        if (e.response && e.response.status === 401) {
           setError(
             'Authentication error. Perhaps you set an invalid credential?'
           );
           return;
         }
 
-        if (e.response.status === 400) {
-          setError('Wildcard search is disabled.');
+        // The backend error message is directly available on e.error
+        if (e.error) {
+          setError(e.error);
+        } else {
+          // Fallback to the general error message if e.error is not present
+          setError(e.message || 'An unknown error occurred.');
         }
       })
       .finally(() => setLoading(false));
@@ -185,7 +196,7 @@ const _Explore: React.FunctionComponent = props => {
   };
 
   const listScopesButton = (
-    <ListScopesPopover onScopeClicked={onScopeClicked}>
+    <ListScopesPopover onScopeClicked={onScopeClicked} key="list-scopes-button">
       <div className={classes.listScopesButton}>
         <i className={`${classes.listScopesIcon} material-icons`}>topic</i>
       </div>
@@ -193,7 +204,11 @@ const _Explore: React.FunctionComponent = props => {
   );
 
   const searchButton = (
-    <div className={classes.searchButton} onClick={doSearch}>
+    <div
+      className={classes.searchButton}
+      onClick={doSearch}
+      key="search-button"
+    >
       <i className={`${classes.searchIcon} material-icons`}>search</i>
     </div>
   );
@@ -272,25 +287,43 @@ const _Explore: React.FunctionComponent = props => {
       )}
       {!!searchResult && (
         <>
-          <HorizontalHeading title="Search Results" />
-          {((!!searchResult && searchResult.length === 0) || !!error) && (
-            <div className={classes.loading}>{error || 'No results found'}</div>
+          {/* The heading can be shown as soon as a search is attempted or an error occurs */}
+          {!error && !!searchResult && (
+            <HorizontalHeading title="Search Results" />
           )}
-          <div className={classes.resultsContainer}>
-            <AutoSizer disableWidth>
-              {({ height }: { height: number }) => (
-                <VariableSizeList
-                  ref={listRef}
-                  height={height}
-                  itemCount={searchResult.length}
-                  itemSize={getItemHeight}
-                  width="100%"
-                >
-                  {Row}
-                </VariableSizeList>
+          {!!error && <HorizontalHeading title="Error(s) found" />}
+
+          {/* Priority 1: Display the error if it exists */}
+          {!!error && <div className={classes.errorText}>{error}</div>}
+
+          {/* Priority 2: If no error, check for search results */}
+          {!error && searchResult && (
+            <>
+              {/* Case A: No results were found */}
+              {searchResult.length === 0 && (
+                <div className={classes.loading}>No results found</div>
               )}
-            </AutoSizer>
-          </div>
+
+              {/* Case B: Results were found, display the list */}
+              {searchResult.length > 0 && (
+                <div className={classes.resultsContainer}>
+                  <AutoSizer disableWidth>
+                    {({ height }: { height: number }) => (
+                      <VariableSizeList
+                        ref={listRef}
+                        height={height}
+                        itemCount={searchResult.length}
+                        itemSize={getItemHeight}
+                        width="100%"
+                      >
+                        {Row}
+                      </VariableSizeList>
+                    )}
+                  </AutoSizer>
+                </div>
+              )}
+            </>
+          )}
         </>
       )}
     </div>

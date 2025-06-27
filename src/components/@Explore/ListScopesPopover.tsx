@@ -39,6 +39,11 @@ const useStyles = createUseStyles({
     whiteSpace: 'nowrap',
     flex: 1
   },
+  errorText: {
+    textOverflow: 'ellipsis',
+    color: 'red',
+    flex: 1
+  },
   content: {
     fontSize: '10pt',
     overflow: 'auto',
@@ -120,6 +125,7 @@ export const ListScopesPopover: React.FC<MyProps> = ({
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [scopes, setScopes] = useState<string[]>([]);
+  const [scopeResult, setScopeResult] = useState<string[]>([]);
   const activeInstance = useStoreState(UIStore, s => s.activeInstance);
 
   const escFunction = useCallback((event: any) => {
@@ -151,7 +157,11 @@ export const ListScopesPopover: React.FC<MyProps> = ({
   const popoverBody = (
     <div className={classes.main}>
       <div className={classes.heading}>
-        <div className={classes.headingText}>Available scopes</div>
+        {scopeResult.length > 0 ? (
+          <div className={classes.errorText}>{scopeResult.join(', ')}</div>
+        ) : (
+          <div className={classes.headingText}>Available scopes</div>
+        )}
         <i
           className={`${classes.headingCloseButton} material-icons`}
           onClick={() => setOpen(false)}
@@ -184,14 +194,47 @@ export const ListScopesPopover: React.FC<MyProps> = ({
     if (!activeInstance) {
       return;
     }
+    setScopeResult([]);
+    setScopes([]);
     setLoading(true);
     actions
       .fetchScopes(activeInstance.name)
       .then(result => {
-        result.sort((a, b) => a.localeCompare(b));
-        setScopes(result);
+        console.log('Fetched scopes:', result);
+
+        if (!result.success) {
+          const errorMsg = result.error || 'Failed to fetch scopes';
+          setScopeResult([errorMsg]);
+          setLoading(false);
+          return;
+        }
+
+        if (result && result.success && Array.isArray(result.scopes)) {
+          // Correctly access the 'scopes' property which is a string array
+          const scopesArray = result.scopes;
+
+          // Now, sort the array. This works because scopesArray is a string[]
+          scopesArray.sort((a, b) => a.localeCompare(b));
+
+          // Update the state with the sorted array
+          setScopes(scopesArray);
+
+          console.log('Scopes fetched and sorted:', scopesArray);
+        } else {
+          // Handle API errors or unexpected data structure
+          console.error(
+            'Failed to fetch scopes:',
+            result?.error || 'Data is not in the expected format.'
+          );
+        }
       })
-      .catch(e => console.log(e)) // TODO handle error
+      .catch(e => {
+        console.error('An error occurred while fetching scopes:', e.error);
+        const errorMsg = e.error || 'Unexpected error fetching scopes';
+        setScopeResult([errorMsg]);
+        setLoading(false);
+        // Optionally, update the UI to show an error message
+      })
       .finally(() => setLoading(false));
   };
 

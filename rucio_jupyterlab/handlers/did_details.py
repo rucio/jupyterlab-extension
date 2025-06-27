@@ -6,14 +6,18 @@
 #
 # Authors:
 # - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
+# - Giovanni Guerrieri, <giovanni.guerrieri@cern.ch>, 2025
 
 import json
-import tornado
-from rucio_jupyterlab.rucio.authenticators import RucioAuthenticationException
+import logging
+from rucio_jupyterlab.rucio.exceptions import RucioAPIException
 from rucio_jupyterlab.mode_handlers.replica import ReplicaModeHandler
 from rucio_jupyterlab.mode_handlers.download import DownloadModeHandler
 from .base import RucioAPIHandler
 from rucio_jupyterlab.metrics import prometheus_metrics
+import tornado
+
+logger = logging.getLogger(__name__)
 
 
 class DIDDetailsHandler(RucioAPIHandler):
@@ -41,6 +45,16 @@ class DIDDetailsHandler(RucioAPIHandler):
         try:
             output = handler.get_did_details(scope, name, poll)
             self.finish(json.dumps(output))
-        except RucioAuthenticationException:
-            self.set_status(401)
-            self.finish(json.dumps({'error': 'Authentication error '}))
+        except RucioAPIException as e:
+            # Log the exception details
+            logger.error("RucioAPIException occurred: %s, Class: %s, Message: %s", e.message, e.exception_class, e.exception_message)
+            # Set the HTTP status from the exception, falling back to 500 if not present
+            self.set_status(e.status_code or 500)
+
+            # Finish the request with a detailed JSON error payload
+            self.finish(json.dumps({
+                'success': False,
+                'error': e.message,
+                'exception_class': e.exception_class,
+                'exception_message': e.exception_message
+            }))

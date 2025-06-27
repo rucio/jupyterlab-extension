@@ -14,6 +14,7 @@ from rucio_jupyterlab.rucio import RucioAPI
 from .base import RucioAPIHandler
 from rucio_jupyterlab.metrics import prometheus_metrics
 
+
 class InstancesHandler(RucioAPIHandler):
 
     @tornado.web.authenticated  # Ensure user authentication first
