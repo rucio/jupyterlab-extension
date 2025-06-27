@@ -332,18 +332,21 @@ class RucioAPI:
                 password = auth_config.get('password')
                 account = auth_config.get('account')
 
-                return authenticate_userpass(base_url=self.auth_url, username=username, password=password, account=account, vo=vo, app_id=app_id, rucio_ca_cert=self.rucio_ca_cert)
+                # TODO VO is currently not accepted by the userpass authenticator, so we pass None
+                return authenticate_userpass(base_url=self.auth_url, username=username, password=password, account=account, vo=None, app_id=app_id, rucio_ca_cert=self.rucio_ca_cert)
             elif auth_type == 'x509':
                 cert_path = auth_config.get('certificate')
                 key_path = auth_config.get('key')
                 account = auth_config.get('account')
 
-                return authenticate_x509(base_url=self.auth_url, cert_path=cert_path, key_path=key_path, account=account, vo=vo, app_id=app_id, rucio_ca_cert=self.rucio_ca_cert)
+                # TODO VO is currently not accepted by the x509 authenticator, so we pass None
+                return authenticate_x509(base_url=self.auth_url, cert_path=cert_path, key_path=key_path, account=account, vo=None, app_id=app_id, rucio_ca_cert=self.rucio_ca_cert)
             elif auth_type == 'x509_proxy':
                 proxy = auth_config.get('proxy')
                 account = auth_config.get('account')
 
-                return authenticate_x509(base_url=self.auth_url, cert_path=proxy, key_path=proxy, account=account, vo=vo, app_id=app_id, rucio_ca_cert=self.rucio_ca_cert)
+                # TODO VO is currently not accepted by the x509_proxy authenticator, so we pass None
+                return authenticate_x509(base_url=self.auth_url, cert_path=proxy, key_path=proxy, account=account, vo=None, app_id=app_id, rucio_ca_cert=self.rucio_ca_cert)
 
             elif auth_type == 'oidc':
                 oidc_auth = self.instance_config.get('oidc_auth')

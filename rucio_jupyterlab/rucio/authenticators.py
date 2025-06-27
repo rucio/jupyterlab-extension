@@ -36,13 +36,18 @@ def authenticate_userpass(base_url, username, password, account=None, vo=None, a
         }
         headers = utils.remove_none_values(headers)
 
-        logger.debug("Sending userpass authentication request to %s/auth/userpass with headers: %s", base_url, headers)
+        logger.debug("Sending userpass authentication request to %s/auth/userpass", base_url)
+        logger.debug("Rucio CA path: %s", rucio_ca_cert)
+        logger.debug("Headers: %s", headers)
 
         response = requests.get(
             url=f'{base_url}/auth/userpass',
             headers=headers,
             verify=rucio_ca_cert
         )
+
+        logger.debug(f"Response Status Code: {response.status_code}")
+        logger.debug(f"Response Headers: {response.headers}")
 
         response.raise_for_status()  # raises requests.exceptions.HTTPError for status_code >= 400
 
@@ -96,7 +101,9 @@ def authenticate_x509(base_url, cert_path, key_path=None, account=None, vo=None,
         headers = utils.remove_none_values(headers)
         cert = (cert_path, key_path)
 
-        logger.debug("Sending x509 request with headers: %s, cert: %s", headers, cert)
+        logger.debug("Sending x509 authentication request to %s/auth/x509", base_url)
+        logger.debug("Certificate path: %s", cert)
+        logger.debug("Headers: %s", headers)
 
         response = requests.get(
             url=f'{base_url}/auth/x509',
