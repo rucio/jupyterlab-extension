@@ -89,7 +89,7 @@ def parse_did_filter_from_string_fe(input_string, name='*', type='collection', o
                         raise ValueError("{} operator not understood.".format(operator_mapped))
 
                     if filter_key_full in and_group_filters:
-                        raise ValueError(filter_key_full)
+                        raise ValueError("Duplicate filter key found: {}".format(filter_key_full))
                     else:
                         if not is_numeric(value):
                             value = "'{}'".format(value)
@@ -235,26 +235,42 @@ class RucioAPI:
         return self._make_rucio_request('GET', 'rses', params=params, parse_json=True, parse_lines=True)
 
     def search_did(self, scope, name, search_type='collection', filters=None, limit=None):
-        # DEBUG: response = requests.get(url=f'{self.base_url}/dids/{scope}/dids/search?{urlencoded_params}', headers=headers, verify=self.rucio_ca_cert)
         params = {
             'type': search_type,
             'long': '1',
             'name': name
         }
-        if filters:
-            filters, _ = parse_did_filter_from_string_fe(filters, name=name)
-            params['filters'] = filters
 
-        results = self._make_rucio_request(
-            'GET',
-            f'dids/{scope}/dids/search',
-            params=params,
-            parse_json=True,
-            parse_lines=True
-        )
-        if limit is not None:
-            results = results[:limit]
-        return results
+        try:
+            if filters:
+                # Move the parsing logic inside the try block
+                parsed_filters, _ = parse_did_filter_from_string_fe(filters, name=name)
+                params['filters'] = parsed_filters
+            else:
+                logger.warning("No filters provided for DID search, using default parameters.")
+
+            results = self._make_rucio_request(
+                'GET',
+                f'dids/{scope}/dids/search',
+                params=params,
+                parse_json=True,
+                parse_lines=True
+            )
+            
+            if limit is not None:
+                results = results[:limit]
+            return results
+
+        except requests.exceptions.HTTPError as e:
+            # This handles errors specific to the web request
+            logger.error("Request error during DID search: %s", str(e))
+            raise RucioRequestsException(None, str(e))
+            
+        except Exception as e:
+            # This will catch errors from `parse_did_filter_from_string_fe`
+            # or any other unexpected issues.
+            logger.error("An unexpected error occurred: %s", str(e))
+            raise RucioAPIException(None, str(e))
 
     def get_metadata(self, scope, name):
         # DEBUG: response = requests.get(url=f'{self.base_url}/dids/{scope}/{name}/meta', headers=headers, verify=self.rucio_ca_cert)

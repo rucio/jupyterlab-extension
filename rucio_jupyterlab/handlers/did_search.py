@@ -30,6 +30,11 @@ class WildcardDisallowedException(BaseException):
 
 class DIDSearchHandlerImpl:
     def __init__(self, namespace, rucio):
+        """
+        Initialize the DIDSearchHandlerImpl with the given namespace and rucio instance.
+        :param namespace: The namespace for the Rucio instance.
+        :param rucio: The Rucio instance to interact with.
+        """
         self.namespace = namespace
         self.rucio = rucio
         self.db = get_db()  # pylint: disable=invalid-name
@@ -42,22 +47,36 @@ class DIDSearchHandlerImpl:
         if ('*' in name or '%' in name) and not wildcard_enabled:
             logger.warning("Wildcard search attempted but is disabled in the configuration.")
             raise WildcardDisallowedException()
-
         dids = self.rucio.search_did(scope, name, search_type, filters, limit)
         logger.debug("Initial search results: %s", dids)
 
-        # Check if dids is empty
-        if not dids:
-            raise ValueError(f"No DIDs found for scope: \"{scope}\". Please check the parameters or try a different search.")
+        # Check if filters are provided and if dids are found
+        if filters and not dids:
+            print(filters)
+            # If no filters are provided and no DIDs are found, search for all DIDs in the scope
+            raise ValueError("No DIDs found for scope: \"%s\" and filters: %s. Please check the parameters or try a different search." % (scope, filters))
+        # If filters are provided but no DIDs are found, raise an error
+        if not filters and not dids:
+            raise ValueError("No DIDs found for scope: \"%s\". Please check the parameters or try a different search." % (scope))
 
-        for did in dids:
-            if did['did_type'] is None:  # JSON plugin was used lacking data
-                logger.debug("Fetching metadata for DID with scope: %s, name: %s", scope, did['name'])
-                metadata = self.rucio.get_metadata(scope, did['name'])[0]
-                did['did_type'] = f"DIDType.{metadata['did_type']}"
-                did['bytes'] = metadata['bytes']
-                did['length'] = metadata['length']
-                logger.debug("Updated DID metadata: %s", did)
+        try:
+            for did in dids:
+                if did['did_type'] is None:  # JSON plugin was used lacking data
+                    logger.debug("Fetching metadata for DID with scope: %s, name: %s", scope, did['name'])
+                    metadata_str = self.rucio.get_metadata(scope, did['name']) # This should be a single dict
+                    metadata = json.loads(metadata_str) # Convert JSON string to dict
+
+                    did['did_type'] = metadata['did_type']
+                    did['bytes'] = metadata['bytes']
+                    did['length'] = metadata['length']
+                    logger.debug("Updated DID metadata: %s", did)
+        except Exception as e:
+            logger.error(e)
+            self.set_status(500)
+            self.finish(json.dumps({
+                'success': False,
+                'error': str(e)
+            }))
 
         def mapper(entry, _):
             logger.debug("Mapping entry: %s", entry)
@@ -66,6 +85,7 @@ class DIDSearchHandlerImpl:
             if isinstance(did_type, str):
                 if '.' in did_type:
                     type_str = did_type.split('.', 1)[-1].lower()
+                    logger.warning("DIDType.* is a deprecated format, please upgrade Rucio Servers to v35+ to have the format without DIDType prefix.")
                 else:
                     type_str = did_type.lower()
             else:
