@@ -17,6 +17,15 @@ from rucio_jupyterlab.metrics import prometheus_metrics
 
 
 class AuthConfigHandler(RucioAPIHandler):
+    """
+    Handler for managing Rucio authentication configurations.
+    This handler allows users to retrieve and set authentication credentials
+    for Rucio instances.
+    The handler supports both GET and PUT methods:
+    - GET: Retrieve the authentication credentials for a specified namespace and type.
+    - PUT: Set or update the authentication credentials for a specified namespace and type.
+    """
+
     # The following decorator should be present on all verb methods (head, get, post,
     # patch, put, delete, options) to ensure only authorized user can request the
     # Jupyter server

@@ -113,7 +113,7 @@ class RucioFileUploader:
             if status == 0:
                 self.db.mark_upload_job_finished(upload_job_id)
                 os.remove(logfile_path)
-        except BaseException:
+        except Exception:
             upload_logger.exception("Upload failed")
 
     def add_upload_job(self, path, rse, scope, lifetime=None, dataset_scope=None, dataset_name=None):

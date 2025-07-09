@@ -22,6 +22,20 @@ logger = logging.getLogger(__name__)
 
 
 class DIDMakeAvailableHandler(RucioAPIHandler):
+    """
+    Handler for making a Data Identifier (DID) available in Rucio.
+    This handler supports both replica and download modes, depending on the Rucio instance configuration.
+    It processes a POST request to make a DID available based on the provided namespace and DID.
+    The handler uses the appropriate mode handler (ReplicaModeHandler or DownloadModeHandler)
+    based on the Rucio instance's configuration.
+
+    The expected JSON body should contain the 'did' field in the format 'scope:name'.
+    Example:
+    {
+        "did": "scope:name"
+    }
+    """
+
     @tornado.web.authenticated
     @prometheus_metrics
     def post(self):

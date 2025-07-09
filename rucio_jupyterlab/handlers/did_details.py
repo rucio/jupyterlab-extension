@@ -21,6 +21,14 @@ logger = logging.getLogger(__name__)
 
 
 class DIDDetailsHandler(RucioAPIHandler):
+    """
+    Handler for retrieving details of a specific Data Identifier (DID) in Rucio.
+    This handler supports both replica and download modes, depending on the Rucio instance configuration.
+    It retrieves the details of a DID based on the provided scope and name, and can optionally poll for updates.
+    The handler uses the appropriate mode handler (ReplicaModeHandler or DownloadModeHandler)
+    based on the Rucio instance's configuration.
+    """
+
     STATUS_NOT_AVAILABLE = "NOT_AVAILABLE"
     STATUS_REPLICATING = "REPLICATING"
     STATUS_OK = "OK"

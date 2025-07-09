@@ -200,8 +200,6 @@ export const ListScopesPopover: React.FC<MyProps> = ({
     actions
       .fetchScopes(activeInstance.name)
       .then(result => {
-        console.log('Fetched scopes:', result);
-
         if (!result.success) {
           const errorMsg = result.error || 'Failed to fetch scopes';
           setScopeResult([errorMsg]);

@@ -334,6 +334,12 @@ class RucioAPI:
         return None
 
     def authenticate(self, auth_config, auth_type):
+        """
+        Authenticate with Rucio using the provided auth_config and auth_type.
+        :param auth_config: Dictionary containing authentication parameters.
+        :param auth_type: Type of authentication to use (e.g., 'userpass', 'x509', 'x509_proxy', 'oidc').
+        :return: Tuple of (auth_token, expires) if successful, otherwise raises an exception.
+        """
 
         if not auth_type:
             raise RucioAuthenticationException()

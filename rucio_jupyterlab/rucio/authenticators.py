@@ -59,8 +59,7 @@ def authenticate_userpass(base_url, username, password, account=None, vo=None, a
         return (auth_token, expires)
 
     except requests.exceptions.HTTPError as e:
-        logger.debug("HTTP error during userpass authentication: %s %s", e.response.status_code, e.response.reason)
-        logger.error("Request error during authentication for %s: %s", "userpass", e)
+        logger.error("HTTP error during userpass authentication: %s %s", e.response.status_code, e.response.reason)
         raise RucioHTTPException(e.response) from e
 
     except requests.exceptions.RequestException as e:

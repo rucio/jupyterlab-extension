@@ -84,7 +84,7 @@ class RucioHTTPException(RucioAPIException):
         super().__init__(response)
 
         # Create a user-friendly error message
-        error_msg = (f"Authentication failed: {self.status_code} {self.reason}. "
+        error_msg = (f"{self.status_code} {self.reason}. "
                      f"Message: {self.message}")
 
         # Set the args tuple for proper exception behavior

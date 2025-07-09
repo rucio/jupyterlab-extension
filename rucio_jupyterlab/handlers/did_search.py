@@ -35,6 +35,7 @@ class DIDSearchHandlerImpl:
         :param namespace: The namespace for the Rucio instance.
         :param rucio: The Rucio instance to interact with.
         """
+
         self.namespace = namespace
         self.rucio = rucio
         self.db = get_db()  # pylint: disable=invalid-name
