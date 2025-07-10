@@ -81,7 +81,7 @@ def parse_did_filter_from_string_fe(input_string, name='*', type='collection', o
                     # substitute input operator with the nominal operator defined by the LUT, <OPERATORS_SUFFIX_LUT>.
                     operator_mapped = OPERATORS_SUFFIX_LUT.get(operator)
 
-                    filter_key_full = key = "'{}'".format(key)
+                    filter_key_full = key
                     if operator_mapped is not None:
                         if operator_mapped:
                             filter_key_full = "{}.{}".format(key, operator_mapped)
@@ -90,10 +90,10 @@ def parse_did_filter_from_string_fe(input_string, name='*', type='collection', o
 
                     if filter_key_full in and_group_filters:
                         raise ValueError("Duplicate filter key found: {}".format(filter_key_full))
-                    else:
-                        if not is_numeric(value):
-                            value = "'{}'".format(value)
-                        and_group_filters[filter_key_full] = value
+
+                    if not is_numeric(value):
+                        value = value
+                    and_group_filters[filter_key_full] = value
                 elif len(and_group_split_by_operator) == 5:     # this is a compound inequality
                     value1, operator1, key, operator2, value2 = [token.strip() for token in and_group_split_by_operator]
 
@@ -162,28 +162,27 @@ class RucioAPI:
         self.auth_url = instance_config.get('rucio_auth_url', self.base_url)
         self.rucio_ca_cert = instance_config.get('rucio_ca_cert', True)    # Default should be True to use system CA certs
 
-    def _build_url(self, endpoint, scope=None, name=None, params=None):
+    def _build_url(self, endpoint, scope=None, name=None):
         """
-        Constructs the full URL with optional scope, name and params.
+        Constructs the URL path, without query parameters.
         """
-        url_parts = [self.base_url]
+        # Use strip('/') to avoid issues like 'host//endpoint'
+        url_parts = [self.base_url.strip('/')]
         if endpoint:
-            url_parts.append(endpoint)
+            url_parts.append(endpoint.strip('/'))
         if scope:
             url_parts.append(quote(scope))
         if name:
             url_parts.append(quote(name))
-        url = '/'.join(url_parts)
-        if params:
-            url = f"{url}?{urlencode(params)}"
-        return url
+
+        return '/'.join(url_parts)
 
     def _make_rucio_request(self, method, endpoint, scope=None, name=None, params=None, data=None,
                             parse_json=False, parse_lines=False):
         """
         Centralizes logic for making Rucio API requests and handling errors.
         """
-        url = self._build_url(endpoint, scope, name, params)
+        url = self._build_url(endpoint, scope, name)
 
         try:
             token = self._get_auth_token()
@@ -193,6 +192,7 @@ class RucioAPI:
                 method=method,
                 url=url,
                 headers=headers,
+                params=params,
                 data=data,
                 verify=self.rucio_ca_cert
             )
@@ -245,7 +245,7 @@ class RucioAPI:
             if filters:
                 # Move the parsing logic inside the try block
                 parsed_filters, _ = parse_did_filter_from_string_fe(filters, name=name)
-                params['filters'] = parsed_filters
+                params['filters'] = str(parsed_filters) # Convert to string representation for Rucio API to avoid "malformed node or string: <ast.Name object at 0x7fcb3cd3fa60>"
             else:
                 logger.warning("No filters provided for DID search, using default parameters.")
 
@@ -256,7 +256,7 @@ class RucioAPI:
                 parse_json=True,
                 parse_lines=True
             )
-            
+
             if limit is not None:
                 results = results[:limit]
             return results
@@ -265,10 +265,7 @@ class RucioAPI:
             # This handles errors specific to the web request
             logger.error("Request error during DID search: %s", str(e))
             raise RucioRequestsException(None, str(e))
-            
         except Exception as e:
-            # This will catch errors from `parse_did_filter_from_string_fe`
-            # or any other unexpected issues.
             logger.error("An unexpected error occurred: %s", str(e))
             raise RucioAPIException(None, str(e))
 
