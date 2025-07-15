@@ -38,6 +38,7 @@ services:
       - RUCIO_NAME=rucio.test
       - RUCIO_PATH_BEGINS_AT=1
       - RUCIO_RSE_MOUNT_PATH=/tmp/rucio_xrd1
+      - RUCIO_LOG_LEVEL=debug
       - CONTAINER_PURPOSE=develop
     ports:
       - "8888:8888"

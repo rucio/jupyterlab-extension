@@ -6,13 +6,14 @@
 #
 # Authors:
 # - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
+# - Giovanni Guerrieri, <giovanni.guerrieri@cern.ch>, 2025
 
 import os
 import json
-import tornado
-import rucio_jupyterlab.utils as utils
+from rucio_jupyterlab import utils
 from .base import RucioAPIHandler
 from rucio_jupyterlab.metrics import prometheus_metrics
+import tornado
 
 
 class FileBrowserHandlerImpl:
@@ -34,7 +35,7 @@ class FileBrowserHandlerImpl:
         def items_mapper(item, _):
             full_path = os.path.join(path, item)
             item_type = 'file' if os.path.isfile(full_path) else 'dir'
-            return dict(type=item_type, name=item, path=full_path)
+            return {"type": item_type, "name": item, "path": full_path}
 
         items = utils.map(items, items_mapper)
         items = utils.filter(items, lambda x, _: x['name'][0] != '.')

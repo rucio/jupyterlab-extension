@@ -56,12 +56,19 @@ export interface IAttachedFile {
   size: number;
 }
 
+export interface IFetchScopesResult {
+  success: boolean;
+  scopes: string[];
+  error?: string; // Optional property for error messages
+}
+
 export interface IFileDIDDetails {
   status: FileStatus;
   did: string;
   path?: string;
   pfn?: string;
   size: number;
+  error?: string;
 }
 
 export interface INotebookDIDAttachment {
@@ -76,7 +83,12 @@ export interface IDirectoryItem {
   path: string;
 }
 
-export type FileStatus = 'OK' | 'REPLICATING' | 'NOT_AVAILABLE' | 'STUCK';
+export type FileStatus =
+  | 'OK'
+  | 'REPLICATING'
+  | 'NOT_AVAILABLE'
+  | 'STUCK'
+  | 'FAILED';
 export type CollectionStatus =
   | 'NOT_AVAILABLE'
   | 'AVAILABLE'

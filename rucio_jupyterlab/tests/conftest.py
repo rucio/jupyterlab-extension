@@ -10,7 +10,7 @@
 import pytest
 from rucio_jupyterlab.rucio import RucioAPI
 
-MOCK_BASE_URL = "https://rucio/"
+MOCK_BASE_URL = "https://rucio"
 MOCK_USERNAME = "username"
 MOCK_PASSWORD = "password"
 MOCK_ACCOUNT = "account"

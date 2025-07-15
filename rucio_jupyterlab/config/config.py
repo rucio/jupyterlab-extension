@@ -78,7 +78,7 @@ class Config:
 
     def get_default_instance(self):
         return self.config.default_instance
-    
+
     def get_log_level(self):
         return self.config.log_level
 

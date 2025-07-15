@@ -6,7 +6,10 @@
 #
 # Authors:
 # - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
+# - Giovanni Guerrieri, <giovanni.guerrieri@cern.ch>, 2025
 
+import os
+import tempfile
 from rucio_jupyterlab.rucio.authenticators import authenticate_userpass, authenticate_x509, authenticate_oidc
 
 
@@ -38,30 +41,52 @@ def test_authenticate_userpass_call_requests(requests_mock):
 
 
 def test_authenticate_x509_call_requests(requests_mock):
-    mock_base_url = "https://rucio/"
-    mock_account = "account"
-    mock_app_id = "app_id"
-    mock_vo = "def"
-    mock_auth_token = 'abcde_token_ghijk'
+    with tempfile.TemporaryDirectory() as temp_dir:
+        # Create fake certificate files
+        mock_cert_path = os.path.join(temp_dir, 'cert.pem')
+        mock_key_path = os.path.join(temp_dir, 'key.pem')
 
-    mock_cert_path = '/eos/user/certs/cert.pem'
-    mock_key_path = '/eos/user/certs/key.pem'
+        # Actually create the files
+        with open(mock_cert_path, 'w') as f:
+            f.write('FAKE_CERT')
+        with open(mock_key_path, 'w') as f:
+            f.write('FAKE_KEY')
 
-    request_headers = {
-        'X-Rucio-Account': mock_account, 'X-Rucio-AppID': mock_app_id, 'X-Rucio-VO': mock_vo
-    }
+        mock_base_url = "https://rucio/"
+        mock_account = "account"
+        mock_app_id = "app_id"
+        mock_vo = "def"
+        mock_auth_token = 'abcde_token_ghijk'
 
-    response_headers = {
-        'X-Rucio-Auth-Token': mock_auth_token,
-        'X-Rucio-Auth-Token-Expires': 'Mon, 13 May 2013 10:23:03 UTC'
-    }
+        request_headers = {
+            'X-Rucio-Account': mock_account,
+            'X-Rucio-AppID': mock_app_id,
+            'X-Rucio-VO': mock_vo
+        }
 
-    requests_mock.get(f'{mock_base_url}/auth/x509', request_headers=request_headers, headers=response_headers)
+        response_headers = {
+            'X-Rucio-Auth-Token': mock_auth_token,
+            'X-Rucio-Auth-Token-Expires': 'Mon, 13 May 2013 10:23:03 UTC'
+        }
 
-    expected_output = (mock_auth_token, 1368440583)
-    response = authenticate_x509(mock_base_url, cert_path=mock_cert_path, key_path=mock_key_path, account=mock_account, vo=mock_vo, app_id=mock_app_id)
-    assert response == expected_output, "Invalid return value"
-    assert requests_mock.last_request.cert == (mock_cert_path, mock_key_path), "Invalid certs"
+        requests_mock.get(
+            f'{mock_base_url}/auth/x509',
+            request_headers=request_headers,
+            headers=response_headers
+        )
+
+        expected_output = (mock_auth_token, 1368440583)
+        response = authenticate_x509(
+            mock_base_url,
+            cert_path=mock_cert_path,
+            key_path=mock_key_path,
+            account=mock_account,
+            vo=mock_vo,
+            app_id=mock_app_id
+        )
+
+        assert response == expected_output, "Invalid return value"
+        assert requests_mock.last_request.cert == (mock_cert_path, mock_key_path), "Invalid certs"
 
 
 def test_authenticate_oidc_call_requests(requests_mock, mocker):

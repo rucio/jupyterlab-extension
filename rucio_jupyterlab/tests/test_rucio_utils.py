@@ -9,6 +9,7 @@
 
 from unittest.mock import patch, mock_open
 from rucio_jupyterlab.rucio.utils import parse_timestamp, get_oidc_token
+import pytest
 
 
 def test_parse_timestamp_returns_correct_timezone_utc():
@@ -24,15 +25,22 @@ def test_get_oidc_token__oidc_env__env_exists__should_return_env_value(mocker):
 
 def test_get_oidc_token__oidc_env__env_not_exists__should_return_none(mocker):
     mocker.patch.dict('os.environ', {})
-    assert get_oidc_token(oidc_auth='env', oidc_auth_source='ACCESS_TOKEN') == None, "Invalid token value"
+    result = get_oidc_token(oidc_auth='env', oidc_auth_source='ACCESS_TOKEN')
+    assert result is None, "Should return None when env var is missing"
 
 
 def test_get_oidc_token__oidc_file__file_exists__should_return_file_value(mocker):
+    # Mock file existence check
+    mocker.patch('os.path.exists', return_value=True)
+    
+    # Mock file content
     with patch("builtins.open", mock_open(read_data="access_token")) as mock_file:
-        assert get_oidc_token(oidc_auth='file', oidc_auth_source='/tmp/oauth2') == 'access_token'
+        result = get_oidc_token(oidc_auth='file', oidc_auth_source='/tmp/oauth2')
+        assert result == 'access_token'
         mock_file.assert_called_with('/tmp/oauth2')
+
 
 
 def test_get_oidc_token__oidc_file__file_not_exists__should_return_none(mocker):
     # Since we cannot mock a nonexisting file, we just enter a filename that should not exist in the test runner.
-    assert get_oidc_token(oidc_auth='file', oidc_auth_source='/tmp/oauth2-should-not-exists') == None
+    assert get_oidc_token(oidc_auth='file', oidc_auth_source='/tmp/oauth2-should-not-exists') is None

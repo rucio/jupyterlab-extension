@@ -6,6 +6,7 @@
 #
 # Authors:
 # - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
+# - Giovanni Guerrieri, <giovanni.guerrieri@cern.ch>, 2025
 
 import os
 import time
@@ -174,6 +175,7 @@ class FileReplicasCache(Model):
 
 
 class FileUploadJob(Model):
+    id = IntegerField(primary_key=True)
     namespace = TextField()
     did = TextField()
     dataset_did = TextField(null=True)

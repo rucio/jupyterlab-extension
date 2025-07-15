@@ -136,8 +136,17 @@ namespace RucioUpload {
         actions
           .fetchScopes(activeInstance.name)
           .then(result => {
-            result.sort((a, b) => a.localeCompare(b));
-            this.model.scopes = result;
+            if (result && result.success && Array.isArray(result.scopes)) {
+              // Correctly access the 'scopes' property which is a string array
+              const scopesArray = result.scopes;
+
+              // Now, sort the array. This works because scopesArray is a string[]
+              scopesArray.sort((a, b) => a.localeCompare(b));
+
+              this.model.scopes = scopesArray;
+            } else {
+              console.error('Failed to fetch scopes:', result);
+            }
           })
           .finally(() => (this.model.scopesLoading = false));
 

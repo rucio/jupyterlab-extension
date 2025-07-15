@@ -6,6 +6,8 @@
 #
 # Authors:
 # - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
+# - Giovanni Guerrieri, <giovanni.guerrieri@cern.ch>, 2025
+# - Enrique Garcia, <enrique.garcia.garcia@cern.ch>, 2025
 
 import logging
 import re
@@ -14,7 +16,12 @@ import json
 from urllib.parse import urlencode, quote
 import requests
 from rucio_jupyterlab.db import get_db
-from .authenticators import RucioAuthenticationException, authenticate_userpass, authenticate_x509, authenticate_oidc
+from rucio_jupyterlab.rucio.authenticators import authenticate_userpass, authenticate_x509, authenticate_oidc
+from rucio_jupyterlab.rucio.exceptions import RucioAPIException, RucioAuthenticationException, RucioRequestsException, RucioHTTPException
+
+
+# Setup logging
+logger = logging.getLogger(__name__)
 
 
 def parse_did_filter_from_string_fe(input_string, name='*', type='collection', omit_name=False):
@@ -39,7 +46,7 @@ def parse_did_filter_from_string_fe(input_string, name='*', type='collection', o
     """
     # lookup table unifying all comprehended operators to a nominal suffix.
     # note that the order matters as the regex engine is eager, e.g. don't want to evaluate '<=' as '<' and '='.
-    operators_suffix_LUT = dict({
+    OPERATORS_SUFFIX_LUT = dict({  # Being this a lookup table, we define a constant.
         '≤': 'lte',
         '≥': 'gte',
         '==': '',
@@ -50,11 +57,11 @@ def parse_did_filter_from_string_fe(input_string, name='*', type='collection', o
     })
 
     # lookup table mapping operator opposites, used to reverse compound inequalities.
-    operator_opposites_LUT = {
+    OPERATORS_OPPOSITES_LUT = {  # Being this a lookup table, we define a constant.
         'lt': 'gt',
         'lte': 'gte'
     }
-    operator_opposites_LUT.update({op2: op1 for op1, op2 in operator_opposites_LUT.items()})
+    OPERATORS_OPPOSITES_LUT.update({op2: op1 for op1, op2 in OPERATORS_OPPOSITES_LUT.items()})
 
     filters = []
     if input_string:
@@ -66,15 +73,15 @@ def parse_did_filter_from_string_fe(input_string, name='*', type='collection', o
             for and_group in and_groups:
                 and_group = and_group.strip()
                 # tokenise this AND clause using operators as delimiters.
-                tokenisation_regex = "({})".format('|'.join(operators_suffix_LUT.keys()))
+                tokenisation_regex = "({})".format('|'.join(OPERATORS_SUFFIX_LUT.keys()))
                 and_group_split_by_operator = list(filter(None, re.split(tokenisation_regex, and_group)))
                 if len(and_group_split_by_operator) == 3:       # this is a one-sided inequality or expression
                     key, operator, value = [token.strip() for token in and_group_split_by_operator]
 
-                    # substitute input operator with the nominal operator defined by the LUT, <operators_suffix_LUT>.
-                    operator_mapped = operators_suffix_LUT.get(operator)
+                    # substitute input operator with the nominal operator defined by the LUT, <OPERATORS_SUFFIX_LUT>.
+                    operator_mapped = OPERATORS_SUFFIX_LUT.get(operator)
 
-                    filter_key_full = key = "'{}'".format(key)
+                    filter_key_full = key
                     if operator_mapped is not None:
                         if operator_mapped:
                             filter_key_full = "{}.{}".format(key, operator_mapped)
@@ -82,17 +89,17 @@ def parse_did_filter_from_string_fe(input_string, name='*', type='collection', o
                         raise ValueError("{} operator not understood.".format(operator_mapped))
 
                     if filter_key_full in and_group_filters:
-                        raise ValueError(filter_key_full)
-                    else:
-                        if not is_numeric(value):
-                            value = "'{}'".format(value)
-                        and_group_filters[filter_key_full] = value
+                        raise ValueError("Duplicate filter key found: {}".format(filter_key_full))
+
+                    if not is_numeric(value):
+                        value = value
+                    and_group_filters[filter_key_full] = value
                 elif len(and_group_split_by_operator) == 5:     # this is a compound inequality
                     value1, operator1, key, operator2, value2 = [token.strip() for token in and_group_split_by_operator]
 
-                    # substitute input operator with the nominal operator defined by the LUT, <operators_suffix_LUT>.
-                    operator1_mapped = operator_opposites_LUT.get(operators_suffix_LUT.get(operator1))
-                    operator2_mapped = operators_suffix_LUT.get(operator2)
+                    # substitute input operator with the nominal operator defined by the LUT, <OPERATORS_SUFFIX_LUT>.
+                    operator1_mapped = OPERATORS_OPPOSITES_LUT.get(OPERATORS_SUFFIX_LUT.get(operator1))
+                    operator2_mapped = OPERATORS_SUFFIX_LUT.get(operator2)
 
                     key = "'{}'".format(key)
                     filter_key1_full = filter_key2_full = key
@@ -153,148 +160,138 @@ class RucioAPI:
         self.auth_config = auth_config
         self.base_url = instance_config.get('rucio_base_url')
         self.auth_url = instance_config.get('rucio_auth_url', self.base_url)
-        self.rucio_ca_cert = instance_config.get('rucio_ca_cert', False)    # TODO default should be True
+        self.rucio_ca_cert = instance_config.get('rucio_ca_cert', True)    # Default should be True to use system CA certs
+
+    def _build_url(self, endpoint, scope=None, name=None):
+        """
+        Constructs the URL path, without query parameters.
+        """
+        # Use strip('/') to avoid issues like 'host//endpoint'
+        url_parts = [self.base_url.strip('/')]
+        if endpoint:
+            url_parts.append(endpoint.strip('/'))
+        if scope:
+            url_parts.append(quote(scope))
+        if name:
+            url_parts.append(quote(name))
+
+        return '/'.join(url_parts)
+
+    def _make_rucio_request(self, method, endpoint, scope=None, name=None, params=None, data=None,
+                            parse_json=False, parse_lines=False):
+        """
+        Centralizes logic for making Rucio API requests and handling errors.
+        """
+        url = self._build_url(endpoint, scope, name)
+
+        try:
+            token = self._get_auth_token()
+            headers = {'X-Rucio-Auth-Token': token}
+
+            response = requests.request(
+                method=method,
+                url=url,
+                headers=headers,
+                params=params,
+                data=data,
+                verify=self.rucio_ca_cert
+            )
+            logger.debug("RucioAPI: %s request to %s with headers: %s and params: %s", method.upper(), url, headers, params)
+            logger.debug("Response status code: %s, response text: %s", response.status_code, response.text)
+
+            response.raise_for_status()
+
+            if parse_json:
+                if parse_lines:
+                    if response.text.strip():
+                        return [json.loads(line) for line in response.text.strip().splitlines()]
+                    else:
+                        return []
+                return response.json() if response.text else {}
+            else:
+                return response.text
+
+        except requests.exceptions.HTTPError as e:
+            logger.error("HTTP error for %s request to %s: %s %s", method.upper(), url, e.response.status_code, e.response.reason)
+            raise RucioHTTPException(e.response)
+
+        except requests.exceptions.RequestException as e:
+            # For other requests-related errors like connection, timeout
+            logger.error("Request error for %s request to %s: %s", method.upper(), url, str(e))
+            raise RucioRequestsException(None, str(e))
+
+        except Exception as e:
+            # For errors unrelated to requests itself (e.g., JSON parse)
+            logger.error("An error occurred during the %s request to %s: %s", method.upper(), url, str(e))
+            raise RucioAPIException(None, str(e))
 
     def get_scopes(self):
-        token = self._get_auth_token()
-        headers = {'X-Rucio-Auth-Token': token}
-        response = requests.get(url=f'{self.base_url}/scopes/', headers=headers, verify=self.rucio_ca_cert)
-        return response.json()
+        # DEBUG: response = requests.get(url=f'{self.base_url}/scopes/', headers=headers, verify=self.rucio_ca_cert)
+        return self._make_rucio_request('GET', 'scopes/', parse_json=True)
 
     def get_rses(self, rse_expression=None):
-        token = self._get_auth_token()
-        headers = {'X-Rucio-Auth-Token': token}
-
-        urlencoded_params = urlencode({
-            'expression': rse_expression
-        })
-
-        response = requests.get(url=f'{self.base_url}/rses?{urlencoded_params}', headers=headers, verify=self.rucio_ca_cert)
-
-        if response.text == '':
-            return []
-
-        lines = response.text.rstrip('\n').splitlines()
-        results = [json.loads(l)['rse']  for l in lines]
-
-        return results
+        # DEBUG: response = requests.get(url=f'{self.base_url}/rses?{urlencoded_params}', headers=headers, verify=self.rucio_ca_cert)
+        params = {'expression': rse_expression} if rse_expression else None
+        return self._make_rucio_request('GET', 'rses', params=params, parse_json=True, parse_lines=True)
 
     def search_did(self, scope, name, search_type='collection', filters=None, limit=None):
-        token = self._get_auth_token()
-        headers = {'X-Rucio-Auth-Token': token}
-
-        scope = quote(scope)
         params = {
             'type': search_type,
             'long': '1',
             'name': name
         }
-        if filters:
-            filters, _ = parse_did_filter_from_string_fe(filters, name=name)
-            params['filters'] = filters
-        urlencoded_params = urlencode(params)
 
-        response = requests.get(url=f'{self.base_url}/dids/{scope}/dids/search?{urlencoded_params}', headers=headers, verify=self.rucio_ca_cert)
+        try:
+            if filters:
+                # Move the parsing logic inside the try block
+                parsed_filters, _ = parse_did_filter_from_string_fe(filters, name=name)
+                params['filters'] = str(parsed_filters) # Convert to string representation for Rucio API to avoid "malformed node or string: <ast.Name object at 0x7fcb3cd3fa60>"
+            else:
+                logger.warning("No filters provided for DID search, using default parameters.")
 
-        if response.text == '':
-            return []
+            results = self._make_rucio_request(
+                'GET',
+                f'dids/{scope}/dids/search',
+                params=params,
+                parse_json=True,
+                parse_lines=True
+            )
 
-        lines = response.text.rstrip('\n').splitlines()
-        results = [json.loads(l) for l in lines]
+            if limit is not None:
+                results = results[:limit]
+            return results
 
-        # Apply limit, TODO: use endpoint parameter once Rucio PR #3872 is merged and released.
-        if limit is not None:
-            results = results[:limit]
-
-        return results
+        except requests.exceptions.HTTPError as e:
+            # This handles errors specific to the web request
+            logger.error("Request error during DID search: %s", str(e))
+            raise RucioRequestsException(None, str(e))
+        except Exception as e:
+            logger.error("An unexpected error occurred: %s", str(e))
+            raise RucioAPIException(None, str(e))
 
     def get_metadata(self, scope, name):
-        token = self._get_auth_token()
-        headers = {'X-Rucio-Auth-Token': token}
-
-        scope = quote(scope)
-        name = quote(name)
-
-        response = requests.get(url=f'{self.base_url}/dids/{scope}/{name}/meta', headers=headers, verify=self.rucio_ca_cert)
-
-        if response.text == '':
-            return []
-
-        lines = response.text.rstrip('\n').splitlines()
-        results = [json.loads(l) for l in lines]
-
-        return results
+        # DEBUG: response = requests.get(url=f'{self.base_url}/dids/{scope}/{name}/meta', headers=headers, verify=self.rucio_ca_cert)
+        return self._make_rucio_request('GET', 'dids', scope, name + '/meta', parse_lines=True)
 
     def get_files(self, scope, name):
-        token = self._get_auth_token()
-        headers = {'X-Rucio-Auth-Token': token}
-
-        scope = quote(scope)
-        name = quote(name)
-
-        response = requests.get(url=f'{self.base_url}/dids/{scope}/{name}/files', headers=headers, verify=self.rucio_ca_cert)
-
-        if response.text == '':
-            return []
-
-        lines = response.text.rstrip('\n').splitlines()
-        files = [json.loads(l) for l in lines]
-        return files
+        # DEBUG: response = requests.get(url=f'{self.base_url}/dids/{scope}/{name}/files', headers=headers, verify=self.rucio_ca_cert)
+        return self._make_rucio_request('GET', 'dids', scope, name + '/files', parse_json=True, parse_lines=True)
 
     def get_parents(self, scope, name):
-        token = self._get_auth_token()
-        headers = {'X-Rucio-Auth-Token': token}
-
-        scope = quote(scope)
-        name = quote(name)
-
-        response = requests.get(url=f'{self.base_url}/dids/{scope}/{name}/parents', headers=headers, verify=self.rucio_ca_cert)
-
-        if response.text == '':
-            return []
-
-        lines = response.text.rstrip('\n').splitlines()
-        files = [json.loads(l) for l in lines]
-        return files
+        # DEBUG: response = requests.get(url=f'{self.base_url}/dids/{scope}/{name}/parents', headers=headers, verify=self.rucio_ca_cert)
+        return self._make_rucio_request('GET', 'dids', scope, name + '/parents', parse_json=True, parse_lines=True)
 
     def get_rules(self, scope, name):
-        token = self._get_auth_token()
-        headers = {'X-Rucio-Auth-Token': token}
-
-        scope = quote(scope)
-        name = quote(name)
-
-        response = requests.get(url=f'{self.base_url}/dids/{scope}/{name}/rules', headers=headers, verify=self.rucio_ca_cert)
-
-        if response.text == '':
-            return []
-
-        lines = response.text.rstrip('\n').splitlines()
-        rules = [json.loads(l) for l in lines]
-        return rules
+        # DEBUG: response = requests.get(url=f'{self.base_url}/dids/{scope}/{name}/rules', headers=headers, verify=self.rucio_ca_cert)
+        return self._make_rucio_request('GET', 'dids', scope, name + '/rules', parse_json=True, parse_lines=True)
 
     def get_rule_details(self, rule_id):
-        token = self._get_auth_token()
-        headers = {'X-Rucio-Auth-Token': token}
-        rule_id = quote(rule_id)
-        response = requests.get(url=f'{self.base_url}/rules/{rule_id}', headers=headers, verify=self.rucio_ca_cert)
-        return response.json()
+        # DEBUG: response = requests.get(url=f'{self.base_url}/rules/{rule_id}', headers=headers, verify=self.rucio_ca_cert)
+        return self._make_rucio_request('GET', 'rules', rule_id, parse_json=True)
 
     def get_replicas(self, scope, name):
-        token = self._get_auth_token()
-        headers = {'X-Rucio-Auth-Token': token}
-
-        scope = quote(scope)
-        name = quote(name)
-
-        response = requests.get(url=f'{self.base_url}/replicas/{scope}/{name}', headers=headers, verify=self.rucio_ca_cert)
-
-        if response.text == '':
-            return []
-
-        lines = response.text.rstrip('\n').splitlines()
-        replicas = [json.loads(l) for l in lines]
-        return replicas
+        # DEBUG: response = requests.get(url=f'{self.base_url}/replicas/{scope}/{name}', headers=headers, verify=self.rucio_ca_cert)
+        return self._make_rucio_request('GET', 'replicas', scope, name, parse_json=True, parse_lines=True)
 
     def add_replication_rule(self, dids, copies, rse_expression, weight=None, lifetime=None, grouping='DATASET', account=None,
                              locked=False, source_replica_expression=None, activity=None, notify='N', purge_replicas=False,
@@ -321,7 +318,7 @@ class RucioAPI:
         if cached_token:
             return cached_token
 
-        token, expiry = self._authenticate()
+        token, expiry = self.authenticate(self.auth_config, self.auth_type)
         RucioAPI.rucio_auth_token_cache[instance_name] = (token, expiry)
         return token
 
@@ -333,41 +330,62 @@ class RucioAPI:
 
         return None
 
-    def _authenticate(self):
-        auth_config = self.auth_config
-        auth_type = self.auth_type
+    def authenticate(self, auth_config, auth_type):
+        """
+        Authenticate with Rucio using the provided auth_config and auth_type.
+        :param auth_config: Dictionary containing authentication parameters.
+        :param auth_type: Type of authentication to use (e.g., 'userpass', 'x509', 'x509_proxy', 'oidc').
+        :return: Tuple of (auth_token, expires) if successful, otherwise raises an exception.
+        """
 
         if not auth_type:
             raise RucioAuthenticationException()
 
-        logging.info('Attempting to authenticate using method %s...', auth_type)
+        logger.info('Attempting to authenticate using method %s...', auth_type)
 
         app_id = self.instance_config.get('app_id')
         vo = self.instance_config.get('vo')
+        try:
+            if auth_type == 'userpass':
+                username = auth_config.get('username')
+                password = auth_config.get('password')
+                account = auth_config.get('account')
 
-        if auth_type == 'userpass':
-            username = auth_config.get('username')
-            password = auth_config.get('password')
-            account = auth_config.get('account')
+                # TODO VO is currently not accepted by the userpass authenticator, so we pass None
+                return authenticate_userpass(base_url=self.auth_url, username=username, password=password, account=account, vo=None, app_id=app_id, rucio_ca_cert=self.rucio_ca_cert)
+            elif auth_type == 'x509':
+                cert_path = auth_config.get('certificate')
+                key_path = auth_config.get('key')
+                account = auth_config.get('account')
 
-            return authenticate_userpass(base_url=self.auth_url, username=username, password=password, account=account, vo=vo, app_id=app_id, rucio_ca_cert=self.rucio_ca_cert)
-        elif auth_type == 'x509':
-            cert_path = auth_config.get('certificate')
-            key_path = auth_config.get('key')
-            account = auth_config.get('account')
+                # TODO VO is currently not accepted by the x509 authenticator, so we pass None
+                return authenticate_x509(base_url=self.auth_url, cert_path=cert_path, key_path=key_path, account=account, vo=None, app_id=app_id, rucio_ca_cert=self.rucio_ca_cert)
+            elif auth_type == 'x509_proxy':
+                proxy = auth_config.get('proxy')
+                account = auth_config.get('account')
 
-            return authenticate_x509(base_url=self.auth_url, cert_path=cert_path, key_path=key_path, account=account, vo=vo, app_id=app_id, rucio_ca_cert=self.rucio_ca_cert)
-        elif auth_type == 'x509_proxy':
-            proxy = auth_config.get('proxy')
-            account = auth_config.get('account')
+                # TODO VO is currently not accepted by the x509_proxy authenticator, so we pass None
+                return authenticate_x509(base_url=self.auth_url, cert_path=proxy, key_path=proxy, account=account, vo=None, app_id=app_id, rucio_ca_cert=self.rucio_ca_cert)
 
-            return authenticate_x509(base_url=self.auth_url, cert_path=proxy, key_path=proxy, account=account, vo=vo, app_id=app_id, rucio_ca_cert=self.rucio_ca_cert)
+            elif auth_type == 'oidc':
+                oidc_auth = self.instance_config.get('oidc_auth')
+                oidc_auth_source = self.instance_config.get('oidc_env_name') if oidc_auth == 'env' else self.instance_config.get('oidc_file_name')
 
-        elif auth_type == 'oidc':
-            oidc_auth = self.instance_config.get('oidc_auth')
-            oidc_auth_source = self.instance_config.get('oidc_env_name') if oidc_auth == 'env' else self.instance_config.get('oidc_file_name')
+                return authenticate_oidc(base_url=self.base_url, oidc_auth=oidc_auth, oidc_auth_source=oidc_auth_source, rucio_ca_cert=self.rucio_ca_cert)
 
-            return authenticate_oidc(base_url=self.base_url, oidc_auth=oidc_auth, oidc_auth_source=oidc_auth_source, rucio_ca_cert=self.rucio_ca_cert)
+        except requests.exceptions.HTTPError as e:
+            logger.error("HTTP error during authentication for %s: %s %s", auth_type, e.response.status_code, e.response.reason)
+            raise RucioHTTPException(e.response)
+
+        except requests.exceptions.RequestException as e:
+            # For other requests-related errors like connection, timeout
+            logger.error("Request error during authentication for %s: %s", auth_type, str(e))
+            raise RucioRequestsException(None, str(e))
+
+        except Exception as e:
+            # For errors unrelated to requests itself (e.g., JSON parse)
+            logger.error("An error occurred during authentication for %s: %s", auth_type, str(e))
+            raise RucioAPIException(None, str(e))
 
         return None
 

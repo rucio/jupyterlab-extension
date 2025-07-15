@@ -88,6 +88,8 @@ export interface IDIDItem {
 const _FileDIDItemDetails: React.FC<IDIDItem> = ({ did, ...props }) => {
   const classes = useStyles();
 
+  const [error, setError] = useState<string>();
+
   const { actions } = props as IWithRequestAPIProps;
   const { didPollingManager } = props as IWithPollingManagerProps;
 
@@ -119,7 +121,24 @@ const _FileDIDItemDetails: React.FC<IDIDItem> = ({ did, ...props }) => {
     actions
       ?.makeFileAvailable(activeInstance.name, did)
       .then(() => enablePolling())
-      .catch(e => console.log(e)); // TODO handle error
+      .catch(e => {
+        console.error('Error making file available:', e);
+        // The error 'e' is the rich ResponseError object from requestAPI
+        if (e.response && e.response.status === 401) {
+          setError(
+            'Authentication error. Perhaps you set an invalid credential?'
+          );
+          return;
+        }
+
+        // The backend error message is directly available on e.error
+        if (e.error) {
+          setError(e.error);
+        } else {
+          // Fallback to the general error message if e.error is not present
+          setError(e.message || 'An unknown error occurred.');
+        }
+      });
   };
 
   const settings = ServerConnection.makeSettings();
@@ -151,7 +170,10 @@ const _FileDIDItemDetails: React.FC<IDIDItem> = ({ did, ...props }) => {
         />
       )}
       {!!fileDetails && fileDetails.status === 'NOT_AVAILABLE' && (
-        <FileNotAvailable onMakeAvailableClicked={makeAvailable} />
+        <FileNotAvailable
+          onMakeAvailableClicked={makeAvailable}
+          error={error}
+        />
       )}
       {!!fileDetails && fileDetails.status === 'REPLICATING' && (
         <FileReplicating
@@ -164,9 +186,19 @@ const _FileDIDItemDetails: React.FC<IDIDItem> = ({ did, ...props }) => {
           onMakeAvailableClicked={
             activeInstance?.mode === 'download' ? makeAvailable : undefined
           }
+          error={error}
           showReplicationRuleUrl={showReplicationRuleUrl}
         />
       )}
+      {!!fileDetails &&
+        fileDetails.status === 'FAILED' &&
+        (console.error('File details retrieval failed:', fileDetails),
+        (
+          <FileNotAvailable
+            onMakeAvailableClicked={makeAvailable}
+            error={fileDetails.error || 'Failed to retrieve file details.'}
+          />
+        ))}
     </div>
   );
 };
@@ -205,17 +237,38 @@ const FileAvailable: React.FC<{
   );
 };
 
-const FileNotAvailable: React.FC<{ onMakeAvailableClicked?: { (): void } }> = ({
-  onMakeAvailableClicked
-}) => {
+const FileNotAvailable: React.FC<{
+  onMakeAvailableClicked?: () => void;
+  error?: string; // Optional error prop to handle error messages
+}> = ({ onMakeAvailableClicked, error }) => {
+  // Destructure error from props
   const classes = useStyles();
 
   return (
     <div className={classes.statusNotAvailable}>
-      <i className={`${classes.icon} material-icons`}>lens</i>
-      <div className={classes.statusText}>Not Available</div>
+      {/* Conditionally render the icon and message based on the error state */}
+      {error ? (
+        <i className={`${classes.icon} material-icons`}>error</i>
+      ) : (
+        <i className={`${classes.icon} material-icons`}>lens</i>
+      )}
+
+      {/* Display the error message if it exists */}
+      {error && (
+        <div
+          className={classes.statusText}
+          style={{ color: 'var(--jp-error-color1)' }}
+        >
+          {error}
+        </div>
+      )}
+
+      {/* Show the default text only when there is no error */}
+      {!error && <div className={classes.statusText}>Not Available</div>}
+
       <div className={classes.action} onClick={onMakeAvailableClicked}>
-        Make Available
+        {/* Change button text based on context */}
+        {error ? 'Retry' : 'Make Available'}
       </div>
     </div>
   );
@@ -257,15 +310,24 @@ const FileReplicating: React.FC<{
 };
 
 const FileStuck: React.FC<{
+  error?: string;
   onMakeAvailableClicked?: () => void;
   showReplicationRuleUrl?: string;
-}> = ({ onMakeAvailableClicked, showReplicationRuleUrl }) => {
+}> = ({ onMakeAvailableClicked, showReplicationRuleUrl, error }) => {
   const classes = useStyles();
 
   return (
     <div className={classes.statusNotAvailable}>
       <i className={`${classes.icon} material-icons`}>error</i>
-      {showReplicationRuleUrl && (
+      {error && (
+        <div
+          className={classes.statusText}
+          style={{ color: 'var(--jp-error-color1)' }}
+        >
+          {error}
+        </div>
+      )}
+      {!error && showReplicationRuleUrl && (
         <div className={classes.clickableStatusText}>
           <a
             href={showReplicationRuleUrl}
@@ -277,7 +339,7 @@ const FileStuck: React.FC<{
           </a>
         </div>
       )}
-      {!showReplicationRuleUrl && (
+      {!error && !showReplicationRuleUrl && (
         <div className={classes.statusText}>Something went wrong</div>
       )}
       {onMakeAvailableClicked && (

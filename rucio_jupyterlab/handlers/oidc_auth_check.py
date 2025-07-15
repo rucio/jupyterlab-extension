@@ -9,7 +9,8 @@
 
 import tornado
 from .base import RucioAPIHandler
-from rucio_jupyterlab.rucio.authenticators import RucioAuthenticationException, authenticate_oidc
+from rucio_jupyterlab.rucio.authenticators import authenticate_oidc
+from rucio_jupyterlab.rucio.exceptions import RucioAPIException
 
 
 class OIDCAuthCheckHandler(RucioAPIHandler):
@@ -27,6 +28,6 @@ class OIDCAuthCheckHandler(RucioAPIHandler):
             _, expires = authenticate_oidc(base_url=base_url, oidc_auth=oidc_auth, oidc_auth_source=oidc_auth_source, rucio_ca_cert=rucio_ca_cert)
 
             self.finish({'success': True, 'oidc_auth': oidc_auth, 'oidc_auth_source': oidc_auth_source, 'expires': expires})
-        except RucioAuthenticationException:
+        except RucioAPIException:
             self.set_status(403)
             self.finish({'success': False, 'error': 'OpenID Connect token is expired or invalid. Try logging out and logging back in.'})

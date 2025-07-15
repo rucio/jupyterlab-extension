@@ -13,6 +13,7 @@ from rucio_jupyterlab.db import get_db
 from .base import RucioAPIHandler
 from rucio_jupyterlab.metrics import prometheus_metrics
 
+
 class PurgeCacheHandler(RucioAPIHandler):
     @tornado.web.authenticated
     @prometheus_metrics

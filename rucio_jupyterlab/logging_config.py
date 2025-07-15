@@ -7,20 +7,29 @@
 # Authors:
 # - Giovanni Guerrieri, <giovanni.guerrieri@cern.ch>, 2025
 
-from rucio_jupyterlab.config.config import RucioConfig, Config
 import logging
-import os
 import sys
+from rucio_jupyterlab.config.config import RucioConfig, Config
+
+
 def setup_logging(web_app):  # pragma: no cover
-    host_pattern = ".*$"
+    """
+    Sets up logging for the Rucio JupyterLab extension.
+    This function configures the logging system to output messages to stdout
+    with a specified format and log level.
+    Parameters
+    ----------
+    web_app : jupyter_server.webapp.JupyterWebApplication
+        The Jupyter web application instance, which contains the configuration settings.
+    """
 
     rucio_config = RucioConfig(config=web_app.settings['config'])
     config = Config(rucio_config)
-    
+
     logger = logging.getLogger("rucio_jupyterlab")
     if logger.hasHandlers():
         return  # Avoid adding multiple handlers
-    
+
     level = config.get_log_level().upper()
     numeric_level = getattr(logging, level, logging.WARNING)
 
@@ -33,6 +42,4 @@ def setup_logging(web_app):  # pragma: no cover
     handler.setLevel(numeric_level)
     logger.addHandler(handler)
 
-    logger.propagate = False
-
-    logger.info(f"Logging initialized at level: {level}")
+    logger.info("Logging initialized at level: %s", level)
