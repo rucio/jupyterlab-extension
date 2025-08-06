@@ -58,7 +58,7 @@ jobs:
 
       - name: Extract metadata for the Docker image
         id: metadata
-        uses: docker/metadata-action@v5.7.0
+        uses: docker/metadata-action@v5.8.0
         with:
           flavor: |
             latest=true
