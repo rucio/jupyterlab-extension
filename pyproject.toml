@@ -29,7 +29,7 @@ dependencies = [
     "psutil",
     "pyjwt",
     "jsonschema",
-    "rucio-clients>=32.0,<35.2",
+    "rucio-clients>=32.0",
     "traitlets",
 ]
 dynamic = ["version", "description", "authors", "urls", "keywords"]
