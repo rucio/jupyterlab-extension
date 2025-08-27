@@ -14,7 +14,6 @@ export interface IInstance {
   displayName: string;
   name: string;
   mode: 'replica' | 'download';
-  oidcEnabled: boolean;
   webuiUrl?: string;
 }
 

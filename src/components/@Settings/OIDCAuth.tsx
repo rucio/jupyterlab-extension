@@ -74,8 +74,8 @@ export const OIDCAuth: React.FC<MyProps> = ({
       <div className={classes.container}>
         <div className={classes.textFieldContainer}>
           <TextField
-            placeholder="Token file path" 
-            // This could be a file path or the token itself, 
+            placeholder="Token file path"
+            // This could be a file path or the token itself,
             // but we chose not to include the raw token for security reasons
             value={params.token_path}
             onChange={e => onTokenPathChange(e.target.value)}
