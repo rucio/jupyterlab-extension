@@ -7,6 +7,7 @@
 # Authors:
 # - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
 
+import os
 import json
 import tornado
 from datetime import datetime, timezone
@@ -71,12 +72,25 @@ class AuthConfigHandler(RucioAPIHandler):
 
         # Get instance config to perform connection test
         instance = self.rucio.for_instance(namespace)
-
-        print(f"AuthConfigHandler: PUT request for namespace '{namespace}' with auth_type '{auth_type}' and params: {auth_config}")
-
         lifetime = None  # Initialize lifetime to avoid NameError
 
         try:
+            if auth_type == 'oidc':
+                token_path = auth_config.get('token_path', '').strip()
+                
+                # Only proceed if token_path is actually set to something meaningful
+                if token_path and os.path.isfile(token_path):
+                    # Read the token content
+                    with open(token_path, 'r') as src_file:
+                        token_content = src_file.read()
+                    
+                    # Write to file or env based on config
+                    if instance.instance_config.get('oidc_auth') == 'file':
+                        with open(instance.instance_config.get('oidc_file_name'), 'w') as dest_file:
+                            dest_file.write(token_content)
+                    elif instance.instance_config.get('oidc_auth') == 'env':
+                        os.environ[instance.instance_config.get('oidc_env_name')] = token_content
+
             _, lifetime = RucioAPI.authenticate(instance, auth_config, auth_type)
 
             if auth_type == 'x509_proxy' or auth_type == 'oidc':

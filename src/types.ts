@@ -7,6 +7,7 @@
  *
  * Authors:
  * - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
+ * - Giovanni Guerrieri, <giovanni.guerrieri@cern.ch>, 2025
  */
 
 export interface IInstance {
@@ -21,7 +22,9 @@ interface IRucioAuth {
   account?: string;
 }
 
-export interface IRucioOIDCAuth extends IRucioAuth {}
+export interface IRucioOIDCAuth extends IRucioAuth {
+  token_path: string;
+}
 
 export interface IRucioUserpassAuth extends IRucioAuth {
   username: string;

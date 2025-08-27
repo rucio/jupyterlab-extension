@@ -6,13 +6,13 @@
  * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  *
  * Authors:
- * - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
+ * - Giovanni Guerrieri, <giovanni.guerrieri@cern.ch>, 2025
  */
 
 import React from 'react';
 import { createUseStyles } from 'react-jss';
 import { TextField } from '../TextField';
-import { IRucioX509ProxyAuth } from '../../types';
+import { IRucioOIDCAuth } from '../../types';
 import { Spinning } from '../Spinning';
 import { SelectFileButtonTrailer } from './FilePickerPopover';
 
@@ -31,47 +31,39 @@ const useStyles = createUseStyles({
     color: 'var(--jp-ui-font-color2)',
     fontSize: '9pt'
   },
-  icon: {
+  loadingIcon: {
     fontSize: '10pt',
     verticalAlign: 'middle'
   },
-  iconContainer: {
-    padding: '0 8px 0 0',
+  loadingContainer: {
+    padding: '0 8px 0 8px',
     display: 'flex',
     alignItems: 'center'
-  },
-  action: {
-    cursor: 'pointer',
-    color: 'var(--jp-rucio-primary-blue-color)'
   }
 });
 
-interface IX509AuthProxyProps {
-  params?: IRucioX509ProxyAuth;
+interface IOIDCAuthProps {
+  params?: IRucioOIDCAuth;
   loading?: boolean;
-  onAuthParamsChange: { (val: IRucioX509ProxyAuth): void };
+  onAuthParamsChange: { (val: IRucioOIDCAuth): void };
 }
 
-type MyProps = IX509AuthProxyProps & React.HTMLAttributes<HTMLDivElement>;
+type MyProps = IOIDCAuthProps & React.HTMLAttributes<HTMLDivElement>;
 
-export const X509ProxyAuth: React.FC<MyProps> = ({
-  params = { proxy: '', account: '' },
+export const OIDCAuth: React.FC<MyProps> = ({
+  params = { token: '', account: '' },
   loading,
   onAuthParamsChange
 }) => {
   const classes = useStyles();
 
-  const onProxyPathChange = (path: string) => {
-    onAuthParamsChange({ ...params, proxy: path });
-  };
-
-  const onAccountChange = (account?: string) => {
-    onAuthParamsChange({ ...params, account });
+  const onTokenPathChange = (token_path?: string) => {
+    onAuthParamsChange({ ...params, token_path: token_path ?? '' });
   };
 
   const loadingSpinner = (
-    <div className={classes.iconContainer}>
-      <Spinning className={`${classes.icon} material-icons`}>
+    <div className={classes.loadingContainer}>
+      <Spinning className={`${classes.loadingIcon} material-icons`}>
         hourglass_top
       </Spinning>
     </div>
@@ -81,32 +73,26 @@ export const X509ProxyAuth: React.FC<MyProps> = ({
     <>
       <div className={classes.container}>
         <div className={classes.textFieldContainer}>
-          <div className={classes.label}>Proxy file path</div>
           <TextField
-            placeholder="Path to proxy PEM file"
-            value={params.proxy}
-            onChange={e => onProxyPathChange(e.target.value)}
+            placeholder="Token file path" 
+            // This could be a file path or the token itself, 
+            // but we chose not to include the raw token for security reasons
+            value={params.token_path}
+            onChange={e => onTokenPathChange(e.target.value)}
             disabled={loading}
             after={
               loading ? (
                 loadingSpinner
               ) : (
                 <SelectFileButtonTrailer
-                  onFilePicked={path => onProxyPathChange(path)}
+                  onFilePicked={path => onTokenPathChange(path)}
                 />
               )
             }
           />
         </div>
-        <div className={classes.textFieldContainer}>
-          <div className={classes.label}>Account</div>
-          <TextField
-            placeholder="Account"
-            value={params.account}
-            onChange={e => onAccountChange(e.target.value)}
-            disabled={loading}
-            after={loading ? loadingSpinner : undefined}
-          />
+        <div className={classes.warning}>
+          Your token will replace the custom one saved.
         </div>
       </div>
     </>

@@ -19,6 +19,7 @@ import { withRequestAPI, IWithRequestAPIProps } from '../../utils/Actions';
 import { UserPassAuth } from './UserPassAuth';
 import { X509Auth } from './X509Auth';
 import { X509ProxyAuth } from './X509ProxyAuth';
+import { OIDCAuth } from './OIDCAuth';
 import {
   IInstance,
   RucioAuthType,
@@ -457,6 +458,20 @@ const _Settings: React.FunctionComponent = props => {
           </div>
         </div>
         <div>
+          <div
+            className={
+              selectedInstance && selectedAuthType === 'oidc'
+                ? ''
+                : classes.hidden
+            }
+          >
+            <HorizontalHeading title="OIDC Token" />
+            <OIDCAuth
+              loading={credentialsLoading}
+              params={rucioOIDCAuthCredentials}
+              onAuthParamsChange={v => setRucioOIDCAuthCredentials(v)}
+            />
+          </div>
           <div
             className={
               selectedInstance && selectedAuthType === 'userpass'
