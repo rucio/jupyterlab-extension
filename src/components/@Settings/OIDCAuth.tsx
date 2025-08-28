@@ -51,7 +51,7 @@ interface IOIDCAuthProps {
 type MyProps = IOIDCAuthProps & React.HTMLAttributes<HTMLDivElement>;
 
 export const OIDCAuth: React.FC<MyProps> = ({
-  params = { token: '', account: '' },
+  params = { token: '' },
   loading,
   onAuthParamsChange
 }) => {
