@@ -7,7 +7,7 @@
 # Authors:
 # - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
 
-import json
+import json, os
 from rucio_jupyterlab.handlers.auth_config import AuthConfigHandler
 from .mocks.mock_db import MockDatabaseInstance
 from .mocks.mock_handler import MockHandler
@@ -43,53 +43,79 @@ def test_get_auth_config(mocker):
 
 
 def test_get_auth_config_oidc_env(mocker):
+    """
+    Tests the GET handler for oidc with 'env' configuration.
+    It should return the name of the environment variable, not fetch from DB.
+    """
+    # 1. Setup mocks
     mock_self = MockHandler()
     mock_self.get_query_argument = mocker.Mock(side_effect=lambda x: {
         'namespace': 'atlas',
         'type': 'oidc'
     }[x])
 
-    # Mock instance config for OIDC env
+    # 2. Mock the rucio instance to return the 'env' configuration
     mock_instance = mocker.MagicMock()
     mock_instance.instance_config = {
         'oidc_auth': 'env',
         'oidc_env_name': 'OIDC_TOKEN'
     }
-
     mock_rucio = mocker.MagicMock()
     mock_rucio.for_instance.return_value = mock_instance
     mock_self.rucio = mock_rucio
 
+    # 3. Mock the 'finish' method to capture and verify the output
     def finish_side_effect(output):
+        # Assert that the output is the JSON object created inside the handler
         assert json.loads(output) == {'oidc_auth_source': 'OIDC_TOKEN'}
 
     mocker.patch.object(mock_self, 'finish', side_effect=finish_side_effect)
+
+    # --- Execute the handler method ---
     AuthConfigHandler.get(mock_self)
+
+    # --- Assertions ---
+    # Ensure the finish method was called exactly once
+    mock_self.finish.assert_called_once()
+    # Ensure the correct query arguments were requested
+    mock_self.get_query_argument.assert_has_calls([mocker.call('namespace'), mocker.call('type')])
 
 
 def test_get_auth_config_oidc_file(mocker):
+    """
+    Tests the GET handler for oidc with 'file' configuration.
+    It should return the file path, not fetch from DB.
+    """
+    # 1. Setup mocks
     mock_self = MockHandler()
     mock_self.get_query_argument = mocker.Mock(side_effect=lambda x: {
         'namespace': 'atlas',
         'type': 'oidc'
     }[x])
 
-    # Mock instance config for OIDC file
+    # 2. Mock the rucio instance to return the 'file' configuration
     mock_instance = mocker.MagicMock()
     mock_instance.instance_config = {
         'oidc_auth': 'file',
         'oidc_file_name': '/tmp/oidc_token'
     }
-
     mock_rucio = mocker.MagicMock()
     mock_rucio.for_instance.return_value = mock_instance
     mock_self.rucio = mock_rucio
 
+    # 3. Mock the 'finish' method to capture and verify the output
     def finish_side_effect(output):
+        # Assert that the output is the JSON object with the file path
         assert json.loads(output) == {'oidc_auth_source': '/tmp/oidc_token'}
 
     mocker.patch.object(mock_self, 'finish', side_effect=finish_side_effect)
+
+    # --- Execute the handler method ---
     AuthConfigHandler.get(mock_self)
+
+    # --- Assertions ---
+    mock_self.finish.assert_called_once()
+    mock_self.get_query_argument.assert_has_calls([mocker.call('namespace'), mocker.call('type')])
 
 
 def test_put_instances(mocker):
@@ -137,22 +163,53 @@ def test_put_returns_lifetime_for_x509(mocker):
 
 
 def test_put_returns_lifetime_for_oidc(mocker):
+    """
+    Tests the PUT handler for OIDC, ensuring it handles file operations
+    and returns a lifetime upon successful authentication.
+    """
+    # 1. Setup the test with the corrected helper
     mock_self, mock_db = _setup_put_test(mocker, auth_type='oidc')
 
+    # 2. Mock external dependencies
     fixed_timestamp = 1735776000  # 2025-01-02 00:00:00 UTC
-    mocker.patch(
-        'rucio_jupyterlab.handlers.auth_config.RucioAPI.authenticate',
-        return_value=(None, fixed_timestamp)
-    )
-    mocker.patch('rucio_jupyterlab.handlers.auth_config.RucioAPI.clear_auth_token_cache', return_value=None)
+    mocker.patch('rucio_jupyterlab.handlers.auth_config.RucioAPI.authenticate', return_value=(None, fixed_timestamp))
+    mocker.patch('rucio_jupyterlab.handlers.auth_config.RucioAPI.clear_auth_token_cache')
 
+    # Mock filesystem and environment
+    # CRITICAL FIX: Capture the mock object returned by patch()
+    mock_isfile = mocker.patch('rucio_jupyterlab.handlers.auth_config.os.path.isfile', return_value=True)
+    mocker.patch('os.environ', {}) # Mock os.environ as a dictionary
+    mocked_open = mocker.patch('builtins.open', mocker.mock_open(read_data="secret-token-content"))
+
+    # 3. Define the side effect for the 'finish' method to check the final output
     def finish_side_effect(output):
         response = json.loads(output)
         assert response['success'] is True
         assert response['lifetime'] == "2025-01-02T00:00:00Z"
 
     mocker.patch.object(mock_self, 'finish', side_effect=finish_side_effect)
+
+    # --- Execute ---
     AuthConfigHandler.put(mock_self)
+
+    # --- Assertions ---
+    # Verify the database was updated
+    mock_db.set_rucio_auth_credentials.assert_called_once_with(
+        namespace=MOCK_ACTIVE_INSTANCE,
+        auth_type='oidc',
+        params={'token_path': '/fake/path/to/token.txt'}
+    )
+
+    # Verify filesystem interactions
+    # CRITICAL FIX: Assert on the captured mock object
+    mock_isfile.assert_called_once_with('/fake/path/to/token.txt')
+    mocked_open.assert_called_once_with('/fake/path/to/token.txt', 'r')
+    
+    # Verify environment variable was set (based on setup helper)
+    assert os.environ['OIDC_TOKEN'] == 'secret-token-content'
+
+    # Verify finish was called
+    mock_self.finish.assert_called_once()
 
 
 def test_put_handles_authentication_failure(mocker):
@@ -192,16 +249,23 @@ def _setup_put_test(mocker, auth_type='userpass'):
     mock_self = MockHandler()
     mock_db = MockDatabaseInstance()
 
+    mock_db.set_rucio_auth_credentials = mocker.MagicMock()
+
+    params = {'key': 'value'}
+    if auth_type == 'oidc':
+        params = {'token_path': '/fake/path/to/token.txt'}
+
     mocker.patch('rucio_jupyterlab.handlers.auth_config.get_db', return_value=mock_db)
     mocker.patch.object(mock_self, 'get_json_body', return_value={
         'namespace': MOCK_ACTIVE_INSTANCE,
         'type': auth_type,
-        'params': {'key': 'value'}
+        'params': params
     })
 
     mock_instance = mocker.MagicMock()
     mock_instance.instance_config = {
-        'oidc_auth': 'env' if auth_type == 'oidc' else None
+        'oidc_auth': 'env' if auth_type == 'oidc' else None,
+        'oidc_env_name': 'OIDC_TOKEN'
     }
 
     mock_rucio = mocker.MagicMock()

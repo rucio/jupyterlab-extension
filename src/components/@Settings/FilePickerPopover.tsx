@@ -70,7 +70,9 @@ const useStyles = createUseStyles({
   },
   iconContainer: {
     lineHeight: 0,
-    marginRight: '8px'
+    marginRight: '8px',
+    display: 'flex',
+    alignItems: 'center'
   },
   fileIcon: {
     extend: 'icon',
@@ -79,6 +81,19 @@ const useStyles = createUseStyles({
   dirIcon: {
     extend: 'icon',
     color: '#5DC0FD'
+  },
+  container: {
+    padding: '8px 16px 8px 16px'
+  },
+  label: {
+    margin: '4px 0 4px 0'
+  },
+  textFieldContainer: {
+    margin: '8px 0 8px 0'
+  },
+  action: {
+    cursor: 'pointer',
+    color: 'var(--jp-rucio-primary-blue-color)'
   }
 });
 
@@ -274,4 +289,20 @@ const ListItem: React.FC<{
   );
 };
 
-export const FilePickerPopover = withRequestAPI(_FilePickerPopover);
+const FilePickerPopover = withRequestAPI(_FilePickerPopover);
+
+export const SelectFileButtonTrailer: React.FC<{
+  onFilePicked: { (path: string): void };
+}> = ({ onFilePicked }) => {
+  const classes = useStyles();
+
+  return (
+    <div className={classes.iconContainer}>
+      <FilePickerPopover onFilePicked={onFilePicked}>
+        <span className={`${classes.icon} ${classes.action} material-icons`}>
+          folder
+        </span>
+      </FilePickerPopover>
+    </div>
+  );
+};

@@ -14,7 +14,7 @@ import { createUseStyles } from 'react-jss';
 import { TextField } from '../TextField';
 import { IRucioX509Auth } from '../../types';
 import { Spinning } from '../Spinning';
-import { FilePickerPopover } from './FilePickerPopover';
+import { SelectFileButtonTrailer } from './FilePickerPopover';
 
 const useStyles = createUseStyles({
   container: {
@@ -136,21 +136,5 @@ export const X509Auth: React.FC<MyProps> = ({
         </div>
       </div>
     </>
-  );
-};
-
-const SelectFileButtonTrailer: React.FC<{
-  onFilePicked: { (path: string): void };
-}> = ({ onFilePicked }) => {
-  const classes = useStyles();
-
-  return (
-    <div className={classes.iconContainer}>
-      <FilePickerPopover onFilePicked={onFilePicked}>
-        <span className={`${classes.icon} ${classes.action} material-icons`}>
-          folder
-        </span>
-      </FilePickerPopover>
-    </div>
   );
 };
