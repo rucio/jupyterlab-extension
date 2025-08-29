@@ -6,16 +6,20 @@
 #
 # Authors:
 # - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
+# - Giovanni Guerrieri, <giovanni.guerrieri@cern.ch>, 2025
 
 import os
 import json
 import tornado
+import logging
 from datetime import datetime, timezone
 from rucio_jupyterlab.db import get_db
 from rucio_jupyterlab.rucio import RucioAPI
 from .base import RucioAPIHandler
 from rucio_jupyterlab.metrics import prometheus_metrics
 
+# Configure logging
+logger = logging.getLogger(__name__)
 
 class AuthConfigHandler(RucioAPIHandler):
     """
@@ -37,14 +41,35 @@ class AuthConfigHandler(RucioAPIHandler):
         namespace = self.get_query_argument('namespace')
         auth_type = self.get_query_argument('type')
 
-        db = get_db()  # pylint: disable=invalid-name
-        auth_credentials = db.get_rucio_auth_credentials(namespace=namespace, auth_type=auth_type)
+        if auth_type == 'oidc':
+            logger.debug("Fetching OIDC auth configuration for namespace: %s", namespace)
+            instance = self.rucio.for_instance(namespace)
+            # Initialize auth_credentials as an empty dictionary
+            auth_credentials = {}
+            # If the auth type is oidc, we need to check if the credentials are set
+            # and if the oidc_auth is set to env or file
+            if instance.instance_config.get('oidc_auth') == 'env':
+                auth_credentials['oidc_auth_source'] = instance.instance_config.get('oidc_env_name')
+            elif instance.instance_config.get('oidc_auth') == 'file':
+                auth_credentials['oidc_auth_source'] = instance.instance_config.get('oidc_file_name')
+            else:
+                logger.error("Invalid oidc_auth configuration for namespace: %s", namespace)
+                self.set_status(400)
+                self.finish(json.dumps({
+                    'success': False,
+                    'error': 'Invalid oidc_auth configuration in instance settings. Contact your administrator.'
+                }))
+                return
+        else:
+            db = get_db()  # pylint: disable=invalid-name
+            auth_credentials = db.get_rucio_auth_credentials(namespace=namespace, auth_type=auth_type)
 
         if auth_credentials:
             self.finish(json.dumps(auth_credentials))
         else:
             self.set_status(404)
             self.finish({'success': False, 'error': 'Auth credentials not set'})
+
 
     @tornado.web.authenticated
     @prometheus_metrics
@@ -65,22 +90,27 @@ class AuthConfigHandler(RucioAPIHandler):
 
         try:
             if auth_type == 'oidc':
-                instance = self.rucio.for_instance(namespace)
-                # If the auth type is oidc, we need to check if the credentials are set
-                # and if the oidc_auth is set to env or file
-                if instance.instance_config.get('oidc_auth') == 'env':
-                    auth_config['oidc_auth_source'] = instance.instance_config.get('oidc_env_name')
-                elif instance.instance_config.get('oidc_auth') == 'file':
-                    auth_config['oidc_auth_source'] = instance.instance_config.get('oidc_file_name')
-                else:
+                logger.debug("Handling OIDC authentication for namespace: %s", namespace)
+                oidc_auth_method = instance.instance_config.get('oidc_auth')
+
+                if oidc_auth_method not in ['env', 'file']:
+                    logger.error("Invalid oidc_auth configuration for namespace: %s", namespace)
                     self.set_status(400)
                     self.finish(json.dumps({
                         'success': False,
-                        'error': 'Invalid oidc_auth configuration in instance settings'
+                        'error': 'Invalid oidc_auth configuration in instance settings. Contact your administrator.'
                     }))
                     return
-                
+                # Extract token_path from auth_config
                 token_path = auth_config.get('token_path', '').strip()
+                if not token_path or token_path == '':
+                    logger.error("Token path is not provided or empty for namespace: %s", namespace)
+                    self.set_status(400)
+                    self.finish(json.dumps({
+                        'success': False,
+                        'error': 'Token path is not provided or empty. Please provide a valid token_path.'
+                    }))
+                    return
                 
                 # Only proceed if token_path is actually set to something meaningful
                 if token_path and os.path.isfile(token_path):
@@ -94,6 +124,14 @@ class AuthConfigHandler(RucioAPIHandler):
                             dest_file.write(token_content)
                     elif instance.instance_config.get('oidc_auth') == 'env':
                         os.environ[instance.instance_config.get('oidc_env_name')] = token_content
+                else:
+                    logger.error("Token path does not point to a valid file for namespace: %s", namespace)
+                    self.set_status(400)
+                    self.finish(json.dumps({
+                        'success': False,
+                        'error': 'Token path does not point to a valid file. Please provide a valid token_path.'
+                    }))
+                    return
 
             _, lifetime = RucioAPI.authenticate(instance, auth_config, auth_type)
 

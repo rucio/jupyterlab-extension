@@ -92,7 +92,10 @@ export const OIDCAuth: React.FC<MyProps> = ({
           />
         </div>
         <div className={classes.warning}>
-          Your token will replace the custom one saved.
+          Upon authentication, the token is usually stored in
+          /tmp/rucio_oauth.token <br />
+          If you do not know where your token is, please check with your system
+          administrator.
         </div>
       </div>
     </>
