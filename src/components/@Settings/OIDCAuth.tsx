@@ -72,6 +72,20 @@ export const OIDCAuth: React.FC<MyProps> = ({
   return (
     <>
       <div className={classes.container}>
+        <div className={classes.warning}>
+          Upon authentication with the Rucio CLI, the token is usually stored in
+          the path corresponding to <code>auth_token_file_path</code> {}
+          <a
+            style={{ color: '#3366cc' }}
+            href="https://rucio.github.io/documentation/operator/configuration_parameters/#client_config"
+            target="_blank"
+          >
+            in your Rucio configuration
+          </a>
+          . <br />
+          If you do not know where your token is, please check with your system
+          administrator.
+        </div>
         <div className={classes.textFieldContainer}>
           <TextField
             placeholder="Token file path"
@@ -90,12 +104,6 @@ export const OIDCAuth: React.FC<MyProps> = ({
               )
             }
           />
-        </div>
-        <div className={classes.warning}>
-          Upon authentication, the token is usually stored in
-          /tmp/rucio_oauth.token <br />
-          If you do not know where your token is, please check with your system
-          administrator.
         </div>
       </div>
     </>
