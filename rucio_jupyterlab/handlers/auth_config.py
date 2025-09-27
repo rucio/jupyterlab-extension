@@ -103,35 +103,37 @@ class AuthConfigHandler(RucioAPIHandler):
                     return
                 # Extract token_path from auth_config
                 token_path = auth_config.get('token_path', '').strip()
-                if not token_path or token_path == '':
-                    logger.error("Token path is not provided or empty for namespace: %s", namespace)
-                    self.set_status(400)
-                    self.finish(json.dumps({
-                        'success': False,
-                        'error': 'Token path is not provided or empty. Please provide a valid token_path.'
-                    }))
-                    return
                 
                 # Only proceed if token_path is actually set to something meaningful
-                if token_path and os.path.isfile(token_path):
-                    # Read the token content
-                    with open(token_path, 'r') as src_file:
-                        token_content = src_file.read()
-                    
-                    # Write to file or env based on config
-                    if instance.instance_config.get('oidc_auth') == 'file':
-                        with open(instance.instance_config.get('oidc_file_name'), 'w') as dest_file:
-                            dest_file.write(token_content)
-                    elif instance.instance_config.get('oidc_auth') == 'env':
-                        os.environ[instance.instance_config.get('oidc_env_name')] = token_content
-                else:
-                    logger.error("Token path does not point to a valid file for namespace: %s", namespace)
-                    self.set_status(400)
-                    self.finish(json.dumps({
-                        'success': False,
-                        'error': 'Token path does not point to a valid file. Please provide a valid token_path.'
-                    }))
-                    return
+                if token_path != '':
+                    if os.path.isfile(token_path):
+                        # Read the token content
+                        with open(token_path, 'r') as src_file:
+                            try:
+                                token_content = src_file.read()
+                            except Exception as e:
+                                logger.error("Error reading token file for namespace; %s, error: %s", namespace, str(e))
+                                self.set_status(400)
+                                self.finish(json.dumps({
+                                    'success': False,
+                                    'error': f'Error reading token file: {str(e)}'
+                                }))
+                                return
+                        
+                        # Write to file or env based on config
+                        if instance.instance_config.get('oidc_auth') == 'file':
+                            with open(instance.instance_config.get('oidc_file_name'), 'w') as dest_file:
+                                dest_file.write(token_content)
+                        elif instance.instance_config.get('oidc_auth') == 'env':
+                            os.environ[instance.instance_config.get('oidc_env_name')] = token_content
+                    else:
+                        logger.error("Token path does not point to a valid file for namespace: %s", namespace)
+                        self.set_status(400)
+                        self.finish(json.dumps({
+                            'success': False,
+                            'error': 'Token path does not point to a valid file. Please provide a valid token_path.'
+                        }))
+                        return
 
             _, lifetime = RucioAPI.authenticate(instance, auth_config, auth_type)
 
