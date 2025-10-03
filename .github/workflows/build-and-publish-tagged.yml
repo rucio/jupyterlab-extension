@@ -45,7 +45,6 @@ jobs:
           if [ "$http_status" -lt 200 ] || [ "$http_status" -ge 300 ]; then
             echo "Error: Failed to send notification to Mattermost. HTTP status: $http_status"
             cat /tmp/mm_response.txt
-            exit 1
           else
             echo "Notification sent successfully. HTTP status: $http_status"
           fi
