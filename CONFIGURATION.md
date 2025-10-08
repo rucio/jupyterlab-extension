@@ -19,8 +19,8 @@ In this mode, the extension downloads the files to the user directory. This is u
 ## Configuration
 The extension can be configured locally or remotely.
 
-### Local Configuration
-In your Jupyter configuration (could be `~/.jupyter/jupyter_notebook_config.json`), add the following snippet:
+### Base local Configuration
+In your Jupyter configuration (could be `~/.jupyter/jupyter_server_config.json`), add the following snippet:
 ```json
 {
     "RucioConfig": {
@@ -41,6 +41,49 @@ In your Jupyter configuration (could be `~/.jupyter/jupyter_notebook_config.json
 }
 ```
 
+### Advanced local configuration
+This is the example of a full configuration used in production: 
+
+```json
+{
+    "RucioConfig": {
+        "instances": [
+            {
+                "name": "experiment1.cern.ch",
+                "display_name": "Experiment1",
+                "rucio_base_url": "https://rucio1",
+                "rucio_auth_url": "https://rucio1",
+                "rucio_ca_cert": "/path/to/rucio_ca.pem",
+                "site_name": "CERN",
+                "vo": "experiment1-vo",
+                "mode": "replica",
+                "wildcard_enabled": true,
+                "oidc_auth": "env",
+                "oidc_env_name": "RUCIO_ACCESS_TOKEN1"
+            },
+            {
+                "name": "experiment2.cern.ch",
+                "display_name": "Experiment2",
+                "rucio_base_url": "https://rucio2",
+                "rucio_auth_url": "https://rucio2",
+                "rucio_ca_cert": "/path/to/rucio_ca.pem",
+                "site_name": "CERN",
+                "vo": "experiment2-vo",
+                "mode": "replica",
+                "wildcard_enabled": true,
+                "oidc_auth": "env",
+                "oidc_env_name": "RUCIO_ACCESS_TOKEN2"
+            }
+        ],
+        "default_instance": "experiment1.cern.ch",
+        "default_auth_type": "oidc",
+        "log_level": "debug"
+    }
+}
+```
+Refer to the `Configuration` section for more information.
+
+
 ### Remote Configuration
 To use remote configuration, use the following snippet:
 ```json
@@ -57,7 +100,7 @@ To use remote configuration, use the following snippet:
 }
 ```
 
-In the JSON file pointed by the value in `$url`, use the following snippet:
+In the JSON file pointed by the value in `$url`, use a snippet similar to this:
 ```json
 {
     "rucio_base_url": "https://rucio",
@@ -66,12 +109,16 @@ In the JSON file pointed by the value in `$url`, use the following snippet:
     "rucio_ca_cert": "/path/to/rucio_ca.pem",
     "rse_mount_path": "/eos/rucio",
     "path_begins_at": 4,
-    "mode": "replica"
+    "mode": "replica",
+    ...
 }
 ```
 Attributes `name`, `display_name`, and `mode` must be defined locally, while the rest can be defined remotely. If an attribute is defined in both local and remote configuration, the local one is used.
 
-### Configuration Items
+---
+
+## Configuration Items
+### Instance configuration
 #### Name - `name`
 A unique name to identify Rucio instance, should be machine readable. It is recommended to use FQDN. Must be declared locally.
 
@@ -112,6 +159,9 @@ Site name of the JupyterLab instance, optional. It allows Rucio to know whether 
 
 Example: `ATLAS`
 
+---
+
+### Virtual Organizations
 #### VO Name - `vo`
 VO of the instance. Optional, for use in multi-VO installations only. If VOMS is enabled, this value will be supplied as `--voms` option when invoking `voms-proxy-init`.
 
@@ -143,6 +193,9 @@ Example: `/etc/vomses`
 
 **WARNING:** In earlier versions, `voms-proxy-init` does not support the `--vomsdir` option. In that case, this option must be omitted.
 
+---
+
+### Storage elements and search
 #### Destination RSE - `destination_rse`
 The name of the Rucio Storage Element that is mounted to the JupyterLab server. Mandatory, only applicable in Replica mode.
 
@@ -166,15 +219,31 @@ Example: `365`
 #### Wildcard Search Enabled - `wildcard_enabled`
 Whether or not wildcard DID search is allowed. Optional, defaults to `false`.
 
+---
 
+### Tokens
 #### OpenID Connect Auth Source - `oidc_auth`
-Specifies where should the extension gets the OIDC token from. Optional, the value should be `file` or `env`.
+Specifies where should the extension get the OIDC token from. Optional, the value should be `file` or `env`.
 
 #### OpenID Connect Token Filename - `oidc_file_name`
 Specifies an absolute path to a file containing the OIDC access token.
 
 #### OpenID Connect Token Environment Variable Name - `oidc_env_name`
 Specifies the environment variable name containing the OIDC access token.
+
+**IMPORTANT**: `oidc_auth`, and consequently either the `oidc_file_name` or the `oidc_env_name` setting are necessary if the usage of tokens is foreseen.
+
+---
+
+### Global configuration
+#### Default instance to show - `default_instance`
+Instance to be pre-selected in the settings menu of the extension.
+
+#### Default auth type - `default_auth_type`
+Default authentication method; possible values are `oidc`, `x509`, `x509_proxy`, `userpass`
+
+#### Logging level - `log_level`
+Specifies the verbosity and the content of the logs; possible values are `debug`, `info`, `warning`, `error`.
 
 ## IPython Kernel
 To allow users to access the paths from within the notebook, a kernel extension must be enabled. The kernel resides in module `rucio_jupyterlab.kernels.ipython`.
