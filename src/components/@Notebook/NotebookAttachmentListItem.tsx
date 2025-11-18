@@ -250,6 +250,7 @@ const FileStatusIcon: React.FC<{
 
   switch (status) {
     case 'REPLICATING':
+    case 'FETCHING':
       return (
         <Spinning className={`${classes.replicatingIcon} material-icons`}>
           hourglass_top
@@ -273,6 +274,7 @@ const CollectionStatusIcon: React.FC<{
 
   switch (status) {
     case 'REPLICATING':
+    case 'FETCHING':
       return (
         <Spinning className={`${classes.replicatingIcon} material-icons`}>
           hourglass_top

@@ -1,5 +1,8 @@
 import os
 import logging
+import threading
+from concurrent.futures import ThreadPoolExecutor, Future
+from typing import Dict
 from urllib.parse import urlparse
 from rucio_jupyterlab.db import get_db
 from rucio_jupyterlab.entity import AttachedFile, PfnFileReplica
@@ -14,8 +17,14 @@ class ReplicaModeHandler:
     """
     STATUS_NOT_AVAILABLE = "NOT_AVAILABLE"
     STATUS_REPLICATING = "REPLICATING"
+    STATUS_FETCHING = "FETCHING"
     STATUS_OK = "OK"
     STATUS_STUCK = "STUCK"
+
+    # Class-level shared state for tracking inflight fetches across all instances
+    _inflight_lock = threading.Lock()
+    _inflight_fetches: Dict[str, Future] = {}
+    _executor = ThreadPoolExecutor(max_workers=4, thread_name_prefix="rucio_fetcher")
 
     def __init__(self, namespace, rucio):
         """
@@ -28,6 +37,8 @@ class ReplicaModeHandler:
         self.namespace = namespace
         self.rucio = rucio
         self.db = get_db()  # pylint: disable=invalid-name
+        # Thread pool for async DB writes (instance-specific)
+        self._write_lock = threading.Lock()
         logger.info("ReplicaModeHandler initialized for namespace: %s", self.namespace)
 
     def make_available(self, scope, name):
@@ -60,6 +71,7 @@ class ReplicaModeHandler:
     def get_did_details(self, scope, name, force_fetch=False):
         """
         Retrieves details for a DID, including its replication status and path.
+        Returns immediately with cached data or placeholder data while fetching in background.
 
         Args:
             scope (str): The scope of the DID.
@@ -70,7 +82,55 @@ class ReplicaModeHandler:
             list[dict]: A list of dictionaries, each containing status, DID, path, size, and PFN.
         """
         logger.info("Getting DID details for '%s:%s', force_fetch=%s.", scope, name, force_fetch)
+        did = scope + ':' + name
+        
+        # Check if there's an ongoing fetch for this DID
+        with self._inflight_lock:
+            ongoing_fetch = self._inflight_fetches.get(did)
+            is_fetching = ongoing_fetch is not None and not ongoing_fetch.done()
+        
+        logger.debug("DID '%s': is_fetching=%s, force_fetch=%s", did, is_fetching, force_fetch)
+        
+        # Try to get cached data first
         attached_file_replicas = self.get_attached_file_replicas(scope, name, force_fetch)
+        
+        logger.debug("DID '%s': got %d attached_file_replicas from cache/db", did, len(attached_file_replicas) if attached_file_replicas else 0)
+        
+        # If no cached data
+        if not attached_file_replicas:
+            if is_fetching:
+                # Fetch is already in progress, return FETCHING status
+                logger.info("Fetch in progress for '%s:%s'. Returning FETCHING status.", scope, name)
+                return [{
+                    'status': ReplicaModeHandler.STATUS_FETCHING,
+                    'did': did,
+                    'path': None,
+                    'size': 0,
+                    'pfn': None,
+                    'message': 'Fetching replica information...',
+                    'progress': {'mode': 'indeterminate'}
+                }]
+            elif not force_fetch:
+                # No cache and no ongoing fetch, start one
+                logger.info("No cached data for '%s:%s'. Returning placeholder and fetching async.", scope, name)
+                
+                # Trigger async fetch
+                self._fetch_and_cache_async(scope, name, did)
+                
+                # Return placeholder indicating data is being fetched
+                return [{
+                    'status': ReplicaModeHandler.STATUS_FETCHING,
+                    'did': did,
+                    'path': None,
+                    'size': 0,
+                    'pfn': None,
+                    'message': 'Fetching replica information...',
+                    'progress': {'mode': 'indeterminate'}
+                }]
+            # If force_fetch and no data, fall through to sync fetch (which shouldn't happen normally)
+            logger.warning("Force fetch requested for '%s:%s' but no data found. This is unexpected.", scope, name)
+        
+        # We have some cached data - check if it's complete
         complete = utils.find(lambda x: x.pfn is None, attached_file_replicas) is None
         logger.debug("Attached file replicas retrieved. Count: %d. All PFNs present (complete): %s", len(attached_file_replicas), complete)
 
@@ -104,43 +164,136 @@ class ReplicaModeHandler:
         logger.debug("Full results: %s", results)
         return results
 
-    def get_attached_file_replicas(self, scope, name, force_fetch=False):
+    def _fetch_and_cache_async(self, scope, name, did):
         """
-        Gets attached file replicas, either from the database or by fetching from Rucio.
+        Fetches replicas asynchronously and caches them without blocking.
 
         Args:
             scope (str): The scope of the DID.
             name (str): The name of the DID.
-            force_fetch (bool): If True, forces fetching from Rucio.
+            did (str): The full DID string.
+        """
+        def _fetch():
+            try:
+                logger.debug("Async fetch started for '%s'.", did)
+                fetched_file_replicas = self.fetch_file_replicas(scope, name)
+
+                if fetched_file_replicas:
+                    self._cache_replicas(did, fetched_file_replicas)
+                    logger.info("Async fetch completed for '%s': cached %d replicas.", did, len(fetched_file_replicas))
+                else:
+                    logger.debug("Async fetch for '%s': no replicas found.", did)
+            except Exception as e:
+                logger.error("Async fetch failed for '%s': %s", did, e, exc_info=True)
+
+        self._schedule_fetch_task(did, _fetch, "initial_fetch")
+
+    def get_attached_file_replicas(self, scope, name, force_fetch=False):
+        """
+        Gets attached file replicas, either from the database or by fetching from Rucio.
+        Implements optimistic caching: returns stale data immediately while refreshing in background.
+
+        Args:
+            scope (str): The scope of the DID.
+            name (str): The name of the DID.
+            force_fetch (bool): If True, forces fetching from Rucio (synchronously).
 
         Returns:
-            list[PfnFileReplica]: A list of PfnFileReplica objects.
+            list[PfnFileReplica]: A list of PfnFileReplica objects, or empty list if no cache.
         """
         logger.info("Getting attached file replicas for '%s:%s', force_fetch=%s.", scope, name, force_fetch)
         did = scope + ':' + name
         attached_files = None
+        fetch_reason = None
+        
         if not force_fetch:
             attached_files = self.db.get_attached_files(self.namespace, did)
             if attached_files:
                 logger.debug("Found %d attached files in DB for '%s'.", len(attached_files), did)
             else:
                 logger.debug("No attached files found in DB for '%s'.", did)
+                # Return empty list - caller will handle async fetch
+                return []
+        else:
+            fetch_reason = "force_fetch_true"
 
         pfn_file_replicas = None
         if attached_files:
             pfn_file_replicas = self.get_all_pfn_file_replicas_from_db(attached_files)
             if pfn_file_replicas:
                 logger.debug("Successfully retrieved PFN file replicas from DB for '%s'. Count: %d", did, len(pfn_file_replicas))
+                
+                # Optimistic refresh: return cached data immediately, refresh in background
+                if not force_fetch:
+                    self._refresh_replicas_async(scope, name, did)
+                
+                return pfn_file_replicas
             else:
                 logger.debug("Failed to retrieve all PFN file replicas from DB for '%s'. Will fetch.", did)
+                fetch_reason = "partial_replica_cache"
 
-        if pfn_file_replicas is None:
-            logger.info("Fetching attached PFN file replicas from Rucio for '%s'.", did)
+        # Only perform synchronous fetch if force_fetch=True
+        if force_fetch:
+            if fetch_reason is None:
+                fetch_reason = "unknown_cache_miss"
+            logger.info("Force fetch (%s). Fetching attached PFN file replicas from Rucio for '%s'.", fetch_reason, did)
             pfn_file_replicas = self.fetch_attached_pfn_file_replicas(scope, name)
             logger.debug("Fetched %d PFN file replicas from Rucio for '%s'.", len(pfn_file_replicas), did)
+            return pfn_file_replicas
+        
+        # No cache and not force_fetch - return empty, let caller decide
+        logger.info("No cached replicas for '%s' and not forcing fetch. Returning empty list.", did)
+        return []
 
-        logger.info("Returning %d attached file replicas for '%s'.", len(pfn_file_replicas), did)
-        return pfn_file_replicas
+    def fetch_attached_pfn_file_replicas(self, scope, name):
+        """
+        Fetches PFN file replicas from Rucio and stores them in the database.
+
+        Args:
+            scope (str): The scope of the DID.
+            name (str): The name of the DID.
+
+        Returns:
+            list[PfnFileReplica]: A list of fetched PfnFileReplica objects.
+        """
+        logger.info("Fetching and storing attached PFN file replicas for '%s:%s' from Rucio.", scope, name)
+        fetched_file_replicas = self.fetch_file_replicas(scope, name)
+        logger.debug("Rucio returned %d file replicas for '%s:%s'.", len(fetched_file_replicas), scope, name)
+
+        if not fetched_file_replicas:
+            logger.info("No file replicas returned for '%s:%s'. Nothing to cache.", scope, name)
+            return []
+
+        did = scope + ':' + name
+        self._cache_replicas(did, fetched_file_replicas)
+        logger.info("Stored %d attached DIDs for '%s' in DB.", len(fetched_file_replicas), did)
+
+        logger.debug("Returning %d fetched PFN file replicas.", len(fetched_file_replicas))
+        return fetched_file_replicas
+
+    def _refresh_replicas_async(self, scope, name, did):
+        """
+        Refreshes replicas in the background without blocking the current request.
+
+        Args:
+            scope (str): The scope of the DID.
+            name (str): The name of the DID.
+            did (str): The full DID string.
+        """
+        def _refresh():
+            try:
+                logger.debug("Background refresh started for '%s'.", did)
+                fetched_file_replicas = self.fetch_file_replicas(scope, name)
+
+                if fetched_file_replicas:
+                    self._cache_replicas(did, fetched_file_replicas)
+                    logger.info("Background refresh completed for '%s': updated %d replicas.", did, len(fetched_file_replicas))
+                else:
+                    logger.debug("Background refresh for '%s': no replicas to update.", did)
+            except Exception as e:
+                logger.error("Background refresh failed for '%s': %s", did, e, exc_info=True)
+
+        self._schedule_fetch_task(did, _refresh, "background_refresh")
 
     def get_all_pfn_file_replicas_from_db(self, attached_files):
         """
@@ -167,36 +320,6 @@ class ReplicaModeHandler:
             logger.debug("Added DB file replica: '%s' (PFN: %s, Size: %s)", file_did, db_file_replica.pfn, db_file_replica.size)
 
         logger.debug("Successfully retrieved all %d PFN file replicas from DB.", len(pfn_file_replicas))
-        return pfn_file_replicas
-
-    def fetch_attached_pfn_file_replicas(self, scope, name):
-        """
-        Fetches PFN file replicas from Rucio and stores them in the database.
-
-        Args:
-            scope (str): The scope of the DID.
-            name (str): The name of the DID.
-
-        Returns:
-            list[PfnFileReplica]: A list of fetched PfnFileReplica objects.
-        """
-        logger.info("Fetching and storing attached PFN file replicas for '%s:%s' from Rucio.", scope, name)
-        pfn_file_replicas = []
-        attached_dids = []
-        fetched_file_replicas = self.fetch_file_replicas(scope, name)
-        logger.debug("Rucio returned %d file replicas for '%s:%s'.", len(fetched_file_replicas), scope, name)
-
-        for pfn_file_replica in fetched_file_replicas:
-            self.db.set_file_replica(self.namespace, file_did=pfn_file_replica.did, pfn=pfn_file_replica.pfn, size=pfn_file_replica.size)
-            pfn_file_replicas.append(pfn_file_replica)
-            attached_dids.append(AttachedFile(did=pfn_file_replica.did, size=pfn_file_replica.size))
-            logger.debug("Stored file replica for '%s' (PFN: %s) in DB.", pfn_file_replica.did, pfn_file_replica.pfn)
-
-        did = scope + ':' + name
-        self.db.set_attached_files(self.namespace, did, attached_dids)
-        logger.info("Stored %d attached DIDs for '%s' in DB.", len(attached_dids), did)
-
-        logger.debug("Returning %d fetched PFN file replicas.", len(pfn_file_replicas))
         return pfn_file_replicas
 
     def fetch_file_replicas(self, scope, name):
@@ -373,3 +496,45 @@ class ReplicaModeHandler:
         result = path.strip('/').split('/', nth_slash)[-1]
         logger.debug("Result: '%s'.", result)
         return result
+
+    @classmethod
+    def shutdown(cls):
+        """
+        Gracefully shuts down the thread pool executor.
+        Should be called when the handler is no longer needed.
+        """
+        logger.info("Shutting down ReplicaModeHandler executor...")
+        cls._executor.shutdown(wait=True)
+        logger.info("ReplicaModeHandler executor shut down complete.")
+
+    def _cache_replicas(self, did, fetched_file_replicas):
+        """
+        Persist fetched replicas and their attached DID list atomically.
+        """
+        if not fetched_file_replicas:
+            return
+
+        attached_dids = [AttachedFile(did=replica.did, size=replica.size) for replica in fetched_file_replicas]
+        with self._write_lock:
+            self.db.set_file_replicas_bulk(self.namespace, fetched_file_replicas)
+            self.db.set_attached_files(self.namespace, did, attached_dids)
+
+    def _schedule_fetch_task(self, did, worker, label):
+        """
+        Deduplicate concurrent fetch/refresh tasks per DID.
+        """
+        with self._inflight_lock:
+            existing_future = self._inflight_fetches.get(did)
+            if existing_future and not existing_future.done():
+                logger.debug("Skipping %s for '%s' because a fetch is already in progress.", label, did)
+                return
+            future = self._executor.submit(worker)
+            self._inflight_fetches[did] = future
+
+        def _cleanup(_):
+            with self._inflight_lock:
+                current = self._inflight_fetches.get(did)
+                if current is future:
+                    self._inflight_fetches.pop(did, None)
+
+        future.add_done_callback(_cleanup)

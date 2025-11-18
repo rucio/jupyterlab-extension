@@ -56,3 +56,6 @@ class MockDatabaseInstance:
 
     def set_file_replica(self, namespace, file_did, pfn, size):
         pass
+
+    def set_file_replicas_bulk(self, namespace, file_replicas, chunk_size=1000):  # pylint: disable=unused-argument
+        pass

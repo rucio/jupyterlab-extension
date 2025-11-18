@@ -22,7 +22,7 @@ def test_get_handler(mocker, rucio):
     def mock_get_query_argument(key, default=None):
         args = {
             'namespace': mock_active_instance,
-            'poll': '0',
+            'force': '0',
             'did': 'scope:name'
         }
         return args.get(key, default)
@@ -52,6 +52,6 @@ def test_get_handler(mocker, rucio):
 
     DIDDetailsHandler.get(mock_self)
 
-    calls = [call('namespace'), call('poll', '0'), call('did')]
+    calls = [call('namespace'), call('force', '0'), call('did')]
     mock_self.get_query_argument.assert_has_calls(calls, any_order=True)  # pylint: disable=no-member
     rucio_api_factory.for_instance.assert_called_once_with(mock_active_instance)  # pylint: disable=no-member

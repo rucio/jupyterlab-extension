@@ -7,6 +7,7 @@
  *
  * Authors:
  * - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
+ * - Giovanni Guerrieri, <giovanni.guerrieri@cern.ch>, 2025
  */
 
 import React, { useEffect, useMemo, useState } from 'react';
@@ -83,6 +84,10 @@ const useStyles = createUseStyles({
     extend: 'statusContainer',
     color: 'var(--jp-rucio-yellow-color)'
   },
+  statusFetching: {
+    extend: 'statusContainer',
+    color: 'var(--jp-ui-font-color1)'
+  },
   action: {
     fontSize: '9pt',
     color: 'var(--jp-rucio-primary-blue-color)',
@@ -109,6 +114,23 @@ const _CollectionDIDItemDetails: React.FC<IDIDItem> = ({ did, ...props }) => {
   const [pollingRequesterRef] = useState(() => new PollingRequesterRef());
 
   const enablePolling = () => {
+    // Optimistically set FETCHING status immediately to avoid showing "Not Available"
+    const existingData = UIStore.getRawState().collectionDetails[did];
+
+    if (!existingData) {
+      UIStore.update(s => {
+        s.collectionDetails[did] = [
+          {
+            status: 'FETCHING',
+            did: did,
+            path: undefined,
+            size: 0,
+            message: 'Fetching replica information...'
+          }
+        ];
+      });
+    }
+
     didPollingManager.requestPolling(did, 'collection', pollingRequesterRef);
   };
 
@@ -154,12 +176,14 @@ const _CollectionDIDItemDetails: React.FC<IDIDItem> = ({ did, ...props }) => {
 
   return (
     <div className={classes.container}>
-      {!collectionAttachedFiles && (
+      {(!collectionAttachedFiles || collectionState === 'FETCHING') && (
         <div className={classes.loading}>
           <Spinning className={`${classes.icon} material-icons`}>
             hourglass_top
           </Spinning>
-          <span className={classes.statusText}>Loading...</span>
+          <span className={classes.statusText}>
+            Fetching replica information...
+          </span>
         </div>
       )}
       {collectionState === 'AVAILABLE' && (

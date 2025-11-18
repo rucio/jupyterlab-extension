@@ -7,11 +7,15 @@
  *
  * Authors:
  * - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
+ * - Giovanni Guerrieri, <giovanni.guerrieri@cern.ch>, 2025
  */
 
 import React from 'react';
 import { UIStore } from '../stores/UIStore';
 import { actions } from './Actions';
+
+const isBusyStatus = (status?: string) =>
+  status === 'REPLICATING' || status === 'FETCHING';
 
 export class PollingRequesterRef {}
 type DIDType = 'file' | 'collection';
@@ -77,25 +81,44 @@ class DIDPollingManager {
     }
 
     const type = this.pollingRequesterMap[did].type;
+
     switch (type) {
       case 'file':
         actions
           .getFileDIDDetails(activeInstance.name, did, true)
           .then(details => {
-            if (details.status !== 'REPLICATING') {
+            if (!isBusyStatus(details.status)) {
               delete this.pollingRequesterMap[did];
             }
           });
         break;
-      case 'collection':
+      case 'collection': {
+        // Optimistically set FETCHING status if no data exists
+        const existingData = UIStore.getRawState().collectionDetails[did];
+
+        if (!existingData) {
+          UIStore.update(s => {
+            s.collectionDetails[did] = [
+              {
+                status: 'FETCHING',
+                did: did,
+                path: undefined,
+                size: 0,
+                message: 'Fetching replica information...'
+              }
+            ];
+          });
+        }
+
         actions
           .getCollectionDIDDetails(activeInstance.name, did, true)
           .then(didDetails => {
-            if (!didDetails.find(d => d.status === 'REPLICATING')) {
+            if (!didDetails.find(d => isBusyStatus(d.status))) {
               delete this.pollingRequesterMap[did];
             }
           });
         break;
+      }
     }
   }
 }

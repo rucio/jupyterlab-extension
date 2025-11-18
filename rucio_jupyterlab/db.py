@@ -103,6 +103,47 @@ class DatabaseInstance:
         FileReplicasCache.replace(
             namespace=namespace, did=file_did, pfn=pfn, size=size, expiry=cache_expires).execute()
 
+    def set_file_replicas_bulk(self, namespace, file_replicas, chunk_size=1000):
+        """
+        Store many file replicas in a single transaction to avoid per-row commits.
+
+        Args:
+            namespace (str): Cache namespace.
+            file_replicas (Iterable): Collection of objects exposing did, pfn, size.
+            chunk_size (int): Number of rows per bulk insert to keep memory bounded.
+        """
+        if not file_replicas:
+            return
+
+        cache_expires = int(time.time()) + (3600)  # an hour TODO change?
+
+        def iter_rows():
+            for replica in file_replicas:
+                yield {
+                    'namespace': namespace,
+                    'did': replica.did,
+                    'pfn': replica.pfn,
+                    'size': replica.size,
+                    'expiry': cache_expires
+                }
+
+        with db.atomic():
+            rows_buffer = []
+            for row in iter_rows():
+                rows_buffer.append(row)
+                if len(rows_buffer) >= chunk_size:
+                    (FileReplicasCache
+                     .insert_many(rows_buffer)
+                     .on_conflict_replace()
+                     .execute())
+                    rows_buffer.clear()
+
+            if rows_buffer:
+                (FileReplicasCache
+                 .insert_many(rows_buffer)
+                 .on_conflict_replace()
+                 .execute())
+
     def get_upload_jobs(self, namespace):
         upload_jobs = FileUploadJob.select().dicts().where(FileUploadJob.namespace == namespace).execute()
         return upload_jobs

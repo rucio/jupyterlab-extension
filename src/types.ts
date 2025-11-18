@@ -64,6 +64,12 @@ export interface IFetchScopesResult {
   error?: string; // Optional property for error messages
 }
 
+export interface IFetchProgress {
+  mode: 'indeterminate' | 'determinate';
+  current?: number;
+  total?: number;
+}
+
 export interface IFileDIDDetails {
   status: FileStatus;
   did: string;
@@ -71,6 +77,8 @@ export interface IFileDIDDetails {
   pfn?: string;
   size: number;
   error?: string;
+  message?: string;
+  progress?: IFetchProgress;
 }
 
 export interface INotebookDIDAttachment {
@@ -88,6 +96,7 @@ export interface IDirectoryItem {
 export type FileStatus =
   | 'OK'
   | 'REPLICATING'
+  | 'FETCHING'
   | 'NOT_AVAILABLE'
   | 'STUCK'
   | 'FAILED';
@@ -96,6 +105,7 @@ export type CollectionStatus =
   | 'AVAILABLE'
   | 'PARTIALLY_AVAILABLE'
   | 'REPLICATING'
+  | 'FETCHING'
   | 'STUCK'
   | 'EMPTY';
 export type ResolveStatus =
