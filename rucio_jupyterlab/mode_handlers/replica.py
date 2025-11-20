@@ -148,20 +148,15 @@ class ReplicaModeHandler:
             path = self.translate_pfn_to_path(pfn) if pfn else None
             size = file_replica.size
 
-            logger.debug("Mapping file replica: DID='%s', PFN='%s', Size=%s, Path='%s'", file_did, pfn, size, path)
-
             if path is None:
                 # This is to handle newly-attached files in which the replication rule hasn't been reevaluated by the judger daemon.
                 result_status = status if status != ReplicaModeHandler.STATUS_OK else ReplicaModeHandler.STATUS_REPLICATING
-                logger.debug("Path is None for '%s'. Setting status to '%s'.", file_did, result_status)
                 return dict(status=result_status, did=file_did, path=None, size=size, pfn=pfn)
 
-            logger.debug("Path found for '%s'. Setting status to '%s'.", file_did, ReplicaModeHandler.STATUS_OK)
             return dict(status=ReplicaModeHandler.STATUS_OK, did=file_did, path=path, size=size, pfn=pfn)
 
         results = utils.map(attached_file_replicas, result_mapper)
         logger.info("Finished getting DID details for '%s:%s'. Returned %d results.", scope, name, len(results))
-        logger.debug("Full results: %s", results)
         return results
 
     def _fetch_and_cache_async(self, scope, name, did):
@@ -298,6 +293,7 @@ class ReplicaModeHandler:
     def get_all_pfn_file_replicas_from_db(self, attached_files):
         """
         Retrieves all PFN file replicas from the database based on a list of attached files.
+        Uses bulk query to avoid N+1 problem with large datasets.
 
         Args:
             attached_files (list[AttachedFile]): A list of AttachedFile objects.
@@ -305,21 +301,38 @@ class ReplicaModeHandler:
         Returns:
             list[PfnFileReplica] or None: A list of PfnFileReplica objects if all found, else None.
         """
-        logger.debug("Attempting to get %d PFN file replicas from DB.", len(attached_files))
+        import time
+        start_time = time.time()
+        count = len(attached_files)
+        logger.debug("Retrieving %d PFN file replicas from DB.", count)
+        
+        # Extract all DIDs and use bulk query
+        file_dids = [af.did for af in attached_files]
+        replica_dict = self.db.get_file_replicas_bulk(self.namespace, file_dids)
+        
+        if replica_dict is None:
+            logger.warning("Incomplete cache - some replicas not found in DB.")
+            return None
+        
+        # Build result list in same order as input
         pfn_file_replicas = []
         for attached_file in attached_files:
-            file_did = attached_file.did
-            db_file_replica = self.db.get_file_replica(self.namespace, file_did)
-
+            db_file_replica = replica_dict.get(attached_file.did)
             if db_file_replica is None:
-                logger.warning("File replica for '%s' not found in DB. Returning None for this batch.", file_did)
+                # This shouldn't happen given the check above, but be defensive
+                logger.warning("File replica for '%s' not in bulk result.", attached_file.did)
                 return None
-
-            pfn_file_replica = PfnFileReplica(did=db_file_replica.did, pfn=db_file_replica.pfn, size=db_file_replica.size)
+            
+            pfn_file_replica = PfnFileReplica(
+                did=db_file_replica.did, 
+                pfn=db_file_replica.pfn, 
+                size=db_file_replica.size
+            )
             pfn_file_replicas.append(pfn_file_replica)
-            logger.debug("Added DB file replica: '%s' (PFN: %s, Size: %s)", file_did, db_file_replica.pfn, db_file_replica.size)
 
-        logger.debug("Successfully retrieved all %d PFN file replicas from DB.", len(pfn_file_replicas))
+        duration = time.time() - start_time
+        logger.info("Retrieved %d PFN file replicas from DB in %.2fs (%.0f replicas/sec)", 
+                   count, duration, count/duration if duration > 0 else 0)
         return pfn_file_replicas
 
     def fetch_file_replicas(self, scope, name):
@@ -333,18 +346,24 @@ class ReplicaModeHandler:
         Returns:
             list[PfnFileReplica]: A list of PfnFileReplica objects.
         """
+        import time
+        start_time = time.time()
         logger.info("Fetching file replicas from Rucio for '%s:%s'.", scope, name)
         destination_rse = self.rucio.instance_config.get('destination_rse')
-        logger.debug("Target destination RSE: '%s'.", destination_rse)
 
         replicas = []
         try:
             rucio_replicas = self.rucio.get_replicas(scope, name)
-            logger.debug("Rucio returned %d raw replicas for '%s:%s'.", len(rucio_replicas), scope, name)
+            fetch_duration = time.time() - start_time
+            logger.info("Rucio returned %d raw replicas for '%s:%s' in %.2fs.", 
+                       len(rucio_replicas), scope, name, fetch_duration)
         except Exception as e:
             logger.error("Failed to fetch replicas from Rucio for '%s:%s'. Error: %s", scope, name, e, exc_info=True)
             return []  # Return empty list on error
 
+        # Track statistics to avoid thousands of log lines
+        stats = {'available': 0, 'unavailable': 0, 'no_pfn': 0}
+        
         def rucio_replica_mapper(rucio_replica, _):
             rses = rucio_replica.get('rses', {})
             scope = rucio_replica.get('scope')
@@ -358,19 +377,22 @@ class ReplicaModeHandler:
                     pfns = rses[destination_rse]
                     if pfns:
                         pfn = pfns[0]
-                        logger.debug("Found AVAILABLE PFN '%s' on '%s' for '%s:%s'.", pfn, destination_rse, scope, name)
+                        stats['available'] += 1
                     else:
-                        logger.warning("No PFNs listed for available replica on '%s' for '%s:%s'.", destination_rse, scope, name)
+                        stats['no_pfn'] += 1
                 else:
-                    logger.debug("Replica on '%s' for '%s:%s' is in state: '%s', not AVAILABLE.", destination_rse, scope, name, states[destination_rse])
+                    stats['unavailable'] += 1
             else:
-                logger.debug("No replica found on '%s' or no state info for '%s:%s'. Rses: %s, States: %s", destination_rse, scope, name, rses.keys(), states)
+                stats['unavailable'] += 1
 
             did = scope + ':' + name
             return PfnFileReplica(pfn=pfn, did=did, size=size)
 
         replicas = utils.map(rucio_replicas, rucio_replica_mapper)
-        logger.info("Finished mapping %d Rucio replicas for '%s:%s'.", len(replicas), scope, name)
+        total_duration = time.time() - start_time
+        logger.info("Processed %d replicas for '%s:%s' in %.2fs: %d available, %d unavailable, %d missing PFN", 
+                   len(replicas), scope, name, total_duration, 
+                   stats['available'], stats['unavailable'], stats['no_pfn'])
         return replicas
 
     def get_did_status(self, scope, name):
@@ -463,20 +485,14 @@ class ReplicaModeHandler:
         Returns:
             str: The translated local file path.
         """
-        logger.debug("Translating PFN '%s' to local path.", pfn)
         instance_config = self.rucio.instance_config
         prefix_path = instance_config.get('rse_mount_path')
         path_begins_at = instance_config.get('path_begins_at', 0)
 
-        logger.debug("Instance config: rse_mount_path='%s', path_begins_at=%s.", prefix_path, path_begins_at)
-
         path = urlparse(pfn).path
-        logger.debug("Parsed path from PFN: '%s'.", path)
         suffix_path = self.get_path_after_nth_slash(path, path_begins_at)
-        logger.debug("Suffix path after %s slashes: '%s'.", path_begins_at, suffix_path)
 
         full_path = os.path.join(prefix_path, suffix_path)
-        logger.debug("Combined full path: '%s'.", full_path)
         return full_path
 
     def get_path_after_nth_slash(self, path, nth_slash):
@@ -490,11 +506,9 @@ class ReplicaModeHandler:
         Returns:
             str: The path segment after the nth slash.
         """
-        logger.debug("Getting path after %sth slash for path: '%s'.", nth_slash, path)
         # Strip leading/trailing slashes, then split. If nth_slash is 0, it takes everything after 0 splits (the whole path).
         # If path is shorter than nth_slash, split will return a list with less elements, and [-1] will still get the last one.
         result = path.strip('/').split('/', nth_slash)[-1]
-        logger.debug("Result: '%s'.", result)
         return result
 
     @classmethod
@@ -514,10 +528,18 @@ class ReplicaModeHandler:
         if not fetched_file_replicas:
             return
 
+        import time
+        start_time = time.time()
+        count = len(fetched_file_replicas)
+        
         attached_dids = [AttachedFile(did=replica.did, size=replica.size) for replica in fetched_file_replicas]
         with self._write_lock:
             self.db.set_file_replicas_bulk(self.namespace, fetched_file_replicas)
             self.db.set_attached_files(self.namespace, did, attached_dids)
+        
+        duration = time.time() - start_time
+        logger.info("Cached %d replicas for '%s' to DB in %.2fs (%.0f replicas/sec)", 
+                   count, did, duration, count/duration if duration > 0 else 0)
 
     def _schedule_fetch_task(self, did, worker, label):
         """

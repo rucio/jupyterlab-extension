@@ -140,6 +140,39 @@ def create_mock_db_get_file_replica(exist=None, missing=None):
     return mock_db_get_file_replica
 
 
+def create_mock_db_get_file_replicas_bulk(exist=None, missing=None):
+    """Create a mock for bulk replica retrieval that mimics individual get_file_replica behavior."""
+    if not exist:
+        exist = []
+    
+    if not missing:
+        missing = []
+
+    def mock_db_get_file_replicas_bulk(namespace, file_dids):  # pylint: disable=unused-argument
+        replica_dict = {}
+        for i, did in enumerate(file_dids):
+            # Check if this replica should be missing from DB
+            if i < len(missing) and missing[i]:
+                continue  # Skip this replica - it's missing from DB
+            
+            # Determine if PFN should exist
+            if i >= len(exist):
+                should_exist = True
+            else:
+                should_exist = exist[i]
+            
+            pfn = "root://xrd1:1094//test/" + did if should_exist else None
+            replica_dict[did] = Struct(namespace=namespace, did=did, pfn=pfn, size=123, expiry=123456798)
+        
+        # If any replicas are missing, return None to indicate incomplete cache
+        if len(replica_dict) != len(file_dids):
+            return None
+            
+        return replica_dict
+
+    return mock_db_get_file_replicas_bulk
+
+
 def mock_db_set_file_replica(namespace, file_did, pfn, size):  # pylint: disable=unused-argument
     pass
 
@@ -168,6 +201,7 @@ def test_get_did_details__no_force_fetch__attached_files_cached__all_replicas_ca
     mock_db, refresh_mock, _ = setup_common_mocks(mocker)
     mocker.patch.object(mock_db, "get_attached_files", return_value=MOCK_ATTACHED_FILES)
     mocker.patch.object(mock_db, "get_file_replica", side_effect=create_mock_db_get_file_replica())
+    mocker.patch.object(mock_db, "get_file_replicas_bulk", side_effect=create_mock_db_get_file_replicas_bulk())
 
     mock_scope = 'scope'
     mock_name = 'name'
@@ -211,6 +245,7 @@ def test_get_did_details__no_force_fetch__attached_files_cached__all_replicas_ca
     mock_db, _, _ = setup_common_mocks(mocker)
     mocker.patch.object(mock_db, "get_attached_files", return_value=MOCK_ATTACHED_FILES)
     mocker.patch.object(mock_db, "get_file_replica", side_effect=create_mock_db_get_file_replica(exist=[False, True, True]))
+    mocker.patch.object(mock_db, "get_file_replicas_bulk", side_effect=create_mock_db_get_file_replicas_bulk(exist=[False, True, True]))
     mocker.patch.object(rucio, 'get_rules', return_value=mock_rucio_rule_status_replicating)
 
     mock_scope = 'scope'
@@ -234,6 +269,7 @@ def test_get_did_details__no_force_fetch__attached_files_cached__all_replicas_ca
     mock_db, _, _ = setup_common_mocks(mocker)
     mocker.patch.object(mock_db, "get_attached_files", return_value=MOCK_ATTACHED_FILES)
     mocker.patch.object(mock_db, "get_file_replica", side_effect=create_mock_db_get_file_replica(exist=[False, True, True]))
+    mocker.patch.object(mock_db, "get_file_replicas_bulk", side_effect=create_mock_db_get_file_replicas_bulk(exist=[False, True, True]))
     mocker.patch.object(rucio, 'get_rules', return_value=[])
 
     mock_scope = 'scope'
@@ -257,6 +293,7 @@ def test_get_did_details__no_force_fetch__attached_files_cached__all_replicas_ca
     mock_db, _, _ = setup_common_mocks(mocker)
     mocker.patch.object(mock_db, "get_attached_files", return_value=MOCK_ATTACHED_FILES)
     mocker.patch.object(mock_db, "get_file_replica", side_effect=create_mock_db_get_file_replica(exist=[False, True, True]))
+    mocker.patch.object(mock_db, "get_file_replicas_bulk", side_effect=create_mock_db_get_file_replicas_bulk(exist=[False, True, True]))
     mocker.patch.object(rucio, 'get_rules', return_value=mock_rucio_rule_status_ok)
 
     mock_scope = 'scope'
