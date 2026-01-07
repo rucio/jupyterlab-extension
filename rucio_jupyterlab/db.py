@@ -24,7 +24,16 @@ def prepare_directory(dir_path):
     os.makedirs(dir_path, exist_ok=True)
 
 
-dir_path = os.path.expanduser("~/.rucio_jupyterlab")
+# Check if we're in a Kubernetes environment and use local storage
+# to avoid slow NFS/EFS performance with SQLite
+if os.getenv('JUPYTERHUB_SERVICE_PREFIX') or os.getenv('KUBERNETES_SERVICE_HOST'):
+    # In K8s, use local ephemeral storage instead of home dir (which is often NFS)
+    dir_path = os.getenv('RUCIO_CACHE_DIR', '/tmp/.rucio_jupyterlab')
+    import logging
+    logging.getLogger(__name__).info(f"Kubernetes environment detected. Using local cache directory: {dir_path}")
+else:
+    dir_path = os.path.expanduser("~/.rucio_jupyterlab")
+
 prepare_directory(dir_path)
 db = prepare_db(dir_path)
 
@@ -98,10 +107,86 @@ class DatabaseInstance:
 
         return replica_cache
 
+    def get_file_replicas_bulk(self, namespace, file_dids):
+        """
+        Retrieve multiple file replicas in a single query to avoid N+1 problem.
+
+        Args:
+            namespace (str): Cache namespace.
+            file_dids (list): List of DIDs to fetch.
+
+        Returns:
+            dict: Mapping of DID to replica object, or empty dict if any are missing/expired.
+        """
+        if not file_dids:
+            return {}
+
+        current_time = int(time.time())
+        
+        # Fetch all replicas in one query
+        replicas = (FileReplicasCache
+                   .select()
+                   .where(
+                       (FileReplicasCache.namespace == namespace) &
+                       (FileReplicasCache.did.in_(file_dids)) &
+                       (FileReplicasCache.expiry > current_time)
+                   ))
+        
+        # Build a dict for O(1) lookups
+        replica_dict = {r.did: r for r in replicas}
+        
+        # Check if we got all of them
+        if len(replica_dict) != len(file_dids):
+            # Some are missing or expired - return None to indicate incomplete cache
+            return None
+        
+        return replica_dict
+
     def set_file_replica(self, namespace, file_did, pfn, size):
         cache_expires = int(time.time()) + (3600)  # an hour TODO change?
         FileReplicasCache.replace(
             namespace=namespace, did=file_did, pfn=pfn, size=size, expiry=cache_expires).execute()
+
+    def set_file_replicas_bulk(self, namespace, file_replicas, chunk_size=1000):
+        """
+        Store many file replicas in a single transaction to avoid per-row commits.
+
+        Args:
+            namespace (str): Cache namespace.
+            file_replicas (Iterable): Collection of objects exposing did, pfn, size.
+            chunk_size (int): Number of rows per bulk insert to keep memory bounded.
+        """
+        if not file_replicas:
+            return
+
+        cache_expires = int(time.time()) + (3600)  # an hour TODO change?
+
+        def iter_rows():
+            for replica in file_replicas:
+                yield {
+                    'namespace': namespace,
+                    'did': replica.did,
+                    'pfn': replica.pfn,
+                    'size': replica.size,
+                    'expiry': cache_expires
+                }
+
+        with db.atomic():
+            rows_buffer = []
+            for row in iter_rows():
+                rows_buffer.append(row)
+                if len(rows_buffer) >= chunk_size:
+                    (FileReplicasCache
+                     .insert_many(rows_buffer)
+                     .on_conflict_replace()
+                     .execute())
+                    rows_buffer.clear()
+
+            if rows_buffer:
+                (FileReplicasCache
+                 .insert_many(rows_buffer)
+                 .on_conflict_replace()
+                 .execute())
 
     def get_upload_jobs(self, namespace):
         upload_jobs = FileUploadJob.select().dicts().where(FileUploadJob.namespace == namespace).execute()

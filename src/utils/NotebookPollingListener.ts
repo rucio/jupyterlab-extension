@@ -17,6 +17,12 @@ import { actions } from './Actions';
 import { NotebookListener } from './NotebookListener';
 import { computeCollectionState } from './Helpers';
 
+const isBusyStatus = (status?: string) =>
+  status === 'REPLICATING' || status === 'FETCHING';
+
+const isBusyCollectionState = (state?: string | false) =>
+  state === 'REPLICATING' || state === 'FETCHING';
+
 export class NotebookPollingListener {
   notebookListener: NotebookListener;
   pollingRef: PollingRequesterRef;
@@ -56,7 +62,7 @@ export class NotebookPollingListener {
           }));
 
         listenedFileDetails.forEach(({ did, file }) => {
-          if (file.current.status === 'REPLICATING') {
+          if (isBusyStatus(file.current.status)) {
             this.enablePolling(did, 'file');
           } else {
             if (this.activePolling.includes(did)) {
@@ -64,7 +70,7 @@ export class NotebookPollingListener {
             }
             if (
               file.current.status === 'OK' &&
-              file.prev?.status === 'REPLICATING'
+              isBusyStatus(file.prev?.status)
             ) {
               const { activeNotebookPanel } = ExtensionStore.getRawState();
               if (activeNotebookPanel) {
@@ -99,7 +105,7 @@ export class NotebookPollingListener {
 
         listenedCollectionDetails.forEach(({ did, file }) => {
           const currentCollectionState = computeCollectionState(file.current);
-          if (currentCollectionState === 'REPLICATING') {
+          if (isBusyCollectionState(currentCollectionState)) {
             this.enablePolling(did, 'collection');
           } else {
             if (this.activePolling.includes(did)) {
@@ -108,7 +114,7 @@ export class NotebookPollingListener {
             const prevCollectionState = computeCollectionState(file.prev);
             if (
               currentCollectionState === 'AVAILABLE' &&
-              prevCollectionState === 'REPLICATING'
+              isBusyCollectionState(prevCollectionState)
             ) {
               const { activeNotebookPanel } = ExtensionStore.getRawState();
               if (activeNotebookPanel) {
@@ -153,15 +159,19 @@ export class NotebookPollingListener {
     if (attachment.type === 'file') {
       const didDetails = await actions.getFileDIDDetails(
         activeInstance.name,
-        attachment.did
+        attachment.did,
+        false,
+        true
       );
-      return didDetails.status === 'REPLICATING';
+      return isBusyStatus(didDetails.status);
     } else {
       const didDetails = await actions.getCollectionDIDDetails(
         activeInstance.name,
-        attachment.did
+        attachment.did,
+        false,
+        true
       );
-      return didDetails.find(d => d.status === 'REPLICATING');
+      return didDetails.find(d => isBusyStatus(d.status));
     }
   }
 

@@ -196,8 +196,14 @@ class RucioAPI:
                 data=data,
                 verify=self.rucio_ca_cert
             )
-            logger.debug("RucioAPI: %s request to %s with headers: %s and params: %s", method.upper(), url, headers, params)
-            logger.debug("Response status code: %s, response text: %s", response.status_code, response.text)
+            logger.debug("RucioAPI: %s request to %s", method.upper(), url)
+            
+            # Only log response details if it's a short response (< 512 bytes)
+            # Avoid logging massive replica lists that spam the logs
+            if len(response.text) < 512:
+                logger.debug("Response status: %s, body: %s", response.status_code, response.text)
+            else:
+                logger.debug("Response status: %s, body size: %d bytes", response.status_code, len(response.text))
 
             response.raise_for_status()
 

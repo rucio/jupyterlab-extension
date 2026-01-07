@@ -74,6 +74,10 @@ const useStyles = createUseStyles({
     extend: 'statusContainer',
     color: 'var(--jp-rucio-yellow-color)'
   },
+  statusFetching: {
+    extend: 'statusContainer',
+    color: 'var(--jp-ui-font-color1)'
+  },
   action: {
     fontSize: '9pt',
     color: 'var(--jp-rucio-primary-blue-color)',
@@ -180,6 +184,9 @@ const _FileDIDItemDetails: React.FC<IDIDItem> = ({ did, ...props }) => {
           did={did}
           showReplicationRuleUrl={showReplicationRuleUrl}
         />
+      )}
+      {!!fileDetails && fileDetails.status === 'FETCHING' && (
+        <FileFetching message={fileDetails.message} />
       )}
       {!!fileDetails && fileDetails.status === 'STUCK' && (
         <FileStuck
@@ -304,6 +311,23 @@ const FileReplicating: React.FC<{
         <AddToNotebookPopover did={did} type="collection">
           Add to Notebook
         </AddToNotebookPopover>
+      </div>
+    </div>
+  );
+};
+
+const FileFetching: React.FC<{
+  message?: string;
+}> = ({ message }) => {
+  const classes = useStyles();
+
+  return (
+    <div className={classes.statusFetching}>
+      <Spinning className={`${classes.icon} material-icons`}>
+        hourglass_top
+      </Spinning>
+      <div className={classes.statusText}>
+        {message || 'Fetching replica information...'}
       </div>
     </div>
   );

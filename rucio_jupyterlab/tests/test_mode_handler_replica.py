@@ -140,7 +140,44 @@ def create_mock_db_get_file_replica(exist=None, missing=None):
     return mock_db_get_file_replica
 
 
+def create_mock_db_get_file_replicas_bulk(exist=None, missing=None):
+    """Create a mock for bulk replica retrieval that mimics individual get_file_replica behavior."""
+    if not exist:
+        exist = []
+    
+    if not missing:
+        missing = []
+
+    def mock_db_get_file_replicas_bulk(namespace, file_dids):  # pylint: disable=unused-argument
+        replica_dict = {}
+        for i, did in enumerate(file_dids):
+            # Check if this replica should be missing from DB
+            if i < len(missing) and missing[i]:
+                continue  # Skip this replica - it's missing from DB
+            
+            # Determine if PFN should exist
+            if i >= len(exist):
+                should_exist = True
+            else:
+                should_exist = exist[i]
+            
+            pfn = "root://xrd1:1094//test/" + did if should_exist else None
+            replica_dict[did] = Struct(namespace=namespace, did=did, pfn=pfn, size=123, expiry=123456798)
+        
+        # If any replicas are missing, return None to indicate incomplete cache
+        if len(replica_dict) != len(file_dids):
+            return None
+            
+        return replica_dict
+
+    return mock_db_get_file_replicas_bulk
+
+
 def mock_db_set_file_replica(namespace, file_did, pfn, size):  # pylint: disable=unused-argument
+    pass
+
+
+def mock_db_set_file_replicas_bulk(namespace, file_replicas, chunk_size=1000):  # pylint: disable=unused-argument
     pass
 
 
@@ -153,14 +190,18 @@ def setup_common_mocks(mocker):
     mocker.patch("rucio_jupyterlab.mode_handlers.replica.get_db", return_value=mock_db)
     mocker.patch.object(mock_db, "set_attached_files", side_effect=mock_db_set_attached_files)
     mocker.patch.object(mock_db, "set_file_replica", side_effect=mock_db_set_file_replica)
+    mocker.patch.object(mock_db, "set_file_replicas_bulk", side_effect=mock_db_set_file_replicas_bulk)
+    refresh_mock = mocker.patch.object(ReplicaModeHandler, "_refresh_replicas_async", autospec=True)
+    fetch_async_mock = mocker.patch.object(ReplicaModeHandler, "_fetch_and_cache_async", autospec=True)
 
-    return mock_db
+    return mock_db, refresh_mock, fetch_async_mock
 
 
 def test_get_did_details__no_force_fetch__attached_files_cached__all_replicas_cached__all_dids_available___should_not_fetch(rucio, mocker):
-    mock_db = setup_common_mocks(mocker)
+    mock_db, refresh_mock, _ = setup_common_mocks(mocker)
     mocker.patch.object(mock_db, "get_attached_files", return_value=MOCK_ATTACHED_FILES)
     mocker.patch.object(mock_db, "get_file_replica", side_effect=create_mock_db_get_file_replica())
+    mocker.patch.object(mock_db, "get_file_replicas_bulk", side_effect=create_mock_db_get_file_replicas_bulk())
 
     mock_scope = 'scope'
     mock_name = 'name'
@@ -175,12 +216,36 @@ def test_get_did_details__no_force_fetch__attached_files_cached__all_replicas_ca
     ]
 
     assert result == expected_result, "Invalid return value"
+    refresh_mock.assert_called_once_with(handler, mock_scope, mock_name, 'scope:name')
+
+
+def test_get_did_details__no_force_fetch__cache_miss__returns_fetching_placeholder(rucio, mocker):
+    mock_db, _, fetch_async_mock = setup_common_mocks(mocker)
+    mocker.patch.object(mock_db, "get_attached_files", return_value=None)
+
+    mock_scope = 'scope'
+    mock_name = 'name'
+
+    handler = ReplicaModeHandler(namespace='atlas', rucio=rucio)
+    result = handler.get_did_details(mock_scope, mock_name, False)
+
+    assert result == [{
+        'status': 'FETCHING',
+        'did': 'scope:name',
+        'path': None,
+        'size': 0,
+        'pfn': None,
+        'message': 'Fetching replica information...',
+        'progress': {'mode': 'indeterminate'}
+    }]
+    fetch_async_mock.assert_called_once_with(handler, mock_scope, mock_name, 'scope:name')
 
 
 def test_get_did_details__no_force_fetch__attached_files_cached__all_replicas_cached__not_all_dids_available___should_fetch_rule__status_replicating(rucio, mocker):
-    mock_db = setup_common_mocks(mocker)
+    mock_db, _, _ = setup_common_mocks(mocker)
     mocker.patch.object(mock_db, "get_attached_files", return_value=MOCK_ATTACHED_FILES)
     mocker.patch.object(mock_db, "get_file_replica", side_effect=create_mock_db_get_file_replica(exist=[False, True, True]))
+    mocker.patch.object(mock_db, "get_file_replicas_bulk", side_effect=create_mock_db_get_file_replicas_bulk(exist=[False, True, True]))
     mocker.patch.object(rucio, 'get_rules', return_value=mock_rucio_rule_status_replicating)
 
     mock_scope = 'scope'
@@ -201,9 +266,10 @@ def test_get_did_details__no_force_fetch__attached_files_cached__all_replicas_ca
 
 
 def test_get_did_details__no_force_fetch__attached_files_cached__all_replicas_cached__not_all_dids_available___should_fetch_rule__status_not_available(rucio, mocker):
-    mock_db = setup_common_mocks(mocker)
+    mock_db, _, _ = setup_common_mocks(mocker)
     mocker.patch.object(mock_db, "get_attached_files", return_value=MOCK_ATTACHED_FILES)
     mocker.patch.object(mock_db, "get_file_replica", side_effect=create_mock_db_get_file_replica(exist=[False, True, True]))
+    mocker.patch.object(mock_db, "get_file_replicas_bulk", side_effect=create_mock_db_get_file_replicas_bulk(exist=[False, True, True]))
     mocker.patch.object(rucio, 'get_rules', return_value=[])
 
     mock_scope = 'scope'
@@ -224,9 +290,10 @@ def test_get_did_details__no_force_fetch__attached_files_cached__all_replicas_ca
 
 
 def test_get_did_details__no_force_fetch__attached_files_cached__all_replicas_cached__not_all_dids_available___should_fetch_rule__status_ok(rucio, mocker):
-    mock_db = setup_common_mocks(mocker)
+    mock_db, _, _ = setup_common_mocks(mocker)
     mocker.patch.object(mock_db, "get_attached_files", return_value=MOCK_ATTACHED_FILES)
     mocker.patch.object(mock_db, "get_file_replica", side_effect=create_mock_db_get_file_replica(exist=[False, True, True]))
+    mocker.patch.object(mock_db, "get_file_replicas_bulk", side_effect=create_mock_db_get_file_replicas_bulk(exist=[False, True, True]))
     mocker.patch.object(rucio, 'get_rules', return_value=mock_rucio_rule_status_ok)
 
     mock_scope = 'scope'
@@ -246,161 +313,11 @@ def test_get_did_details__no_force_fetch__attached_files_cached__all_replicas_ca
     assert result == expected_result, "Invalid return value"
 
 
-def test_get_did_details__no_force_fetch__attached_files_cached__some_replicas_cached__all_dids_available___should_fetch_replica(rucio, mocker):
-    mock_db = setup_common_mocks(mocker)
+def test_get_did_details__force_fetch__attached_files_cached__some_replicas_cached__all_dids_available___should_fetch_replica(rucio, mocker):
+    mock_db, _, _ = setup_common_mocks(mocker)
     mocker.patch.object(mock_db, "get_attached_files", return_value=MOCK_ATTACHED_FILES)
     mocker.patch.object(mock_db, "get_file_replica", side_effect=create_mock_db_get_file_replica(exist=[True, True, True], missing=[True, False, False]))
     mocker.patch.object(rucio, 'get_rules', return_value=mock_rucio_rule_status_ok)
-    mocker.patch.object(rucio, "get_replicas", return_value=mock_rucio_replicas_all_available)
-
-    mock_scope = 'scope'
-    mock_name = 'name'
-
-    handler = ReplicaModeHandler(namespace='atlas', rucio=rucio)
-    result = handler.get_did_details(mock_scope, mock_name, False)
-
-    rucio.get_replicas.assert_called_once()
-    rucio.get_rules.assert_not_called()
-
-    expected_result = [
-        {'status': 'OK', 'did': 'scope:name1', 'path': '/eos/user/rucio/scope:name1', 'size': 123, 'pfn': 'root://xrd1:1094//eos/docker/user/rucio/scope:name1'},
-        {'status': 'OK', 'did': 'scope:name2', 'path': '/eos/user/rucio/scope:name2', 'size': 123, 'pfn': 'root://xrd1:1094//eos/docker/user/rucio/scope:name2'},
-        {'status': 'OK', 'did': 'scope:name3', 'path': '/eos/user/rucio/scope:name3', 'size': 123, 'pfn': 'root://xrd1:1094//eos/docker/user/rucio/scope:name3'}
-    ]
-
-    assert result == expected_result, "Invalid return value"
-
-
-def test_get_did_details__no_force_fetch__attached_files_cached__some_replicas_cached__not_all_dids_available___should_fetch_replica_and_rule(rucio, mocker):
-    mock_db = setup_common_mocks(mocker)
-    mocker.patch.object(mock_db, "get_attached_files", return_value=MOCK_ATTACHED_FILES)
-    mocker.patch.object(mock_db, "get_file_replica", side_effect=create_mock_db_get_file_replica(exist=[True, True, False], missing=[True, False, False]))
-    mocker.patch.object(rucio, 'get_rules', return_value=mock_rucio_rule_status_replicating)
-    mocker.patch.object(rucio, "get_replicas", return_value=mock_rucio_replicas_some_available)
-
-    mock_scope = 'scope'
-    mock_name = 'name'
-
-    handler = ReplicaModeHandler(namespace='atlas', rucio=rucio)
-    result = handler.get_did_details(mock_scope, mock_name, False)
-
-    rucio.get_replicas.assert_called_once()
-    rucio.get_rules.assert_called_once()
-
-    expected_result = [
-        {'status': 'OK', 'did': 'scope:name1', 'path': '/eos/user/rucio/scope:name1', 'size': 123, 'pfn': 'root://xrd1:1094//eos/docker/user/rucio/scope:name1'},
-        {'status': 'REPLICATING', 'did': 'scope:name2', 'path': None, 'size': 123, 'pfn': None},
-        {'status': 'REPLICATING', 'did': 'scope:name3', 'path': None, 'size': 123, 'pfn': None}
-    ]
-
-    assert result == expected_result, "Invalid return value"
-
-
-def test_get_did_details__no_force_fetch__attached_files_cached__no_replicas_cached__all_dids_available___should_fetch_replica(rucio, mocker):
-    mock_db = setup_common_mocks(mocker)
-    mocker.patch.object(mock_db, "get_attached_files", return_value=MOCK_ATTACHED_FILES)
-    mocker.patch.object(mock_db, "get_file_replica", return_value=None)
-    mocker.patch.object(rucio, 'get_rules', return_value=mock_rucio_rule_status_ok)
-    mocker.patch.object(rucio, "get_replicas", return_value=mock_rucio_replicas_all_available)
-
-    mock_scope = 'scope'
-    mock_name = 'name'
-
-    handler = ReplicaModeHandler(namespace='atlas', rucio=rucio)
-    result = handler.get_did_details(mock_scope, mock_name, False)
-
-    rucio.get_replicas.assert_called_once()
-    rucio.get_rules.assert_not_called()
-
-    expected_result = [
-        {'status': 'OK', 'did': 'scope:name1', 'path': '/eos/user/rucio/scope:name1', 'size': 123, 'pfn': 'root://xrd1:1094//eos/docker/user/rucio/scope:name1'},
-        {'status': 'OK', 'did': 'scope:name2', 'path': '/eos/user/rucio/scope:name2', 'size': 123, 'pfn': 'root://xrd1:1094//eos/docker/user/rucio/scope:name2'},
-        {'status': 'OK', 'did': 'scope:name3', 'path': '/eos/user/rucio/scope:name3', 'size': 123, 'pfn': 'root://xrd1:1094//eos/docker/user/rucio/scope:name3'}
-    ]
-
-    assert result == expected_result, "Invalid return value"
-
-
-def test_get_did_details__no_force_fetch__attached_files_cached__no_replicas_cached__not_all_dids_available___should_fetch_replica_and_rule(rucio, mocker):
-    mock_db = setup_common_mocks(mocker)
-    mocker.patch.object(mock_db, "get_attached_files", return_value=MOCK_ATTACHED_FILES)
-    mocker.patch.object(mock_db, "get_file_replica", return_value=None)
-    mocker.patch.object(rucio, 'get_rules', return_value=mock_rucio_rule_status_replicating)
-    mocker.patch.object(rucio, "get_replicas", return_value=mock_rucio_replicas_some_available)
-
-    mock_scope = 'scope'
-    mock_name = 'name'
-
-    handler = ReplicaModeHandler(namespace='atlas', rucio=rucio)
-    result = handler.get_did_details(mock_scope, mock_name, False)
-
-    rucio.get_replicas.assert_called_once()
-    rucio.get_rules.assert_called_once()
-
-    expected_result = [
-        {'status': 'OK', 'did': 'scope:name1', 'path': '/eos/user/rucio/scope:name1', 'size': 123, 'pfn': 'root://xrd1:1094//eos/docker/user/rucio/scope:name1'},
-        {'status': 'REPLICATING', 'did': 'scope:name2', 'path': None, 'size': 123, 'pfn': None},
-        {'status': 'REPLICATING', 'did': 'scope:name3', 'path': None, 'size': 123, 'pfn': None}
-    ]
-
-    assert result == expected_result, "Invalid return value"
-
-
-def test_get_did_details__no_force_fetch__attached_files_not_cached__no_replicas_cached__all_dids_available___should_fetch_replica(rucio, mocker):
-    mock_db = setup_common_mocks(mocker)
-    mocker.patch.object(mock_db, "get_attached_files", return_value=None)
-    mocker.patch.object(mock_db, "get_file_replica", return_value=None)
-    mocker.patch.object(rucio, 'get_rules', return_value=mock_rucio_rule_status_ok)
-    mocker.patch.object(rucio, "get_replicas", return_value=mock_rucio_replicas_all_available)
-
-    mock_scope = 'scope'
-    mock_name = 'name'
-
-    handler = ReplicaModeHandler(namespace='atlas', rucio=rucio)
-    result = handler.get_did_details(mock_scope, mock_name, False)
-
-    rucio.get_replicas.assert_called_once()
-    rucio.get_rules.assert_not_called()
-
-    expected_result = [
-        {'status': 'OK', 'did': 'scope:name1', 'path': '/eos/user/rucio/scope:name1', 'size': 123, 'pfn': 'root://xrd1:1094//eos/docker/user/rucio/scope:name1'},
-        {'status': 'OK', 'did': 'scope:name2', 'path': '/eos/user/rucio/scope:name2', 'size': 123, 'pfn': 'root://xrd1:1094//eos/docker/user/rucio/scope:name2'},
-        {'status': 'OK', 'did': 'scope:name3', 'path': '/eos/user/rucio/scope:name3', 'size': 123, 'pfn': 'root://xrd1:1094//eos/docker/user/rucio/scope:name3'}
-    ]
-
-    assert result == expected_result, "Invalid return value"
-
-
-def test_get_did_details__no_force_fetch__attached_files_not_cached__no_replicas_cached__not_all_dids_available___should_fetch_replica_and_rule(rucio, mocker):
-    mock_db = setup_common_mocks(mocker)
-    mocker.patch.object(mock_db, "get_attached_files", return_value=None)
-    mocker.patch.object(mock_db, "get_file_replica", return_value=None)
-    mocker.patch.object(rucio, 'get_rules', return_value=mock_rucio_rule_status_replicating)
-    mocker.patch.object(rucio, "get_replicas", return_value=mock_rucio_replicas_some_available)
-
-    mock_scope = 'scope'
-    mock_name = 'name'
-
-    handler = ReplicaModeHandler(namespace='atlas', rucio=rucio)
-    result = handler.get_did_details(mock_scope, mock_name, False)
-
-    rucio.get_replicas.assert_called_once()
-    rucio.get_rules.assert_called_once()
-
-    expected_result = [
-        {'status': 'OK', 'did': 'scope:name1', 'path': '/eos/user/rucio/scope:name1', 'size': 123, 'pfn': 'root://xrd1:1094//eos/docker/user/rucio/scope:name1'},
-        {'status': 'REPLICATING', 'did': 'scope:name2', 'path': None, 'size': 123, 'pfn': None},
-        {'status': 'REPLICATING', 'did': 'scope:name3', 'path': None, 'size': 123, 'pfn': None}
-    ]
-
-    assert result == expected_result, "Invalid return value"
-
-
-def test_get_did_details__force_fetch__all_dids_available___should_fetch_replica(rucio, mocker):
-    mock_db = setup_common_mocks(mocker)
-    mocker.patch.object(mock_db, "get_attached_files", return_value=MOCK_ATTACHED_FILES)
-    mocker.patch.object(mock_db, "get_file_replica", side_effect=create_mock_db_get_file_replica(exist=[True, True, False]))
-    mocker.patch.object(rucio, 'get_rules', return_value=mock_rucio_rule_status_replicating)
     mocker.patch.object(rucio, "get_replicas", return_value=mock_rucio_replicas_all_available)
 
     mock_scope = 'scope'
@@ -421,10 +338,110 @@ def test_get_did_details__force_fetch__all_dids_available___should_fetch_replica
     assert result == expected_result, "Invalid return value"
 
 
-def test_get_did_details__force_fetch__not_all_dids_available___should_fetch_replica_and_rule(rucio, mocker):
-    mock_db = setup_common_mocks(mocker)
+def test_get_did_details__force_fetch__attached_files_cached__some_replicas_cached__not_all_dids_available___should_fetch_replica_and_rule(rucio, mocker):
+    mock_db, _, _ = setup_common_mocks(mocker)
     mocker.patch.object(mock_db, "get_attached_files", return_value=MOCK_ATTACHED_FILES)
-    mocker.patch.object(mock_db, "get_file_replica", side_effect=create_mock_db_get_file_replica(exist=[True, True, False]))
+    mocker.patch.object(mock_db, "get_file_replica", side_effect=create_mock_db_get_file_replica(exist=[True, True, False], missing=[True, False, False]))
+    mocker.patch.object(rucio, 'get_rules', return_value=mock_rucio_rule_status_replicating)
+    mocker.patch.object(rucio, "get_replicas", return_value=mock_rucio_replicas_some_available)
+
+    mock_scope = 'scope'
+    mock_name = 'name'
+
+    handler = ReplicaModeHandler(namespace='atlas', rucio=rucio)
+    result = handler.get_did_details(mock_scope, mock_name, True)
+
+    rucio.get_replicas.assert_called_once()
+    rucio.get_rules.assert_called_once()
+
+    expected_result = [
+        {'status': 'OK', 'did': 'scope:name1', 'path': '/eos/user/rucio/scope:name1', 'size': 123, 'pfn': 'root://xrd1:1094//eos/docker/user/rucio/scope:name1'},
+        {'status': 'REPLICATING', 'did': 'scope:name2', 'path': None, 'size': 123, 'pfn': None},
+        {'status': 'REPLICATING', 'did': 'scope:name3', 'path': None, 'size': 123, 'pfn': None}
+    ]
+
+    assert result == expected_result, "Invalid return value"
+
+
+def test_get_did_details__force_fetch__attached_files_cached__no_replicas_cached__all_dids_available___should_fetch_replica(rucio, mocker):
+    mock_db, _, _ = setup_common_mocks(mocker)
+    mocker.patch.object(mock_db, "get_attached_files", return_value=MOCK_ATTACHED_FILES)
+    mocker.patch.object(mock_db, "get_file_replica", return_value=None)
+    mocker.patch.object(rucio, 'get_rules', return_value=mock_rucio_rule_status_ok)
+    mocker.patch.object(rucio, "get_replicas", return_value=mock_rucio_replicas_all_available)
+
+    mock_scope = 'scope'
+    mock_name = 'name'
+
+    handler = ReplicaModeHandler(namespace='atlas', rucio=rucio)
+    result = handler.get_did_details(mock_scope, mock_name, True)
+
+    rucio.get_replicas.assert_called_once()
+    rucio.get_rules.assert_not_called()
+
+    expected_result = [
+        {'status': 'OK', 'did': 'scope:name1', 'path': '/eos/user/rucio/scope:name1', 'size': 123, 'pfn': 'root://xrd1:1094//eos/docker/user/rucio/scope:name1'},
+        {'status': 'OK', 'did': 'scope:name2', 'path': '/eos/user/rucio/scope:name2', 'size': 123, 'pfn': 'root://xrd1:1094//eos/docker/user/rucio/scope:name2'},
+        {'status': 'OK', 'did': 'scope:name3', 'path': '/eos/user/rucio/scope:name3', 'size': 123, 'pfn': 'root://xrd1:1094//eos/docker/user/rucio/scope:name3'}
+    ]
+
+    assert result == expected_result, "Invalid return value"
+
+
+def test_get_did_details__force_fetch__attached_files_cached__no_replicas_cached__not_all_dids_available___should_fetch_replica_and_rule(rucio, mocker):
+    mock_db, _, _ = setup_common_mocks(mocker)
+    mocker.patch.object(mock_db, "get_attached_files", return_value=MOCK_ATTACHED_FILES)
+    mocker.patch.object(mock_db, "get_file_replica", return_value=None)
+    mocker.patch.object(rucio, 'get_rules', return_value=mock_rucio_rule_status_replicating)
+    mocker.patch.object(rucio, "get_replicas", return_value=mock_rucio_replicas_some_available)
+
+    mock_scope = 'scope'
+    mock_name = 'name'
+
+    handler = ReplicaModeHandler(namespace='atlas', rucio=rucio)
+    result = handler.get_did_details(mock_scope, mock_name, True)
+
+    rucio.get_replicas.assert_called_once()
+    rucio.get_rules.assert_called_once()
+
+    expected_result = [
+        {'status': 'OK', 'did': 'scope:name1', 'path': '/eos/user/rucio/scope:name1', 'size': 123, 'pfn': 'root://xrd1:1094//eos/docker/user/rucio/scope:name1'},
+        {'status': 'REPLICATING', 'did': 'scope:name2', 'path': None, 'size': 123, 'pfn': None},
+        {'status': 'REPLICATING', 'did': 'scope:name3', 'path': None, 'size': 123, 'pfn': None}
+    ]
+
+    assert result == expected_result, "Invalid return value"
+
+
+def test_get_did_details__force_fetch__attached_files_not_cached__no_replicas_cached__all_dids_available___should_fetch_replica(rucio, mocker):
+    mock_db, _, _ = setup_common_mocks(mocker)
+    mocker.patch.object(mock_db, "get_attached_files", return_value=None)
+    mocker.patch.object(mock_db, "get_file_replica", return_value=None)
+    mocker.patch.object(rucio, 'get_rules', return_value=mock_rucio_rule_status_ok)
+    mocker.patch.object(rucio, "get_replicas", return_value=mock_rucio_replicas_all_available)
+
+    mock_scope = 'scope'
+    mock_name = 'name'
+
+    handler = ReplicaModeHandler(namespace='atlas', rucio=rucio)
+    result = handler.get_did_details(mock_scope, mock_name, True)
+
+    rucio.get_replicas.assert_called_once()
+    rucio.get_rules.assert_not_called()
+
+    expected_result = [
+        {'status': 'OK', 'did': 'scope:name1', 'path': '/eos/user/rucio/scope:name1', 'size': 123, 'pfn': 'root://xrd1:1094//eos/docker/user/rucio/scope:name1'},
+        {'status': 'OK', 'did': 'scope:name2', 'path': '/eos/user/rucio/scope:name2', 'size': 123, 'pfn': 'root://xrd1:1094//eos/docker/user/rucio/scope:name2'},
+        {'status': 'OK', 'did': 'scope:name3', 'path': '/eos/user/rucio/scope:name3', 'size': 123, 'pfn': 'root://xrd1:1094//eos/docker/user/rucio/scope:name3'}
+    ]
+
+    assert result == expected_result, "Invalid return value"
+
+
+def test_get_did_details__force_fetch__attached_files_not_cached__no_replicas_cached__not_all_dids_available___should_fetch_replica_and_rule(rucio, mocker):
+    mock_db, _, _ = setup_common_mocks(mocker)
+    mocker.patch.object(mock_db, "get_attached_files", return_value=None)
+    mocker.patch.object(mock_db, "get_file_replica", return_value=None)
     mocker.patch.object(rucio, 'get_rules', return_value=mock_rucio_rule_status_replicating)
     mocker.patch.object(rucio, "get_replicas", return_value=mock_rucio_replicas_some_available)
 

@@ -38,7 +38,7 @@ class DIDDetailsHandler(RucioAPIHandler):
     @prometheus_metrics
     def get(self):
         namespace = self.get_query_argument('namespace')
-        poll = self.get_query_argument('poll', '0') == '1'
+        force_refresh = self.get_query_argument('force', '0') == '1'
         did = self.get_query_argument('did')
         scope, name = did.split(':')
 
@@ -51,7 +51,7 @@ class DIDDetailsHandler(RucioAPIHandler):
             handler = DownloadModeHandler(namespace, rucio_instance)
 
         try:
-            output = handler.get_did_details(scope, name, poll)
+            output = handler.get_did_details(scope, name, force_refresh)
             self.finish(json.dumps(output))
         except RucioAPIException as e:
             # Log the exception details

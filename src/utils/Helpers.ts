@@ -7,6 +7,7 @@
  *
  * Authors:
  * - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020-2021
+ * - Giovanni Guerrieri, <giovanni.guerrieri@cern.ch>, 2025
  */
 
 import { IFileDIDDetails, CollectionStatus } from '../types';
@@ -20,6 +21,11 @@ export const computeCollectionState = (
 
   if (files.length === 0) {
     return 'EMPTY';
+  }
+
+  const fetching = files.find(file => file.status === 'FETCHING');
+  if (fetching) {
+    return 'FETCHING';
   }
 
   const available = files.find(file => file.status === 'OK');

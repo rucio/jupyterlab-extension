@@ -81,6 +81,17 @@ describe('computeCollectionState', () => {
         const computedState = computeCollectionState(mockFiles);
         expect(computedState).toBe('REPLICATING');
     })
+
+    test('fetching should return FETCHING before other states', () => {
+        const mockFiles: IFileDIDDetails[] = [
+            { status: 'FETCHING', did: 'scope:name1', path: undefined, size: 0 },
+            { status: 'REPLICATING', did: 'scope:name2', path: '/eos/rucio/1232', size: 123 },
+            { status: 'OK', did: 'scope:name3', path: '/eos/rucio/1233', size: 123 }
+        ];
+
+        const computedState = computeCollectionState(mockFiles);
+        expect(computedState).toBe('FETCHING');
+    })
     
     test('some stuck should return STUCK', () => {
         const mockFiles: IFileDIDDetails[] = [

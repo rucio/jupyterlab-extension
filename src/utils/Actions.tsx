@@ -7,6 +7,7 @@
  *
  * Authors:
  * - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
+ * - Giovanni Guerrieri, <giovanni.guerrieri@cern.ch>, 2025
  */
 
 import React from 'react';
@@ -112,24 +113,31 @@ export class Actions {
   async fetchDIDDetails(
     namespace: string,
     did: string,
-    poll = false
+    poll = false,
+    force = false
   ): Promise<IFileDIDDetails[]> {
-    const query = { namespace, did, poll: poll ? 1 : undefined };
+    const query = {
+      namespace,
+      did,
+      poll: poll ? 1 : undefined,
+      force: force ? 1 : undefined
+    };
     return requestAPI<IFileDIDDetails[]>('did?' + qs.encode(query));
   }
 
   async getFileDIDDetails(
     namespace: string,
     did: string,
-    poll = false
+    poll = false,
+    force = false
   ): Promise<IFileDIDDetails> {
     const fileDetails = UIStore.getRawState().fileDetails[did];
 
-    if (!poll && !!fileDetails) {
+    if (!poll && !force && !!fileDetails) {
       return fileDetails;
     }
 
-    const didDetails = await this.fetchDIDDetails(namespace, did, poll);
+    const didDetails = await this.fetchDIDDetails(namespace, did, poll, force);
     const didMap = didDetails.reduce(
       (acc: { [did: string]: IFileDIDDetails }, curr) => {
         acc[curr.did] = curr;
@@ -148,14 +156,16 @@ export class Actions {
   async getCollectionDIDDetails(
     namespace: string,
     did: string,
-    poll = false
+    poll = false,
+    force = false
   ): Promise<IFileDIDDetails[]> {
     const collectionDetails = UIStore.getRawState().collectionDetails[did];
-    if (!poll && !!collectionDetails) {
+
+    if (!poll && !force && !!collectionDetails) {
       return collectionDetails;
     }
 
-    const didDetails = await this.fetchDIDDetails(namespace, did, poll);
+    const didDetails = await this.fetchDIDDetails(namespace, did, poll, force);
 
     UIStore.update(s => {
       s.collectionDetails[did] = didDetails;

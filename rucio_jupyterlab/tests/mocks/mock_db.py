@@ -54,5 +54,22 @@ class MockDatabaseInstance:
         current_time = 168999754
         return Struct(namespace='atlas', did='scope:name', pfn='root://root//home/abcde', size=123456, expiry=current_time + 3600)
 
+    def get_file_replicas_bulk(self, namespace, file_dids):
+        """Mock bulk replica retrieval - returns dict of all requested DIDs."""
+        current_time = 168999754
+        replica_dict = {}
+        for file_did in file_dids:
+            replica_dict[file_did] = Struct(
+                namespace=namespace, 
+                did=file_did, 
+                pfn='root://root//home/abcde', 
+                size=123456, 
+                expiry=current_time + 3600
+            )
+        return replica_dict
+
     def set_file_replica(self, namespace, file_did, pfn, size):
+        pass
+
+    def set_file_replicas_bulk(self, namespace, file_replicas, chunk_size=1000):  # pylint: disable=unused-argument
         pass
