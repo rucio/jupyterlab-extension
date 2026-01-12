@@ -13,7 +13,7 @@ import logging
 import re
 import time
 import json
-from urllib.parse import urlencode, quote
+from urllib.parse import urlencode, quote, urljoin
 import requests
 from rucio_jupyterlab.db import get_db
 from rucio_jupyterlab.rucio.authenticators import authenticate_userpass, authenticate_x509, authenticate_oidc
@@ -167,15 +167,17 @@ class RucioAPI:
         Constructs the URL path, without query parameters.
         """
         # Use strip('/') to avoid issues like 'host//endpoint'
-        url_parts = [self.base_url.strip('/')]
+        url_parts = []
         if endpoint:
-            url_parts.append(endpoint.strip('/'))
+            url_parts.append(endpoint)
         if scope:
             url_parts.append(quote(scope))
         if name:
             url_parts.append(quote(name))
 
-        return '/'.join(url_parts)
+        # Join url parts and replace multiple slashes with a single slash
+        url_path = re.sub("/{2,}", "/", "/".join(url_parts))
+        return  urljoin(self.base_url, url_path)
 
     def _make_rucio_request(self, method, endpoint, scope=None, name=None, params=None, data=None,
                             parse_json=False, parse_lines=False):
