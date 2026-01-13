@@ -65,7 +65,7 @@ jobs:
 
       - name: Extract metadata for the Docker image
         id: metadata
-        uses: docker/metadata-action@v5.8.0
+        uses: docker/metadata-action@v5.10.0
         with:
           tags: |
             type=ref,event=branch
