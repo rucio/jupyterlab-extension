@@ -13,7 +13,7 @@ import pytest
 from rucio_jupyterlab.handlers.did_search import DIDSearchHandler, DIDSearchHandlerImpl, WildcardDisallowedException
 from rucio_jupyterlab.rucio import RucioAPIFactory
 from .mocks.mock_handler import MockHandler
-
+import asyncio
 
 MOCK_ACTIVE_INSTANCE = 'atlas'
 
@@ -135,7 +135,7 @@ def test_get_handler__inputs_correct__should_not_error(mocker, rucio):
     mocker.patch.object(rucio_api_factory, 'for_instance', return_value=rucio)
     mock_self.rucio = rucio_api_factory
 
-    DIDSearchHandler.get(mock_self)
+    asyncio.run(DIDSearchHandler.get(mock_self))
 
     calls = [call('did'), call('namespace'), call('type', 'collection')]
     mock_self.get_query_argument.assert_has_calls(calls, any_order=True)  # pylint: disable=no-member
@@ -173,6 +173,6 @@ def test_get_handler__wildcard_disabled__should_print_error(mocker, rucio):
     mocker.patch.object(rucio_api_factory, 'for_instance', return_value=rucio)
     mock_self.rucio = rucio_api_factory
 
-    DIDSearchHandler.get(mock_self)
+    asyncio.run(DIDSearchHandler.get(mock_self))
 
     mock_self.set_status.assert_called_with(400)  # pylint: disable=no-member
