@@ -1,26 +1,52 @@
 # Configuration Guide
-## Modes
+## Operation Modes
+
+The extension supports two distinct operation modes, which determine how files are made available to users.
 
 ### Replica Mode
-In this mode, the files are transferred by Rucio to a storage mounted to the JupyterLab server. In order to use the extension in this mode, you need to have the following set up:
-- A JupyterLab version 2 installation.
-- At least one Rucio instance.
-- A storage system that is attached to the JupyterLab installation via FUSE.
-    - The storage system should be compatible with Rucio and added as a Rucio Storage Element.
-    - The storage element will be shared among multiple users, so be sure to allow all users who will be using the extension to have **read** permission to the path.
-    - It's recommended that quotas be disabled, since the extension does not care if the replication fails because of quota error.
+
+In this mode, files are transferred by Rucio to a storage mounted to the JupyterLab server. This is the recommended mode for shared environments.
+
+**Requirements:**
+- At least one Rucio instance
+- A POSIX mounted storage system attached to the JupyterLab installation:
+  - The storage must be mounted on the host machine or Kubernetes nodes where JupyterLab pods run
+  - Common FUSE implementations include:
+    - **EOS**: CERN's disk-based storage system (via [`eos fuse mount`](https://eos-docs.web.cern.ch/configuration/fuse.html))
+    - **CephFS**: Distributed filesystem (via [`ceph-fuse`](https://docs.ceph.com/en/latest/man/8/ceph-fuse/))
+    - **XRootD**: High-performance data access protocol (via [`xrootdfs`](https://manpages.debian.org/testing/xrootd-fuse/xrootdfs.1.en.html))
+  - The mounted storage must be registered as a Rucio Storage Element (RSE) in your Rucio instance
+  - Should be shared among multiple users with read permissions for all users
+  - It's recommended that quotas be disabled, as the extension does not handle quota errors gracefully
+
+  For mounting examples, see the [ESCAPE VRE infrastructure documentation](https://github.com/vre-hub/vre/tree/master/infrastructure)
+
+**Configuration Parameters:**
+- `destination_rse`: The name of the Rucio Storage Element mounted to the JupyterLab server
+- `rse_mount_path`: The base path where the RSE is mounted
+- `path_begins_at`: Index indicating which part of the PFN should be appended to the mount path (defaults to 0)
+- `replication_rule_lifetime_days`: Optional lifetime for replication rules in days
 
 ### Download Mode
-In this mode, the extension downloads the files to the user directory. This is used when your JupyterLab installation does not use a storage as an RSE. To use the extension in this mode, you need to have the following set up:
-- A JupyterLab version 2 installation.
-- At least one Rucio instance.
-- Rucio Storage Elements (RSE) that are accessible from the notebook server, with no authentication scheme.
+
+In this mode, the extension downloads files directly to the user's home directory or another local storage location. This mode is useful when your JupyterLab installation does not have a Rucio Storage Element (RSE) mounted.
+
+**Requirements:**
+- At least one Rucio instance
+- Network access to Rucio Storage Elements (RSE) from the notebook server to download files
+- Sufficient local storage space available in the user directory for downloaded files
 
 ## Configuration
-The extension can be configured locally or remotely.
+The extension can be configured locally or remotely via a JSON configuration file.
 
-### Base local Configuration
-In your Jupyter configuration (could be `~/.jupyter/jupyter_server_config.json`), add the following snippet:
+### Configuration File Location
+
+The extension is configured via a `.json` file, usually located in `$HOME/.jupyter/` and named `jupyter_server_config.json`. This file must be present before the Jupyter server session starts and can be added via:
+- Jupyter `before-notebook.d` hooks
+- Docker `CMD` instruction or entrypoint scripts
+
+### Base Local Configuration
+In your Jupyter configuration (e.g., `~/.jupyter/jupyter_server_config.json`), add the following snippet for a basic setup:
 ```json
 {
     "RucioConfig": {
@@ -31,7 +57,7 @@ In your Jupyter configuration (could be `~/.jupyter/jupyter_server_config.json`)
                 "rucio_base_url": "https://rucio",
                 "rucio_auth_url": "https://rucio",
                 "rucio_ca_cert": "/path/to/rucio_ca.pem",
-                "destination_rse": "SWAN-EOS",
+                "destination_rse": "XRD1-EOS",
                 "rse_mount_path": "/eos/rucio",
                 "path_begins_at": 4,
                 "mode": "replica"
@@ -41,8 +67,9 @@ In your Jupyter configuration (could be `~/.jupyter/jupyter_server_config.json`)
 }
 ```
 
-### Advanced local configuration
-This is the example of a full configuration used in production: 
+### Advanced Local Configuration
+
+For production environments with multiple instances and advanced features:
 
 ```json
 {
@@ -81,8 +108,6 @@ This is the example of a full configuration used in production:
     }
 }
 ```
-Refer to the `Configuration` section for more information.
-
 
 ### Remote Configuration
 To use remote configuration, use the following snippet:
@@ -104,7 +129,7 @@ In the JSON file pointed by the value in `$url`, use a snippet similar to this:
 ```json
 {
     "rucio_base_url": "https://rucio",
-    "destination_rse": "SWAN-EOS",
+    "destination_rse": "XRD1-EOS",
     "rucio_auth_url": "https://rucio",
     "rucio_ca_cert": "/path/to/rucio_ca.pem",
     "rse_mount_path": "/eos/rucio",
@@ -113,26 +138,30 @@ In the JSON file pointed by the value in `$url`, use a snippet similar to this:
     ...
 }
 ```
-Attributes `name`, `display_name`, and `mode` must be defined locally, while the rest can be defined remotely. If an attribute is defined in both local and remote configuration, the local one is used.
+**Note:** Attributes `name`, `display_name`, and `mode` must be defined locally (either in the configuration file or as environment variables). If an attribute is defined in both local and remote configuration, the local one takes precedence.
 
----
+For a complete list of configuration parameters, see the next section or the [Rucio JupyterLab Extension GitHub repository](https://github.com/rucio/jupyterlab-extension/blob/master/CONFIGURATION.md)
 
-## Configuration Items
-### Instance configuration
+## Configuration Parameters
+
+### Instance Configuration
+
 #### Name - `name`
-A unique name to identify Rucio instance, should be machine readable. It is recommended to use FQDN. Must be declared locally.
+A unique machine-readable identifier for the Rucio instance. It is recommended to use FQDN (Fully Qualified Domain Name). Must be declared locally in the configuration file or set via the `RUCIO_NAME` environment variable.
 
 Example: `atlas.cern.ch`, `cms.cern.ch`
 
 #### Display Name - `display_name`
-A name that will be displayed to users in the interface. Must be declared locally.
+A user-friendly name displayed in the extension interface. Must be declared locally in the configuration file or set via the `RUCIO_DISPLAY_NAME` environment variable.
 
 Example: `ATLAS`, `CMS`
 
 #### Mode - `mode`
-The mode in which the extension operates. Must be declared locally.
-1. Replica mode (`replica`)
-2. Download mode (`download`)
+The operation mode of the extension. Must be declared locally in the configuration file or set via the `RUCIO_MODE` environment variable.
+
+Allowed values:
+- `replica`: Files are transferred to a mounted storage
+- `download`: Files are downloaded to user directory
 
 #### Rucio Base URL - `rucio_base_url`
 Base URL for the Rucio instance accessible from the JupyterLab server, **without trailing slash**.
@@ -140,7 +169,7 @@ Base URL for the Rucio instance accessible from the JupyterLab server, **without
 Example: `https://rucio`
 
 #### Rucio Auth URL - `rucio_auth_url`
-Base URL for the Rucio instance handling authentication (if separate) accessible from the JupyterLab server, **without trailing slash**.
+Base URL for the Rucio authentication service (if separate) accessible from the JupyterLab server, **without trailing slash**.
 
 Example: `https://rucio-auth`
 
@@ -155,61 +184,52 @@ Rucio App ID. Optional.
 Example: `swan`
 
 #### Site Name - `site_name`
-Site name of the JupyterLab instance, optional. It allows Rucio to know whether to serve a proxied PFN or not.
+Site name of the JupyterLab instance. Optional. Allows Rucio to determine whether to serve a proxied PFN or not.
 
 Example: `ATLAS`
 
----
-
 ### Virtual Organizations
+
 #### VO Name - `vo`
-VO of the instance. Optional, for use in multi-VO installations only. If VOMS is enabled, this value will be supplied as `--voms` option when invoking `voms-proxy-init`.
+VO (Virtual Organization) of the instance. Optional, for use in multi-VO installations only. If VOMS is enabled, this value will be supplied as `--voms` option when invoking `voms-proxy-init`.
 
 Example: `def`
 
 #### VOMS Enabled - `voms_enabled`
-The extension uses `voms-proxy-init` to generate a Proxy certificate when downloading a file from an authenticated RSE.
+Boolean flag to enable VOMS proxy certificate generation. When set to `true`, the extension uses `voms-proxy-init` to generate a proxy certificate for authenticated RSE access.
 
-If set to `true`, `vo` option is specified, and X.509 User Certificate is used, the extension will invoke `voms-proxy-init` with the `--voms` argument set to the extension's `vo` option.
-
-Optional, with default: `false`
+Default: `false`
 
 #### VOMS `certdir` Path - `voms_certdir_path`
-If VOMS is enabled and this configuration is set, the extension will set the `--certdir` option with this value. Refer to `voms-proxy-init` documentation.
+If VOMS is enabled, sets the `--certdir` option for `voms-proxy-init`. Refer to `voms-proxy-init` documentation.
 
 Example: `/etc/grid-security/certificates`
 
-#### VOMS `vomsdir` Path - `voms_vomsdir_path`
-If VOMS is enabled and this configuration is set, the extension will set the `--vomsdir` option with this value. Refer to `voms-proxy-init` documentation.
+#### VOMS `vomses` Path - `voms_vomses_path`
+If VOMS is enabled, sets the `--vomses` option for `voms-proxy-init`. Refer to `voms-proxy-init` documentation.
 
-Example: `/etc/grid-security/vomsdir`
+Example: `/etc/grid-security/vomses`
 
-**WARNING:** In earlier versions, `voms-proxy-init` does not support the `--vomsdir` option. In that case, this option must be omitted.
+**WARNING:** Earlier versions of `voms-proxy-init` do not support the `--vomses` option. In that case, this option must be omitted.
 
-#### VOMS `vomses` File Path - `voms_vomses_path`
-If VOMS is enabled and this configuration is set, the extension will set the `--vomses` option with this value. Refer to `voms-proxy-init` documentation.
+### Storage Elements and Search
 
-Example: `/etc/vomses`
-
-**WARNING:** In earlier versions, `voms-proxy-init` does not support the `--vomsdir` option. In that case, this option must be omitted.
-
----
-
-### Storage elements and search
 #### Destination RSE - `destination_rse`
-The name of the Rucio Storage Element that is mounted to the JupyterLab server. Mandatory, only applicable in Replica mode.
+The name of the Rucio Storage Element mounted to the JupyterLab server. Mandatory in Replica mode.
 
 Example: `SWAN-EOS`
 
 #### RSE Mount Path - `rse_mount_path`
-The base path in which the RSE is mounted to the server. Mandatory, only applicable in Replica mode.
+The base path where the RSE is mounted to the server. Mandatory in Replica mode.
 
 Example: `/eos/rucio`
 
 #### File Path Starting Index - `path_begins_at`
-This configuration indicates which part of the PFN should be appended to the mount path. Only applicable in Replica mode. Defaults to `0`.
+This configuration indicates which part of the PFN (Physical File Name) should be appended to the mount path. Only applicable in Replica mode. Defaults to `0`.
 
-Example: let us say that the PFN of a file is `root://xrd1:1094//rucio/test/49/ad/f1.txt` and the mount path is `/eos/rucio`. A starting index of `1` means that the path starting from the 2nd slash (index 1) in the PFN will be appended to the mount path. The resulting path would be `/eos/rucio/test/49/ad/f1.txt`.
+**Example:** For a PFN of `root://xrd1:1094//rucio/test/49/ad/f1.txt` and mount path `/eos/rucio`:
+- `path_begins_at: 1` means start from the 2nd slash in the PFN
+- Resulting path: `/eos/rucio/test/49/ad/f1.txt`
 
 #### Replication Rule Lifetime (in days) - `replication_rule_lifetime_days`
 Replication rule lifetime in days. Optional, only applicable in Replica mode.
@@ -217,133 +237,115 @@ Replication rule lifetime in days. Optional, only applicable in Replica mode.
 Example: `365`
 
 #### Wildcard Search Enabled - `wildcard_enabled`
-Whether or not wildcard DID search is allowed. Optional, defaults to `false`.
+Boolean flag to enable wildcard DID (Dataset Identifier) search. When enabled, users can search using wildcard patterns like `scope:*`.
 
----
+Default: `false`
 
-### Tokens
+### Authentication Configuration
+
 #### OpenID Connect Auth Source - `oidc_auth`
-Specifies where should the extension get the OIDC token from. Optional, the value should be `file` or `env`.
+Specifies where the extension retrieves the OIDC token. Optional.
+
+Allowed values:
+- `file`: Read token from a file
+- `env`: Read token from an environment variable
 
 #### OpenID Connect Token Filename - `oidc_file_name`
-Specifies an absolute path to a file containing the OIDC access token.
+Specifies an absolute path to a file containing the OIDC access token. Required if `oidc_auth` is set to `file`.
+
+Example: `/var/run/secrets/oidc_token`
 
 #### OpenID Connect Token Environment Variable Name - `oidc_env_name`
-Specifies the environment variable name containing the OIDC access token.
+Specifies the environment variable name containing the OIDC access token. Required if `oidc_auth` is set to `env`.
 
-**IMPORTANT**: `oidc_auth`, and consequently either the `oidc_file_name` or the `oidc_env_name` setting are necessary if the usage of tokens is foreseen.
+Example: `RUCIO_ACCESS_TOKEN`
 
----
+**IMPORTANT:** The `oidc_auth` parameter and either `oidc_file_name` or `oidc_env_name` are necessary if OIDC token authentication is to be used.
 
-### Global configuration
-#### Default instance to show - `default_instance`
-Instance to be pre-selected in the settings menu of the extension.
+### Global Configuration
 
-#### Default auth type - `default_auth_type`
-Default authentication method; possible values are `oidc`, `x509`, `x509_proxy`, `userpass`
+#### Default Instance - `default_instance`
+The instance to be pre-selected in the settings menu of the extension.
 
-#### Logging level - `log_level`
-Specifies the verbosity and the content of the logs; possible values are `debug`, `info`, `warning`, `error`.
+Example: `atlas.cern.ch`
 
-## IPython Kernel
-To allow users to access the paths from within the notebook, a kernel extension must be enabled. The kernel resides in module `rucio_jupyterlab.kernels.ipython`.
+#### Default Authentication Type - `default_auth_type`
+Default authentication method. Possible values:
+- `oidc`: OpenID Connect tokens
+- `x509`: X.509 user certificate
+- `x509_proxy`: X.509 proxy certificate
+- `userpass`: Username and password
 
-To enable the kernel extension from inside a notebook, use `load_ext` IPython magic:
+#### Logging Level - `log_level`
+Specifies the verbosity of logs. Possible values:
+- `debug`: Most verbose
+- `info`: Informational messages
+- `warning`: Warnings and errors
+- `error`: Errors only
 
-```py
+## IPython Kernel Extension
+
+To allow users to access file paths from within notebooks, the kernel extension must be enabled.
+
+### Manual Activation
+
+To enable the kernel extension inside a notebook, use the IPython magic:
+
+```python
 %load_ext rucio_jupyterlab.kernels.ipython
 ```
 
-Or, if you want to enable it by default, put the following snippet in your IPython configuration (could be `~/.ipython/profile_default/ipython_kernel_config.py`).
+### Automatic Activation
+
+To enable it by default for all users, add the following to the IPython configuration (e.g., `~/.ipython/profile_default/ipython_kernel_config.py`):
 
 ```python
 c.IPKernelApp.extensions = ['rucio_jupyterlab.kernels.ipython']
 ```
 
-## Enabling OpenID Connect Authentication
+## OpenID Connect Authentication Setup
 
-Unlike the other authentication methods supported by the extension, which is configurable by users only, OIDC auth should be configured by the admins. Users won't see "OpenID Connect" option if OIDC auth is not configured properly.
+OIDC authentication requires special configuration at the operator level, as it cannot be configured by users directly.
 
-This extension does not provide a way for users to authenticate directly from the extension. Instead, the OIDC token must be obtained from an external mechanism.
+### Important Notes
 
-In a multi-user setup with JupyterHub, admins must make the OIDC token accessible from the single user's container via either a file or an environment variable. Then, they need to configure the `oidc_auth` and `oidc_env_name` or `oidc_file_name` parameters (see above).
+- Users will only see the "OpenID Connect" authentication option if OIDC is properly configured by operators
+- The extension does not handle user authentication directly; the OIDC token must be obtained through an external mechanism
+- In multi-user setups with JupyterHub, operators must make the OIDC token accessible via file or environment variable
+- JupyterHub must implement periodic token refresh to prevent expiration during active sessions
 
-Furthermore, the JupyterHub installation must have a mechanism of periodically refreshing the OIDC token so that an expired token is not used.
+### Configuring JupyterHub with OIDC
 
-See the following sections for more details.
+#### Single User Dockerfile and Variables
 
-### Configuring JupyterHub with OIDC: Single user Dockerfile and Variables
+The single-user container image must include:
+1. The Rucio JupyterLab extension installed
+2. OIDC token environment variables properly configured
+3. A configuration script (like `configure.py`) to write environment variables to Jupyter configuration
 
-The Docker image for the single-user container must include the Rucio extension and the defined OpenID Connect variables. To install the extension, refer to the provided [Dockerfile](Dockerfile). Additionally, the [configure.py](docker/configure.py) script takes care of writing the variables from the environment to the Jupyter configuration.
+#### JupyterHub Helm Chart Configuration
 
-### Configuring JupyterHub with OIDC: JupyterHub Chart
+For Kubernetes deployments using the [Zero to JupyterHub](https://z2jh.jupyter.org/en/stable/) Helm Chart:
 
-JupyterHub installation is possible through the use of the Helm Chart provided by [Zero to JupyterHub with Kubernetes](https://z2jh.jupyter.org/en/stable/). In order to enable the Rucio extension, add the following customisation to the values.
-
-1. Add the custom in `singleuser.image`:
+**1. Set the custom single-user image:**
 
 ```yaml
 singleuser:
   image: <image-url>:<image-tag>
 ```
 
-2. Add a custom authentication script to `hub.extraConfig`. For instance, label it as `token-exchange` and append the script in this format:
+**2. Add a custom authenticator to `hub.extraConfig`:**
 
-```yaml
-hub:
-  extraConfig:
-    token-exchange: |
-      import pprint
-      import os
-      import warnings
-      import requests
-      from oauthenticator.generic import GenericOAuthenticator
+The `hub.extraConfig` section allows you to inject custom Python code into the JupyterHub configuration. Here, we define a custom authenticator class that handles OIDC token exchange with Rucio. This authenticator intercepts the user authentication flow, exchanges the OIDC token for a Rucio-specific token, and injects it into the spawned user environment.
 
-      # custom authenticator to enable auth_state and get access token to set as env var for rucio extension
-      class RucioAuthenticator(GenericOAuthenticator):
-          def __init__(self, **kwargs):
-            super().__init__(**kwargs)
-              self.enable_auth_state = True
+See an example implementation in the [ESCAPE VRE Helm Chart](https://github.com/vre-hub/vre/blob/527982d0a9beeb6098dbb9f73e16ff65f4796b88/infrastructure/cluster/flux/jhub/jhub-release.yaml#L71).
 
-          def exchange_token(self, token):
-              params = {
-                  'client_id': self.client_id,
-                  'client_secret': self.client_secret,
-                  'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
-                  'subject_token': token,
-                  'scope': 'openid profile',
-                  'audience': 'rucio'
-              }
-              response = requests.post(self.token_url, data=params)
-              rucio_token = response.json()['access_token']
-              return rucio_token
-        
-          async def pre_spawn_start(self, user, spawner):
-              auth_state = await user.get_auth_state()
-              pprint.pprint(auth_state)
-              if not auth_state:
-                  # user has no auth state
-                  return
-            
-              # define token environment variable from auth_state
-              spawner.environment['RUCIO_ACCESS_TOKEN'] = self.exchange_token(auth_state['access_token'])
-              spawner.environment['EOS_ACCESS_TOKEN'] = auth_state['access_token']
 
-      # set the above authenticator as the default
-      c.JupyterHub.authenticator_class = RucioAuthenticator
+**3. Add authenticator configuration to `hub.config`:**
 
-      # enable authentication state
-      c.GenericOAuthenticator.enable_auth_state = True
+The `hub.config` section configures the custom `RucioAuthenticator` class defined above. These settings specify the OIDC provider endpoints and client credentials needed for authentication. The authenticator uses these values to communicate with your identity provider and perform token exchanges.
 
-      if 'JUPYTERHUB_CRYPT_KEY' not in os.environ:
-          warnings.warn(
-              "Need JUPYTERHUB_CRYPT_KEY env for persistent auth_state.\n"
-              "    export JUPYTERHUB_CRYPT_KEY=$(openssl rand -hex 32)"
-          )
-          c.CryptKeeper.keys = [os.urandom(32)]
-```
-
-3. Add the configuration parameters for the custom authenticator to the `hub.config`:
+See configuration example in the [ESCAPE VRE Helm Chart](https://github.com/vre-hub/vre/blob/527982d0a9beeb6098dbb9f73e16ff65f4796b88/infrastructure/cluster/flux/jhub/jhub-release.yaml#L55).
 
 ```yaml
 hub:
@@ -361,7 +363,11 @@ hub:
         - email
 ```
 
-4. Add the required extension parameters to the `singleuser.extraEnv`:
+**4. Add extension parameters to `singleuser.extraEnv`:**
+
+The `singleuser.extraEnv` section defines environment variables that will be injected into each user's JupyterLab pod. The Rucio JupyterLab extension reads these variables to configure itself automatically. This approach is particularly useful in containerized environments where configuration via environment variables is preferred over static configuration files.
+
+See environment configuration in the [ESCAPE VRE Helm Chart](https://github.com/vre-hub/vre/blob/527982d0a9beeb6098dbb9f73e16ff65f4796b88/infrastructure/cluster/flux/jhub/jhub-release.yaml#L211).
 
 ```yaml
 singleuser:
@@ -378,7 +384,7 @@ singleuser:
     RUCIO_OIDC_ENV_NAME: "RUCIO_ACCESS_TOKEN"
     RUCIO_DEFAULT_AUTH_TYPE: "oidc"
     RUCIO_LOG_LEVEL: "warning"
-    RUCIO_OAUTH_ID: "<your-rucio-oauth-id>" # audience
+    RUCIO_OAUTH_ID: "<your-rucio-oauth-id>"
     RUCIO_DEFAULT_INSTANCE: "<your-rucio-instance-name>"
     RUCIO_DESTINATION_RSE: "EOS RSE"
     RUCIO_RSE_MOUNT_PATH: "/eos/eos-rse"
@@ -387,6 +393,7 @@ singleuser:
     OAUTH2_TOKEN: "FILE:/tmp/eos_oauth.token"
 ```
 
-5. Build the Docker image and install the Helm Chart with the specified values.
+**5. Build the Docker image and install the Helm Chart with the specified values.**
 
-*Note: This configuration works in replica mode and maps an EOS RSE as the target RSE, which is FUSE mounted on the nodes where Jupyterhub is running.*
+*Note: This configuration works in replica mode and maps an EOS RSE as the target RSE, FUSE mounted on the JupyterHub nodes.*
+
