@@ -226,7 +226,7 @@ class RucioAPI:
         except requests.exceptions.RequestException as e:
             # For other requests-related errors like connection, timeout
             logger.error("Request error for %s request to %s: %s", method.upper(), url, str(e))
-            raise RucioRequestsException(None, str(e))
+            raise RucioRequestsException(e)
 
         except Exception as e:
             # For errors unrelated to requests itself (e.g., JSON parse)
@@ -249,33 +249,28 @@ class RucioAPI:
             'name': name
         }
 
-        try:
-            if filters:
-                # Move the parsing logic inside the try block
+        if filters:
+            # Move the parsing logic inside the try block
+            try:
                 parsed_filters, _ = parse_did_filter_from_string_fe(filters, name=name)
                 params['filters'] = str(parsed_filters) # Convert to string representation for Rucio API to avoid "malformed node or string: <ast.Name object at 0x7fcb3cd3fa60>"
-            else:
-                logger.warning("No filters provided for DID search, using default parameters.")
+            except Exception as e:
+                logger.error("An unexpected error occurred: %s", str(e))
+                raise RucioAPIException(None, str(e))
+        else:
+            logger.warning("No filters provided for DID search, using default parameters.")
 
-            results = self._make_rucio_request(
-                'GET',
-                f'dids/{scope}/dids/search',
-                params=params,
-                parse_json=True,
-                parse_lines=True
-            )
+        results = self._make_rucio_request(
+            'GET',
+            f'dids/{scope}/dids/search',
+            params=params,
+            parse_json=True,
+            parse_lines=True
+        )
 
-            if limit is not None:
-                results = results[:limit]
-            return results
-
-        except requests.exceptions.HTTPError as e:
-            # This handles errors specific to the web request
-            logger.error("Request error during DID search: %s", str(e))
-            raise RucioRequestsException(None, str(e))
-        except Exception as e:
-            logger.error("An unexpected error occurred: %s", str(e))
-            raise RucioAPIException(None, str(e))
+        if limit is not None:
+            results = results[:limit]
+        return results
 
     def get_metadata(self, scope, name):
         # DEBUG: response = requests.get(url=f'{self.base_url}/dids/{scope}/{name}/meta', headers=headers, verify=self.rucio_ca_cert)
@@ -388,7 +383,7 @@ class RucioAPI:
         except requests.exceptions.RequestException as e:
             # For other requests-related errors like connection, timeout
             logger.error("Request error during authentication for %s: %s", auth_type, str(e))
-            raise RucioRequestsException(None, str(e))
+            raise RucioRequestsException(e)
 
         except Exception as e:
             # For errors unrelated to requests itself (e.g., JSON parse)
