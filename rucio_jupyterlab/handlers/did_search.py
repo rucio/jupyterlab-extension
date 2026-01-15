@@ -14,7 +14,7 @@ import logging
 from rucio_jupyterlab.db import get_db
 from rucio_jupyterlab.rucio.exceptions import RucioAPIException
 import rucio_jupyterlab.utils as utils
-from .base import RucioAPIHandler
+from .base import RucioAPIHandler, run_in_api_executor
 from rucio_jupyterlab.metrics import prometheus_metrics
 import tornado
 
@@ -105,7 +105,7 @@ class DIDSearchHandlerImpl:
 class DIDSearchHandler(RucioAPIHandler):
     @tornado.web.authenticated
     @prometheus_metrics
-    def get(self):
+    async def get(self):
         namespace = self.get_query_argument('namespace')
         search_type = self.get_query_argument('type', 'collection')
         did = self.get_query_argument('did')
@@ -128,7 +128,7 @@ class DIDSearchHandler(RucioAPIHandler):
         handler = DIDSearchHandlerImpl(namespace, rucio)
 
         try:
-            dids = handler.search_did(scope, name, search_type, filters, ROW_LIMIT)
+            dids = await run_in_api_executor(handler.search_did, scope, name, search_type, filters, ROW_LIMIT)
             logger.info("DID search successful. Returning %d results.", len(dids))
             self.finish(json.dumps(dids))
         except WildcardDisallowedException:

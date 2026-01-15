@@ -13,13 +13,12 @@ import logging
 from rucio_jupyterlab.db import get_db
 from rucio_jupyterlab.entity import AttachedFile
 from rucio_jupyterlab.rucio.authenticators import RucioAuthenticationException
-from .base import RucioAPIHandler
+from .base import RucioAPIHandler, run_in_api_executor
 from rucio_jupyterlab.metrics import prometheus_metrics
 import tornado
 
 # Configure logging
 logger = logging.getLogger(__name__)
-
 
 class DIDBrowserHandlerImpl:
     """
@@ -96,7 +95,7 @@ class DIDBrowserHandler(RucioAPIHandler):
     """
     @tornado.web.authenticated
     @prometheus_metrics
-    def get(self):
+    async def get(self):
         namespace = self.get_query_argument('namespace')
         poll = self.get_query_argument('poll', '0') == '1'
         did = self.get_query_argument('did')
@@ -110,7 +109,7 @@ class DIDBrowserHandler(RucioAPIHandler):
         handler = DIDBrowserHandlerImpl(namespace, rucio)
 
         try:
-            dids = handler.get_files(scope, name, poll)
+            dids = await run_in_api_executor(handler.get_files, scope, name, poll)
             logger.info("Successfully fetched files for DID: %s", did)
             logger.debug("Fetched files: %s", dids)
             self.finish(json.dumps(dids))

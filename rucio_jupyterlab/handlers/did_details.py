@@ -13,7 +13,7 @@ import logging
 from rucio_jupyterlab.rucio.exceptions import RucioAPIException
 from rucio_jupyterlab.mode_handlers.replica import ReplicaModeHandler
 from rucio_jupyterlab.mode_handlers.download import DownloadModeHandler
-from .base import RucioAPIHandler
+from .base import RucioAPIHandler, run_in_api_executor
 from rucio_jupyterlab.metrics import prometheus_metrics
 import tornado
 
@@ -36,7 +36,7 @@ class DIDDetailsHandler(RucioAPIHandler):
 
     @tornado.web.authenticated
     @prometheus_metrics
-    def get(self):
+    async def get(self):
         namespace = self.get_query_argument('namespace')
         force_refresh = self.get_query_argument('force', '0') == '1'
         did = self.get_query_argument('did')
@@ -51,7 +51,7 @@ class DIDDetailsHandler(RucioAPIHandler):
             handler = DownloadModeHandler(namespace, rucio_instance)
 
         try:
-            output = handler.get_did_details(scope, name, force_refresh)
+            output = await run_in_api_executor(handler.get_did_details, scope, name, force_refresh)
             self.finish(json.dumps(output))
         except RucioAPIException as e:
             # Log the exception details

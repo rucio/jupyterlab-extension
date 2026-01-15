@@ -13,7 +13,7 @@ from rucio_jupyterlab.handlers.did_details import DIDDetailsHandler
 from rucio_jupyterlab.mode_handlers.replica import ReplicaModeHandler
 from rucio_jupyterlab.rucio import RucioAPIFactory
 from .mocks.mock_handler import MockHandler
-
+import asyncio
 
 def test_get_handler(mocker, rucio):
     mock_self = MockHandler()
@@ -50,7 +50,7 @@ def test_get_handler(mocker, rucio):
 
     mocker.patch.object(mock_self, 'finish', side_effect=finish_side_effect)
 
-    DIDDetailsHandler.get(mock_self)
+    asyncio.run(DIDDetailsHandler.get(mock_self))
 
     calls = [call('namespace'), call('force', '0'), call('did')]
     mock_self.get_query_argument.assert_has_calls(calls, any_order=True)  # pylint: disable=no-member

@@ -10,20 +10,20 @@
 import json
 import tornado
 from rucio_jupyterlab.rucio.authenticators import RucioAuthenticationException
-from .base import RucioAPIHandler
+from .base import RucioAPIHandler, run_in_api_executor
 from rucio_jupyterlab.metrics import prometheus_metrics
 
 
 class ListRSEsHandler(RucioAPIHandler):
     @tornado.web.authenticated
     @prometheus_metrics
-    def get(self):
+    async def get(self):
         namespace = self.get_query_argument('namespace')
         rse_expression = self.get_query_argument('expression', default='*')
         rucio = self.rucio.for_instance(namespace)
 
         try:
-            scopes = rucio.get_rses(rse_expression=rse_expression)
+            scopes = await run_in_api_executor(rucio.get_rses, rse_expression=rse_expression)
             self.finish(json.dumps(scopes))
         except RucioAuthenticationException:
             self.set_status(401)
