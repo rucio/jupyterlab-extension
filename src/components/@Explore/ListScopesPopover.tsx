@@ -228,7 +228,7 @@ export const ListScopesPopover: React.FC<MyProps> = ({
       })
       .catch(e => {
         console.error('An error occurred while fetching scopes:', e.error);
-        const errorMsg = e.error || 'Unexpected error fetching scopes';
+        const errorMsg = e.error || e?.message || e?.response?.data?.message || 'Unexpected error fetching scopes';
         setScopeResult([errorMsg]);
         setLoading(false);
         // Optionally, update the UI to show an error message

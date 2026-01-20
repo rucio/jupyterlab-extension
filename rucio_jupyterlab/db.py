@@ -216,7 +216,15 @@ class DatabaseInstance:
         FileReplicasCache.delete().execute(database=None)
         AttachedFilesListCache.delete().execute(database=None)
         FileUploadJob.delete().execute(database=None)
-
+    
+    def has_any_auth_credentials(self, namespace):
+        """Returns True if ANY auth credentials exist for this namespace."""
+        return (
+            RucioAuthCredentials
+            .select()
+            .where(RucioAuthCredentials.namespace == namespace)
+            .exists()
+        )
 
 class UserConfig(Model):
     key = TextField(unique=True)
