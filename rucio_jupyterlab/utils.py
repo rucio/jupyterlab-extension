@@ -8,6 +8,9 @@
 # - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
 # - Giovanni Guerrieri, <giovanni.guerrieri@cern.ch>, 2025
 
+from rucio_jupyterlab.db import get_db
+from tornado.web import HTTPError
+
 def find(pred, iterable):
     """Finds the first element in an iterable for which a predicate is true."""
     for element in iterable:
@@ -40,3 +43,15 @@ def filter(iterable, predicate):
 def remove_none_values(dictionary):
     """Removes key-value pairs from a dictionary where the value is None."""
     return {k: v for k, v in dictionary.items() if v is not None}
+
+def ensure_credentials_present(rucio_config, instance_name):
+    """Ensure authentication credentials exist for the given instance."""
+    db = get_db()
+    # Check for ANY stored credentials for this instance
+    has_creds = db.has_any_auth_credentials(namespace=instance_name)
+
+    if not has_creds:
+        raise HTTPError(
+            status_code=401,
+            reason="Credentials not found. Did you authenticate?"
+        )
