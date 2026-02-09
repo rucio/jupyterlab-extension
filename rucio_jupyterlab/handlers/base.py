@@ -11,6 +11,8 @@ from jupyter_server.base.handlers import APIHandler, JupyterHandler   # pylint: 
 import concurrent.futures
 from functools import partial
 import tornado
+from tornado.web import HTTPError
+from rucio_jupyterlab.utils import ensure_credentials_present
 
 # Create a global executor
 MAX_WORKERS = 4
@@ -28,7 +30,6 @@ async def run_in_api_executor(func, *args, **kwargs):
     blocking_task = partial(func, *args, **kwargs)
     result = await loop.run_in_executor(rucio_api_executor, blocking_task)
     return result
-            
 
 class RucioAPIHandler(APIHandler):  # pragma: no cover
     def initialize(self, rucio_config, rucio, *args, **kwargs):
@@ -36,6 +37,28 @@ class RucioAPIHandler(APIHandler):  # pragma: no cover
         self.rucio_config = rucio_config
         self.rucio = rucio
 
+    async def prepare(self):
+        await super().prepare()
+        if self.request.path.endswith((
+            "/instances",
+            "/auth",
+            "/oidc-auth-check",
+        )):
+            return
+
+        instance = self.get_query_argument("namespace", default=None)
+        if not instance:
+            raise HTTPError(400, reason="Missing Rucio instance")
+        ensure_credentials_present(self.rucio, instance)
+    
+    def write_error(self, status_code, **kwargs):
+        message = self._reason or "Unknown error"
+        self.set_header("Content-Type", "application/json")
+        self.finish({
+            "success": False,
+            "error": message,
+            "status": status_code,
+        })
 
 class RucioHandler(JupyterHandler):  # pragma: no cover
     def initialize(self, rucio_config, rucio, *args, **kwargs):

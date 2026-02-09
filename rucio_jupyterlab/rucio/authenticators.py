@@ -65,7 +65,7 @@ def authenticate_userpass(base_url, username, password, account=None, vo=None, a
     except requests.exceptions.RequestException as e:
         logger.debug("Request failed during userpass authentication: %s", e)
         logger.error("Request error during authentication for %s: %s", "userpass", e)
-        raise RucioRequestsException(str(e)) from e
+        raise RucioRequestsException(e) from e
 
     except Exception as e:
         logger.error("Unexpected error during authentication for %s: %s", "userpass", e)
@@ -133,7 +133,7 @@ def authenticate_x509(base_url, cert_path, key_path=None, account=None, vo=None,
         raise RucioHTTPException(e.response)
     except requests.exceptions.RequestException as e:
         logger.error("Request error during authentication for %s: %s", "x509", e)
-        raise RucioRequestsException(str(e))
+        raise RucioRequestsException(e)
     except FileNotFoundError as e:
         logger.error("File not found during authentication for %s: %s", "x509", e)
         raise FileNotFoundError(e)
@@ -174,7 +174,7 @@ def authenticate_oidc(base_url, oidc_auth, oidc_auth_source, rucio_ca_cert=False
 
     except requests.exceptions.RequestException as e:
         logger.error("Request error during authentication for %s: %s", "oidc", e)
-        raise RucioRequestsException(str(e))
+        raise RucioRequestsException(e)
 
     except Exception as e:
         logger.error("Unexpected error during authentication for %s: %s", "oidc", e)
