@@ -10,7 +10,7 @@
 import json
 import tornado
 from rucio_jupyterlab.rucio.exceptions import RucioAPIException
-from .base import RucioAPIHandler
+from .base import RucioAPIHandler, run_in_api_executor
 from rucio_jupyterlab.metrics import prometheus_metrics
 
 
@@ -33,12 +33,12 @@ class ListScopesHandler(RucioAPIHandler):
     """
     @tornado.web.authenticated
     @prometheus_metrics
-    def get(self):
+    async def get(self):
         namespace = self.get_query_argument('namespace')
         rucio = self.rucio.for_instance(namespace)
 
         try:
-            scopes = rucio.get_scopes()
+            scopes = await run_in_api_executor(rucio.get_scopes)
             self.finish(json.dumps({'success': True, 'scopes': scopes}))
         except RucioAPIException as e:
             # Set the HTTP status from the exception, falling back to 500 if not present

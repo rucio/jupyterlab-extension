@@ -15,6 +15,7 @@ from rucio_jupyterlab.rucio import RucioAPIFactory
 from .mocks.mock_db import MockDatabaseInstance
 from .mocks.mock_handler import MockHandler
 
+import asyncio
 
 MOCK_ACTIVE_INSTANCE = 'atlas'
 
@@ -115,7 +116,6 @@ def test_get_files__cache_not_exist(mocker, rucio):
     expected = [x.__dict__ for x in mock_attached_files]
     assert result == expected, "Invalid return value"
 
-
 def test_get_handler(mocker, rucio):
     mock_self = MockHandler()
 
@@ -151,7 +151,7 @@ def test_get_handler(mocker, rucio):
 
     mocker.patch.object(mock_self, 'finish', side_effect=finish_side_effect)
 
-    DIDBrowserHandler.get(mock_self)
+    asyncio.run(DIDBrowserHandler.get(mock_self))
 
     calls = [call('namespace'), call('poll', '0'), call('did')]
     mock_self.get_query_argument.assert_has_calls(calls, any_order=True)  # pylint: disable=no-member
