@@ -34,6 +34,7 @@ class RucioFileDownloader:
         """
         Writes exception details to an error.json file in the destination folder.
         """
+        os.makedirs(dest_folder, exist_ok=True)
         error_file_path = os.path.join(dest_folder, 'error.json')
 
         # Create a serializable payload from the exception
@@ -139,6 +140,7 @@ class RucioFileDownloader:
         """
         Atomically creates a lockfile. Returns True on success, False if lock exists.
         """
+        os.makedirs(dest_path, exist_ok=True)
         lockfile_path = os.path.join(dest_path, '.lockfile')
         try:
             # os.O_CREAT | os.O_EXCL is the key. It's an atomic "create if not exists" operation.
@@ -186,6 +188,7 @@ class RucioFileDownloader:
 
     @staticmethod
     def write_donefile(dest_folder, results):
+        os.makedirs(dest_folder, exist_ok=True)
         file_path = os.path.join(dest_folder, '.donefile')
         paths = {}
         try:
@@ -215,6 +218,7 @@ class RucioFileDownloader:
         Logs the action or any errors encountered.
         """
         file_path = os.path.join(dest_folder, '.donefile')
+        logger.debug(f"Deleting done file at {file_path}")
         try:
             if os.path.exists(file_path):
                 os.unlink(file_path)
