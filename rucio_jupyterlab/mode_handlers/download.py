@@ -152,7 +152,7 @@ class DownloadModeHandler:
                     logger.warning("File '%s' not found at expected path '%s'. Status: STUCK.", file.did, path)
                     return {"status": self.STATUS_STUCK, "did": file.did, "path": None, "size": file.size}
 
-                return {"status": self.STATUS_OK, "did": file.did, "path": None, "size": file.size}
+                return {"status": self.STATUS_OK, "did": file.did, "path": path, "size": file.size}
 
             results = utils.map(attached_files, result_mapper)
             logger.info("Successfully fetched details for %d files for DID '%s'.", len(results), did)

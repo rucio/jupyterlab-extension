@@ -98,6 +98,7 @@ def test_rucio_file_downloader_is_downloading__lockfile_exists__pid_exists__proc
 
 def test_rucio_file_downloader_write_lockfile__should_write_pid(mocker):
     mocker.patch.object(os, 'getpid', return_value=123)
+    mocker.patch.object(os, 'makedirs', return_value=None)
 
     # Mock low-level file operations
     mock_os_open = mocker.patch('os.open', return_value=3)  # 3 = fake file descriptor
