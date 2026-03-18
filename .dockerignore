@@ -68,6 +68,12 @@ coverage.xml
 # Scrapy stuff:
 .scrapy
 
+# Environments
+env/
+venv/
+.env/
+.venv/
+
 # Sphinx documentation
 docs/_build/
 

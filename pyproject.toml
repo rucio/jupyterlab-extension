@@ -1,5 +1,10 @@
 [build-system]
-requires = ["hatchling>=1.5.0, <=1.18.0", "jupyterlab>=4.0.0,<5", "hatch-nodejs-version>=0.3.2"]
+requires = [
+    "hatchling<1.16.0; python_version == '3.9'",
+    "hatchling>=1.5.0, <=1.18.0; python_version >= '3.10'",
+    "jupyterlab>=4.0.0,<5",
+    "hatch-nodejs-version>=0.3.2"
+]
 build-backend = "hatchling.build"
 
 [project]
@@ -20,6 +25,8 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 ]
 dependencies = [
     "jupyter_server>=2.0.1,<3",
