@@ -20,5 +20,6 @@ else
 	jupyter lab clean -y
 	npm cache clean --force \
 	    && rm -rf "/home/${NB_USER}/.cache/yarn" \
-	    && rm -rf "/home/${NB_USER}/.node-gyp"
+	    && rm -rf "/home/${NB_USER}/.node-gyp" \
+		&& rm -rf /rucio-jupyterlab/node_modules
 fi
