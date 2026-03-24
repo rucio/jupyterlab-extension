@@ -1,5 +1,5 @@
 FROM quay.io/jupyter/docker-stacks-foundation:python-3.12
-LABEL maintainer="Muhammad Aditya Hilmy <mhilmy@hey.com>, Francesc Torradeflot <torradeflot@pic.es>"
+LABEL maintainer="Muhammad Aditya Hilmy <mhilmy@hey.com>, Francesc Torradeflot <torradeflot@pic.es>, Giovanni Guerrieri <giovanni.guerrieri@cern.ch>"
 
 ENV CONTAINER_PURPOSE="test"
 ARG NB_USER="jovyan"
@@ -8,13 +8,18 @@ ARG NB_GID="100"
 
 USER $NB_UID
 
-RUN mamba install -y -n base -c conda-forge \
-		python-gfal2 \
-		nodejs \
-		pip \
-    && mamba clean --all -f -y 
+# Install additional dependencies via mamba, and ensure all packages are up to date.
+RUN mamba update --all -y -n base -c conda-forge \
+    && mamba install -y -n base -c conda-forge \
+                python-gfal2 \
+                "nodejs>=20.0.0" \
+                pip \
+    && mamba clean --all -f -y
 
 USER root
+
+# Final clean up to reduce image size
+RUN apt-get update && apt-get upgrade -y && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 COPY . /rucio-jupyterlab
 WORKDIR /rucio-jupyterlab

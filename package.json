@@ -1,6 +1,6 @@
 {
   "name": "rucio-jupyterlab",
-  "version": "1.4.1",
+  "version": "40.0.0",
   "description": "JupyterLab extension for integrating Rucio",
   "keywords": [
     "jupyter",
@@ -147,7 +147,12 @@
     "webpackConfig": "./webpack.config.js"
   },
   "resolutions": {
-    "@types/react": "^17.0.0"
+    "@types/react": "^17.0.0",
+    "vega": "^6.2.0",
+    "vega-expression": "^5.2.1",
+    "vega-functions": "^6.1.1",
+    "serialize-javascript": "^7.0.3",
+    "@tootallnate/once": "^3.0.1"
   },
   "styleModule": "style/index.js",
   "eslintConfig": {
