@@ -13,6 +13,7 @@ jobs:
 
   Test:
     uses: ./.github/workflows/test.yml
+    secrets: inherit
     
   Build:
     needs: [Test]
