@@ -103,3 +103,9 @@ ignore = ["W002"]
 
 [tool.check-manifest]
 ignore = ["rucio_jupyterlab/labextension/**", "yarn.lock", ".*", "package-lock.json", "junit.xml"]
+
+[project.entry-points."jupyter_server_config.d"]
+rucio_jupyterlab = "rucio_jupyterlab.server:load_jupyter_server_extension"
+
+[project.entry-points."jupyter_labextensions"]
+rucio_jupyterlab = "rucio_jupyterlab:_jupyter_labextension_paths"
