@@ -7,16 +7,3 @@ except ImportError:
     import warnings
     warnings.warn("Importing 'rucio_jupyterlab' outside a proper installation.")
     __version__ = "dev"
-
-
-def _jupyter_labextension_paths():
-    return [{
-        "src": "labextension",
-        "dest": "rucio-jupyterlab"
-    }]
-
-
-def _jupyter_server_extension_points():  # pragma: no cover
-    return [{
-        "module": "rucio_jupyterlab.server"
-    }]
