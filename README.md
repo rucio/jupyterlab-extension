@@ -10,7 +10,7 @@ This extension is composed of a Python package named `rucio_jupyterlab`
 for the server extension and a NPM package named `rucio-jupyterlab`
 for the frontend extension.
 
-Responsible for PR merging in [rucio/rucio](https://github.com/rucio/jupyterlab-extension): [Francesc Torradeflot](https://github.com/ftorradeflot), [Giovanni Guerrieri](https://github.com/Soap2G)
+Responsible for PR merging in [rucio/jupyterlab-extension](https://github.com/rucio/jupyterlab-extension): [Francesc Torradeflot](https://github.com/ftorradeflot), [Giovanni Guerrieri](https://github.com/Soap2G)
 
 ## Requirements
 
