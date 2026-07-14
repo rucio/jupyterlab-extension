@@ -511,4 +511,35 @@ describe('uploadFile', () => {
             })
         );
     })
+
+    test('should include dataset fields when both are provided', async () => {
+        const mockRequestAPI = requestAPI as jest.MockedFunction<typeof requestAPI>;
+
+        mockRequestAPI.mockClear();
+        mockRequestAPI.mockReturnValue(Promise.resolve());
+
+        const actions = new Actions();
+        await actions.uploadFile('atlas', {
+            paths: ['data/result.csv'],
+            rse: 'MOCK_RSE',
+            fileScope: 'mock_scope',
+            datasetScope: 'dataset_scope',
+            datasetName: 'dataset_name'
+        });
+
+        expect(mockRequestAPI).toBeCalledWith(
+            expect.stringContaining('upload?namespace=atlas'),
+            expect.objectContaining({
+                method: 'POST',
+                body: JSON.stringify({
+                    file_paths: ['data/result.csv'],
+                    rse: 'MOCK_RSE',
+                    scope: 'mock_scope',
+                    add_to_dataset: true,
+                    dataset_scope: 'dataset_scope',
+                    dataset_name: 'dataset_name'
+                })
+            })
+        );
+    })
 })

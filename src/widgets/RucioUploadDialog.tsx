@@ -13,6 +13,9 @@ namespace RucioUpload {
     rse: string;
     lifetime?: string;
     fileScope: string;
+    addToDataset: boolean;
+    datasetScope: string;
+    datasetName: string;
   };
   export class Model extends VDomModel {
     _rses: string[] = [];
@@ -22,6 +25,9 @@ namespace RucioUpload {
     _selectedScope = '';
     _scopesLoading = false;
     _rsesLoading = false;
+    _addToDataset = false;
+    _datasetScope = '';
+    _datasetName = '';
 
     get rses(): string[] {
       return this._rses;
@@ -48,6 +54,36 @@ namespace RucioUpload {
 
     get lifetime(): string {
       return this._lifetime;
+    }
+
+    get addToDataset(): boolean {
+      return this._addToDataset;
+    }
+
+    set addToDataset(addToDataset: boolean) {
+      this._addToDataset = addToDataset;
+      if (addToDataset) {
+        this._lifetime = '';
+      }
+      this.stateChanged.emit(void 0);
+    }
+
+    get datasetScope(): string {
+      return this._datasetScope;
+    }
+
+    set datasetScope(datasetScope: string) {
+      this._datasetScope = datasetScope;
+      this.stateChanged.emit(void 0);
+    }
+
+    get datasetName(): string {
+      return this._datasetName;
+    }
+
+    set datasetName(datasetName: string) {
+      this._datasetName = datasetName;
+      this.stateChanged.emit(void 0);
     }
 
     get scopes(): string[] {
@@ -165,6 +201,10 @@ namespace RucioUpload {
       };
 
       const { activeAuthType } = UIStore.getRawState();
+      const scopeOptions = this.model.scopes.map(scope => ({
+        value: scope,
+        label: scope
+      }));
 
       return (
         <div>
@@ -187,7 +227,7 @@ namespace RucioUpload {
             </Alert>
           )}
 
-          <p style={{ marginTop: '16px' }}>Destination RSE:</p>
+          <p style={{ marginTop: '16px' }}>Destination RSE (required):</p>
           <div style={{ marginTop: '4px', marginBottom: '8px' }}>
             <Select
               isLoading={this.model.rsesLoading}
@@ -204,20 +244,18 @@ namespace RucioUpload {
             type="number"
             value={this.model.lifetime}
             placeholder="Leave empty for indefinite"
+            disabled={this.model.addToDataset}
             onChange={e => (this.model.lifetime = e.target.value)}
             containerStyle={{ marginTop: '4px', marginBottom: '8px' }}
           />
 
-          <p style={{ marginTop: '16px' }}>Scope:</p>
+          <p style={{ marginTop: '16px' }}>File scope (required):</p>
           <div style={{ marginTop: '4px', marginBottom: '8px' }}>
             <Select
               isLoading={this.model.scopesLoading}
               menuPortalTarget={document.body}
               styles={selectStyles}
-              options={this.model.scopes.map(scope => ({
-                value: scope,
-                label: scope
-              }))}
+              options={scopeOptions}
               defaultValue={{
                 value: this.model.selectedScope,
                 label: this.model.selectedScope
@@ -227,6 +265,56 @@ namespace RucioUpload {
               }
             />
           </div>
+
+          <label style={{ display: 'block', marginTop: '16px' }}>
+            <input
+              type="checkbox"
+              checked={this.model.addToDataset}
+              onChange={e => (this.model.addToDataset = e.target.checked)}
+              style={{ marginRight: '6px' }}
+            />
+            Add uploaded files to a dataset
+          </label>
+
+          {this.model.addToDataset && (
+            <div>
+              <p style={{ marginTop: '12px', marginBottom: '4px' }}>
+                Dataset scope (required):
+              </p>
+              <Select
+                isLoading={this.model.scopesLoading}
+                menuPortalTarget={document.body}
+                styles={selectStyles}
+                options={scopeOptions}
+                value={
+                  this.model.datasetScope
+                    ? {
+                        value: this.model.datasetScope,
+                        label: this.model.datasetScope
+                      }
+                    : null
+                }
+                onChange={(value: any) =>
+                  (this.model.datasetScope = value ? value.value : '')
+                }
+              />
+              <p style={{ marginTop: '12px', marginBottom: '4px' }}>
+                Dataset name (required):
+              </p>
+              <TextField
+                value={this.model.datasetName}
+                placeholder="Enter a dataset name"
+                onChange={e => (this.model.datasetName = e.target.value)}
+                containerStyle={{ marginTop: '4px' }}
+              />
+              <p
+                style={{ marginTop: '8px', color: 'var(--jp-ui-font-color2)' }}
+              >
+                If the dataset exists, files are added to it; otherwise Rucio
+                creates it. Dataset uploads do not support a lifetime.
+              </p>
+            </div>
+          )}
         </div>
       );
     }
@@ -235,7 +323,10 @@ namespace RucioUpload {
       return {
         rse: this.model.rse,
         lifetime: this.model.lifetime,
-        fileScope: this.model.selectedScope
+        fileScope: this.model.selectedScope,
+        addToDataset: this.model.addToDataset,
+        datasetScope: this.model.datasetScope,
+        datasetName: this.model.datasetName
       };
     }
   }

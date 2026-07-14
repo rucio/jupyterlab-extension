@@ -12,12 +12,43 @@ export default async function uploadFile(
 
   const { activeInstance } = UIStore.getRawState();
   if (activeInstance && result.value) {
-    const { rse, lifetime, fileScope } = result.value;
+    const {
+      rse,
+      lifetime,
+      fileScope,
+      addToDataset,
+      datasetScope,
+      datasetName
+    } = result.value;
 
     if (!rse || !fileScope) {
       showErrorMessage(
         'Upload cancelled',
-        'Destination RSE and/or scope is not specified.'
+        'Destination RSE and/or file scope is not specified.'
+      );
+      return;
+    }
+
+    const normalizedDatasetScope = datasetScope?.trim();
+    const normalizedDatasetName = datasetName?.trim();
+    const normalizedLifetime = lifetime?.trim();
+
+    if (addToDataset && (!normalizedDatasetScope || !normalizedDatasetName)) {
+      showErrorMessage(
+        'Upload cancelled',
+        'Dataset scope and dataset name are required when adding files to a dataset.'
+      );
+      return;
+    }
+
+    if (
+      !addToDataset &&
+      normalizedLifetime &&
+      !/^\d+$/.test(normalizedLifetime)
+    ) {
+      showErrorMessage(
+        'Upload cancelled',
+        'Lifetime must be a non-negative integer in seconds.'
       );
       return;
     }
@@ -26,7 +57,16 @@ export default async function uploadFile(
       await actions.uploadFile(activeInstance.name, {
         paths: files.map(s => s.path),
         rse,
-        lifetime: lifetime ? parseInt(lifetime, 10) : undefined,
+        ...(addToDataset
+          ? {
+              datasetScope: normalizedDatasetScope,
+              datasetName: normalizedDatasetName
+            }
+          : {
+              lifetime: normalizedLifetime
+                ? Number(normalizedLifetime)
+                : undefined
+            }),
         fileScope
       });
 

@@ -19,31 +19,69 @@ import tornado
 logger = logging.getLogger(__name__)
 
 
+class UploadValidationError(ValueError):
+    """Raised when an upload request contains invalid parameters."""
+
+
+def _is_non_empty_string(value):
+    return isinstance(value, str) and bool(value.strip())
+
+
 class UploadHandler(RucioAPIHandler):
+    @staticmethod
+    def _parse_upload_request(json_body):
+        if not isinstance(json_body, dict):
+            raise UploadValidationError("Invalid POST body.")
+
+        file_paths = json_body.get('file_paths')
+        if (not isinstance(file_paths, list) or not file_paths or
+                any(not _is_non_empty_string(file_path) for file_path in file_paths)):
+            raise UploadValidationError("Missing or invalid 'file_paths'.")
+
+        rse = json_body.get('rse')
+        scope = json_body.get('scope')
+        if not _is_non_empty_string(rse) or not _is_non_empty_string(scope):
+            raise UploadValidationError("Missing 'rse' or 'scope'.")
+        rse = rse.strip()
+        scope = scope.strip()
+
+        add_to_dataset = json_body.get('add_to_dataset', False)
+        if not isinstance(add_to_dataset, bool):
+            raise UploadValidationError("Invalid 'add_to_dataset'.")
+
+        lifetime = json_body.get('lifetime')
+        if lifetime == '':
+            lifetime = None
+        if not add_to_dataset:
+            dataset_scope = None
+            dataset_name = None
+            if (lifetime is not None and
+                    (isinstance(lifetime, bool) or not isinstance(lifetime, int) or lifetime < 0)):
+                raise UploadValidationError("Invalid 'lifetime'.")
+        else:
+            dataset_scope = json_body.get('dataset_scope')
+            dataset_name = json_body.get('dataset_name')
+            if not _is_non_empty_string(dataset_scope) or not _is_non_empty_string(dataset_name):
+                raise UploadValidationError("Dataset scope and name are required.")
+            if lifetime is not None:
+                raise UploadValidationError("Lifetime is not supported for dataset uploads.")
+            dataset_scope = dataset_scope.strip()
+            dataset_name = dataset_name.strip()
+
+        return file_paths, rse, scope, dataset_scope, dataset_name, lifetime
+
     @tornado.web.authenticated
     @prometheus_metrics
     def post(self):
         try:
             namespace = self.get_query_argument('namespace')
             json_body = self.get_json_body()
-            file_paths = json_body.get('file_paths')
-            rse = json_body.get('rse')
-            scope = json_body.get('scope')
-            add_to_dataset = json_body.get('add_to_dataset', False)
-            dataset_name = json_body.get('dataset_name') if add_to_dataset else None
-            dataset_scope = json_body.get('dataset_scope') if add_to_dataset else None
-            lifetime = json_body.get('lifetime')
-
-            # Validate required fields
-            if not file_paths or not isinstance(file_paths, list):
-                logger.warning("Missing or invalid 'file_paths' in POST body.")
+            try:
+                file_paths, rse, scope, dataset_scope, dataset_name, lifetime = self._parse_upload_request(json_body)
+            except UploadValidationError as e:
+                logger.warning("Invalid upload request: %s", e)
                 self.set_status(400)
-                self.finish({'success': False, 'error': "Missing or invalid 'file_paths'."})
-                return
-            if not rse or not scope:
-                logger.warning("Missing 'rse' or 'scope' in POST body.")
-                self.set_status(400)
-                self.finish({'success': False, 'error': "Missing 'rse' or 'scope'."})
+                self.finish({'success': False, 'error': str(e)})
                 return
 
             try:
@@ -82,12 +120,8 @@ class UploadHandler(RucioAPIHandler):
 class UploadHandlerImpl:
     @staticmethod
     def upload(namespace, rucio, file_paths, rse, scope, dataset_scope=None, dataset_name=None, lifetime=None):
-        for file_path in file_paths:
-            args = (namespace, rucio, file_path, rse, scope, dataset_scope, dataset_name, lifetime)
-            try:
-                logger.info("Spawning upload process for '%s' to RSE '%s' in scope '%s'.", file_path, rse, scope)
-                process = mp.Process(target=RucioFileUploader.start_upload_target, args=args)
-                process.start()
-                logger.debug("Started process %s for file '%s'.", process.pid, file_path)
-            except Exception as e:
-                logger.error("Failed to start upload process for '%s': %s", file_path, e, exc_info=True)
+        args = (namespace, rucio, file_paths, rse, scope, dataset_scope, dataset_name, lifetime)
+        logger.info("Spawning upload process for %d files to RSE '%s' in scope '%s'.", len(file_paths), rse, scope)
+        process = mp.Process(target=RucioFileUploader.start_upload_batch_target, args=args)
+        process.start()
+        logger.debug("Started process %s for upload batch.", process.pid)

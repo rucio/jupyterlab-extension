@@ -133,6 +133,8 @@ export type FileUploadParam = {
   rse: string;
   fileScope: string;
   lifetime?: number;
+  datasetScope?: string;
+  datasetName?: string;
 };
 
 export type FileUploadStatus = 'OK' | 'FAILED' | 'UPLOADING';

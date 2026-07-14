@@ -249,13 +249,26 @@ export class Actions {
 
   async uploadFile(
     namespace: string,
-    { paths, rse, fileScope, lifetime }: FileUploadParam
+    {
+      paths,
+      rse,
+      fileScope,
+      lifetime,
+      datasetScope,
+      datasetName
+    }: FileUploadParam
   ): Promise<void> {
     const body = {
       file_paths: paths,
       rse,
       scope: fileScope,
-      lifetime
+      ...(datasetScope && datasetName
+        ? {
+            add_to_dataset: true,
+            dataset_scope: datasetScope,
+            dataset_name: datasetName
+          }
+        : { lifetime })
     };
 
     const init = {

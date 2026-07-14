@@ -116,6 +116,9 @@ const _UploadJobListItem: React.FC<IUploadJobListItemProps> = ({
       </div>
       <div className={classes.listItemContent}>
         <div className={classes.did}>{job.did}</div>
+        {job.datasetDid && (
+          <div className={classes.variableName}>Dataset: {job.datasetDid}</div>
+        )}
         <div className={classes.variableName}>
           {job.path} &rarr; {job.rse}
         </div>
