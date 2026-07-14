@@ -15,18 +15,16 @@ import {
   ILabShell
 } from '@jupyterlab/application';
 import { INotebookTracker } from '@jupyterlab/notebook';
-// import { fileUploadIcon } from '@jupyterlab/ui-components';
+import { fileUploadIcon } from '@jupyterlab/ui-components';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
-// import { toArray } from '@lumino/algorithm';
-// import { CommandIDs } from './const';
-import { EXTENSION_ID } from './const';
+import { CommandIDs, EXTENSION_ID } from './const';
 import { SidebarPanel } from './widgets/SidebarPanel';
 import { actions } from './utils/Actions';
 import { NotebookListener } from './utils/NotebookListener';
 import { ActiveNotebookListener } from './utils/ActiveNotebookListener';
 import { NotebookPollingListener } from './utils/NotebookPollingListener';
 import { IInstanceConfig } from './types';
-// import uploadFile from './commands/uploadFile';
+import uploadFile from './commands/uploadFile';
 import { SessionManager } from '@jupyterlab/services';
 
 /**
@@ -46,7 +44,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       const instanceConfig = await actions.fetchInstancesConfig();
       activateSidebarPanel(app, labShell, instanceConfig);
       activateNotebookListener(app, labShell, notebookTracker);
-      //       activateRucioUploadWidget(app, fileBrowserFactory);
+      activateRucioUploadWidget(app, fileBrowserFactory);
     } catch (e) {
       console.log(e);
     }
@@ -85,7 +83,7 @@ function activateNotebookListener(
   new NotebookPollingListener(notebookListener);
 }
 
-/*function activateRucioUploadWidget(
+function activateRucioUploadWidget(
   app: JupyterFrontEnd,
   fileBrowserFactory: IFileBrowserFactory
 ) {
@@ -96,13 +94,13 @@ function activateNotebookListener(
       const widget = fileBrowserFactory.tracker.currentWidget;
 
       if (widget) {
-        const selection = toArray(widget.selectedItems()).filter(
-          s => s.type !== 'directory'
+        const selection = Array.from(widget.selectedItems()).filter(
+          s => s.type === 'file'
         );
         if (selection.length === 0) {
           return;
         }
-        uploadFile(selection);
+        await uploadFile(selection);
       }
     }
   });
@@ -112,6 +110,6 @@ function activateNotebookListener(
     selector: '.jp-DirListing-item[data-isdir="false"]',
     rank: 10
   });
-}*/
+}
 
 export default extension;

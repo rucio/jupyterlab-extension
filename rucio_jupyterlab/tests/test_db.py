@@ -11,7 +11,8 @@
 import json
 import time
 import pytest
-from rucio_jupyterlab.db import DatabaseInstance
+from peewee import SqliteDatabase
+from rucio_jupyterlab.db import DatabaseInstance, FileUploadJob
 from rucio_jupyterlab.entity import AttachedFile
 from .mocks.mock_db import Struct
 
@@ -19,6 +20,28 @@ from .mocks.mock_db import Struct
 @pytest.fixture
 def database_instance():
     return DatabaseInstance()
+
+
+@pytest.fixture
+def upload_job_database():
+    test_db = SqliteDatabase(':memory:')
+    with test_db.bind_ctx([FileUploadJob]):
+        test_db.create_tables([FileUploadJob])
+        yield
+        test_db.drop_tables([FileUploadJob])
+
+
+def create_upload_job(job_id, uploaded=False):
+    return FileUploadJob.create(
+        id=job_id,
+        namespace='namespace',
+        did=f'did-{job_id}',
+        path=f'/tmp/file-{job_id}',
+        rse='RSE',
+        uploaded=uploaded,
+        lifetime=None,
+        pid=job_id,
+    )
 
 
 def test_get_config__config_exists(database_instance, mocker):  # pylint: disable=redefined-outer-name
@@ -172,3 +195,24 @@ def test_purge_cache(database_instance, mocker):  # pylint: disable=redefined-ou
 
     assert mock_replicas_cache.called, "FileReplicasCache not cleared"
     assert mock_attached_files_list_cache.called, "AttachedFilesListCache not cleared"
+
+
+def test_mark_upload_job_finished_targets_requested_job(database_instance, upload_job_database):
+    create_upload_job(1)
+    create_upload_job(2)
+
+    finished_job = database_instance.mark_upload_job_finished(2)
+
+    assert finished_job.id == 2
+    assert not FileUploadJob.get_by_id(1).uploaded
+    assert FileUploadJob.get_by_id(2).uploaded
+
+
+def test_delete_upload_job_targets_requested_job(database_instance, upload_job_database):
+    create_upload_job(1)
+    create_upload_job(2)
+
+    database_instance.delete_upload_job(2)
+
+    assert FileUploadJob.get_or_none(FileUploadJob.id == 1) is not None
+    assert FileUploadJob.get_or_none(FileUploadJob.id == 2) is None

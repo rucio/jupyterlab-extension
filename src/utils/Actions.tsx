@@ -99,7 +99,26 @@ export class Actions {
 
   async fetchRSEs(namespace: string, expression?: string): Promise<string[]> {
     const query = { namespace, expression };
-    return requestAPI<string[]>(`list-rses?${qs.encode(query)}`);
+    const response = await requestAPI<unknown>(`list-rses?${qs.encode(query)}`);
+
+    if (!Array.isArray(response)) {
+      return [];
+    }
+
+    return response.reduce<string[]>((rses, entry) => {
+      if (typeof entry === 'string') {
+        rses.push(entry);
+      } else if (
+        entry !== null &&
+        typeof entry === 'object' &&
+        'rse' in entry &&
+        typeof entry.rse === 'string'
+      ) {
+        rses.push(entry.rse);
+      }
+
+      return rses;
+    }, []);
   }
 
   async fetchAttachedFileDIDs(
@@ -228,28 +247,20 @@ export class Actions {
     return requestAPI('purge-cache', init);
   }
 
-  async uploadFile(namespace: string, params: FileUploadParam): Promise<void> {
-    const {
-      paths,
+  async uploadFile(
+    namespace: string,
+    { paths, rse, fileScope, lifetime }: FileUploadParam
+  ): Promise<void> {
+    const body = {
+      file_paths: paths,
       rse,
-      fileScope,
-      datasetName,
-      addToDataset,
-      datasetScope,
+      scope: fileScope,
       lifetime
-    } = params;
+    };
 
     const init = {
       method: 'POST',
-      body: JSON.stringify({
-        file_paths: paths,
-        rse,
-        scope: fileScope,
-        add_to_dataset: !!addToDataset,
-        dataset_scope: datasetScope,
-        dataset_name: datasetName,
-        lifetime
-      })
+      body: JSON.stringify(body)
     };
 
     return requestAPI(

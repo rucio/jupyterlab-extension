@@ -13,9 +13,6 @@ namespace RucioUpload {
     rse: string;
     lifetime?: string;
     fileScope: string;
-    datasetScope?: string;
-    datasetName?: string;
-    addToDataset?: boolean;
   };
   export class Model extends VDomModel {
     _rses: string[] = [];
@@ -23,11 +20,8 @@ namespace RucioUpload {
     _lifetime = '';
     _scopes: string[] = [];
     _selectedScope = '';
-    _selectedDatasetScope = '';
-    _datasetName = '';
     _scopesLoading = false;
     _rsesLoading = false;
-    _addToDataset = false;
 
     get rses(): string[] {
       return this._rses;
@@ -74,24 +68,6 @@ namespace RucioUpload {
       this.stateChanged.emit(void 0);
     }
 
-    get selectedDatasetScope(): string {
-      return this._selectedDatasetScope;
-    }
-
-    set selectedDatasetScope(selectedDatasetScope: string) {
-      this._selectedDatasetScope = selectedDatasetScope;
-      this.stateChanged.emit(void 0);
-    }
-
-    get datasetName(): string {
-      return this._datasetName;
-    }
-
-    set datasetName(datasetName: string) {
-      this._datasetName = datasetName;
-      this.stateChanged.emit(void 0);
-    }
-
     get scopesLoading(): boolean {
       return this._scopesLoading;
     }
@@ -107,15 +83,6 @@ namespace RucioUpload {
 
     set rsesLoading(loading: boolean) {
       this._rsesLoading = loading;
-      this.stateChanged.emit(void 0);
-    }
-
-    get addToDataset(): boolean {
-      return this._addToDataset;
-    }
-
-    set addToDataset(addToDataset: boolean) {
-      this._addToDataset = addToDataset;
       this.stateChanged.emit(void 0);
     }
   }
@@ -260,46 +227,6 @@ namespace RucioUpload {
               }
             />
           </div>
-
-          <React.Fragment>
-            <label>
-              <input
-                type="checkbox"
-                checked={this.model.addToDataset}
-                onChange={e => (this.model.addToDataset = e.target.checked)}
-              />
-              Add files to a dataset
-            </label>
-            {this.model.addToDataset && (
-              <div style={{ marginTop: '16px' }}>
-                <p>Dataset Scope:</p>
-                <div style={{ marginTop: '4px', marginBottom: '8px' }}>
-                  <Select
-                    isLoading={this.model.scopesLoading}
-                    menuPortalTarget={document.body}
-                    styles={selectStyles}
-                    options={this.model.scopes.map(scope => ({
-                      value: scope,
-                      label: scope
-                    }))}
-                    defaultValue={{
-                      value: this.model.selectedDatasetScope,
-                      label: this.model.selectedDatasetScope
-                    }}
-                    onChange={(value: any) =>
-                      (this.model.selectedDatasetScope = value.value)
-                    }
-                  />
-                </div>
-                <p style={{ marginTop: '16px' }}>Dataset Name:</p>
-                <TextField
-                  value={this.model.datasetName}
-                  onChange={e => (this.model.datasetName = e.target.value)}
-                  containerStyle={{ marginTop: '4px', marginBottom: '8px' }}
-                />
-              </div>
-            )}
-          </React.Fragment>
         </div>
       );
     }
@@ -308,10 +235,7 @@ namespace RucioUpload {
       return {
         rse: this.model.rse,
         lifetime: this.model.lifetime,
-        fileScope: this.model.selectedScope,
-        datasetScope: this.model.selectedDatasetScope,
-        datasetName: this.model.datasetName,
-        addToDataset: this.model.addToDataset
+        fileScope: this.model.selectedScope
       };
     }
   }

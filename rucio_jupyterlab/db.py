@@ -199,13 +199,13 @@ class DatabaseInstance:
     def add_upload_job(self, namespace, did, dataset_did, path, rse, lifetime, pid):
         return FileUploadJob.insert(namespace=namespace, did=did, dataset_did=dataset_did, path=path, rse=rse, lifetime=lifetime, pid=pid, uploaded=False).execute()
 
-    def delete_upload_job(self, id):
-        job = FileUploadJob.get_or_none(id)
+    def delete_upload_job(self, job_id):
+        job = FileUploadJob.get_or_none(FileUploadJob.id == job_id)
         if job is not None:
             job.delete_instance()
 
-    def mark_upload_job_finished(self, id):
-        job = FileUploadJob.get_or_none(id)
+    def mark_upload_job_finished(self, job_id):
+        job = FileUploadJob.get_or_none(FileUploadJob.id == job_id)
         if job is not None:
             job.uploaded = True
             job.save()

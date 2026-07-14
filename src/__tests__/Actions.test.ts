@@ -133,6 +133,56 @@ describe('fetchScopes', () => {
     })
 })
 
+describe('fetchRSEs', () => {
+    test('should normalize RSE objects returned by the backend', async () => {
+        const mockRequestAPI = requestAPI as jest.MockedFunction<typeof requestAPI>;
+
+        mockRequestAPI.mockClear();
+        mockRequestAPI.mockReturnValue(Promise.resolve([{ rse: 'ORM-NON-DET' }, { rse: 'MAGIC-PRD' }]));
+
+        const actions = new Actions();
+        const rses = await actions.fetchRSEs('atlas', 'availability_write=True');
+
+        expect(mockRequestAPI).toBeCalledWith(
+            expect.stringContaining('expression=availability_write%3DTrue')
+        );
+        expect(rses).toEqual(['ORM-NON-DET', 'MAGIC-PRD']);
+    })
+
+    test('should preserve string RSE responses', async () => {
+        const mockRequestAPI = requestAPI as jest.MockedFunction<typeof requestAPI>;
+
+        mockRequestAPI.mockClear();
+        mockRequestAPI.mockReturnValue(Promise.resolve(['ORM-NON-DET', 'MAGIC-PRD']));
+
+        const actions = new Actions();
+        const rses = await actions.fetchRSEs('atlas');
+
+        expect(rses).toEqual(['ORM-NON-DET', 'MAGIC-PRD']);
+    })
+
+    test('should ignore malformed RSE responses', async () => {
+        const mockRequestAPI = requestAPI as jest.MockedFunction<typeof requestAPI>;
+
+        mockRequestAPI.mockClear();
+        mockRequestAPI.mockReturnValue(
+            Promise.resolve([
+                'ORM-NON-DET',
+                { rse: 'MAGIC-PRD' },
+                null,
+                { rse: null },
+                {},
+                42
+            ])
+        );
+
+        const actions = new Actions();
+        const rses = await actions.fetchRSEs('atlas');
+
+        expect(rses).toEqual(['ORM-NON-DET', 'MAGIC-PRD']);
+    })
+})
+
 
 describe('fetchAttachedFileDIDs', () => {
     test('should call /files endpoint with query', async () => {
@@ -428,6 +478,36 @@ describe('purgeCache', () => {
             expect.stringMatching(/purge-cache/),
             expect.objectContaining({
                 method: 'POST'
+            })
+        );
+    })
+})
+
+describe('uploadFile', () => {
+    test('should call /upload endpoint with file-only payload', async () => {
+        const mockRequestAPI = requestAPI as jest.MockedFunction<typeof requestAPI>;
+
+        mockRequestAPI.mockClear();
+        mockRequestAPI.mockReturnValue(Promise.resolve());
+
+        const actions = new Actions();
+        await actions.uploadFile('atlas', {
+            paths: ['notebooks/example.txt', 'data/result.csv'],
+            rse: 'MOCK_RSE',
+            fileScope: 'mock_scope',
+            lifetime: 3600
+        });
+
+        expect(mockRequestAPI).toBeCalledWith(
+            expect.stringMatching(/(\b(upload|namespace=atlas)\b.*){2,}/),
+            expect.objectContaining({
+                method: 'POST',
+                body: JSON.stringify({
+                    file_paths: ['notebooks/example.txt', 'data/result.csv'],
+                    rse: 'MOCK_RSE',
+                    scope: 'mock_scope',
+                    lifetime: 3600
+                })
             })
         );
     })
