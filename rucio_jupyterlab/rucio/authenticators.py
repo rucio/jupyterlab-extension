@@ -20,6 +20,24 @@ from rucio_jupyterlab.rucio.exceptions import RucioAuthenticationException, Ruci
 # Setup logging
 logger = logging.getLogger(__name__)
 
+# Headers carrying credentials or session tokens. These must never reach the
+# logs: `log_level: debug` is a documented, supported setting, so anything
+# logged here ends up in the plain-text Jupyter server log.
+SENSITIVE_HEADERS = frozenset({
+    'x-rucio-password',
+    'x-rucio-auth-token',
+    'authorization',
+    'cookie',
+    'set-cookie'
+})
+
+
+def redact_headers(headers):
+    """
+    Returns a copy of `headers` with credential values replaced by a placeholder.
+    """
+    return {k: ('<redacted>' if k.lower() in SENSITIVE_HEADERS else v) for k, v in headers.items()}
+
 
 def authenticate_userpass(base_url, username, password, account=None, vo=None, app_id=None, rucio_ca_cert=False):
     response = None  # predefine response to avoid UnboundLocalError
@@ -38,7 +56,7 @@ def authenticate_userpass(base_url, username, password, account=None, vo=None, a
 
         logger.debug("Sending userpass authentication request to %s/auth/userpass", base_url)
         logger.debug("Rucio CA path: %s", rucio_ca_cert)
-        logger.debug("Headers: %s", headers)
+        logger.debug("Headers: %s", redact_headers(headers))
 
         response = requests.get(
             url=f'{base_url}/auth/userpass',
@@ -47,7 +65,7 @@ def authenticate_userpass(base_url, username, password, account=None, vo=None, a
         )
 
         logger.debug(f"Response Status Code: {response.status_code}")
-        logger.debug(f"Response Headers: {response.headers}")
+        logger.debug("Response Headers: %s", redact_headers(response.headers))
 
         response.raise_for_status()  # raises HTTPError for bad status codes
 
@@ -105,7 +123,7 @@ def authenticate_x509(base_url, cert_path, key_path=None, account=None, vo=None,
 
         logger.debug("Sending x509 authentication request to %s/auth/x509", base_url)
         logger.debug("Certificate path: %s", cert)
-        logger.debug("Headers: %s", headers)
+        logger.debug("Headers: %s", redact_headers(headers))
 
         response = requests.get(
             url=f'{base_url}/auth/x509',
@@ -115,7 +133,7 @@ def authenticate_x509(base_url, cert_path, key_path=None, account=None, vo=None,
 
         response.raise_for_status()  # raises requests.exceptions.HTTPError for status_code >= 400
 
-        logger.debug("Response received. Status code: %s, headers: %s", response.status_code, response.headers)
+        logger.debug("Response received. Status code: %s, headers: %s", response.status_code, redact_headers(response.headers))
 
         auth_token = response.headers.get('X-Rucio-Auth-Token')
         expires = response.headers.get('X-Rucio-Auth-Token-Expires')
