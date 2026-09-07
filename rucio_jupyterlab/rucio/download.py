@@ -30,7 +30,46 @@ def rucio_logger(level, msg, *args, **kwargs):
 
 class RucioFileDownloader:
     @staticmethod
-    def write_errorfile(dest_folder, exception):
+    def diagnose(exception, instance_config=None):
+        """
+        Returns a human-readable hint for download failures whose root cause is not
+        apparent from the exception text, or None when there is nothing to add.
+        """
+        name = exception.__class__.__name__
+        text = str(exception)
+
+        if name == 'CannotAuthenticate' or 'Cannot authenticate' in text:
+            vo = (instance_config or {}).get('vo')
+            if vo:
+                # The API path authenticates without a VO, so browsing succeeds even when
+                # `vo` is wrong; the download client is the first thing to actually use it.
+                return (f"The instance is configured with vo='{vo}', which is sent by the download "
+                        f"client but not by the API calls used for browsing. A wrong vo therefore "
+                        f"fails only here. Verify it matches the server, or remove it for single-VO Rucio.")
+
+        if name == 'MissingDependency' or 'dependency is missing' in text:
+            return ("A transfer library required by the storage protocol is not installed. "
+                    "Download mode needs the RSE protocol backends, typically gfal2 "
+                    "(conda: 'python-gfal2', RPM: 'gfal2-all gfal2-python'). Note that a "
+                    "system-installed gfal2 is not visible from a virtualenv unless it was "
+                    "created with --system-site-packages and the same Python version.")
+
+        if 'OIDC token' in text and ('obtain an OIDC token' in text or 'No OIDC token available' in text):
+            return ("The extension could not get a valid OIDC token to hand to the download "
+                    "client, so the download was stopped before it could fall back to an "
+                    "interactive login it has no terminal to complete. Re-authenticate in the "
+                    "browsing UI (the token may have expired) and try the download again.")
+
+        if name == 'NoFilesDownloaded' or 'none of the requested files' in text.lower():
+            return ("No file could be retrieved from any source. Common causes: the transfer "
+                    "library for the RSE protocol is missing (see gfal2 above), or the storage "
+                    "endpoint is not reachable from this host. Re-run with debug logging to see "
+                    "the per-PFN reason.")
+
+        return None
+
+    @staticmethod
+    def write_errorfile(dest_folder, exception, instance_config=None):
         """
         Writes exception details to an error.json file in the destination folder.
         """
@@ -46,12 +85,18 @@ class RucioFileDownloader:
             'exception_message': str(exception)
         }
 
+        hint = RucioFileDownloader.diagnose(exception, instance_config)
+        if hint:
+            error_payload['hint'] = hint
+            error_payload['exception_message'] = f"{error_payload['exception_message']}\nHint: {hint}"
+
         logger.error("Writing error file to '%s' with details: %s", error_file_path, error_payload)
         with open(error_file_path, 'w') as f:
             json.dump(error_payload, f)
 
     def start_download_target(namespace, did, rucio):
         dest_folder = RucioFileDownloader.get_dest_folder(namespace, did)
+        instance_config = getattr(rucio, 'instance_config', None)
         logger.info("Preparing to download DID '%s' to '%s'.", did, dest_folder)
 
         try:
@@ -67,7 +112,7 @@ class RucioFileDownloader:
                 except Exception as e:
                     # Log the exception and write the error file
                     logger.exception("Download failed for DID '%s': %s", did, e)
-                    RucioFileDownloader.write_errorfile(dest_folder, e)
+                    RucioFileDownloader.write_errorfile(dest_folder, e, instance_config)
 
                 finally:
                     # Always remove the lockfile when the operation is complete (or has failed)
@@ -79,7 +124,7 @@ class RucioFileDownloader:
             logger.error("A critical error occurred before download could start for DID '%s': %s", did, e)
             # Ensure the destination folder exists to write the error file
             os.makedirs(dest_folder, exist_ok=True)
-            RucioFileDownloader.write_errorfile(dest_folder, e)
+            RucioFileDownloader.write_errorfile(dest_folder, e, instance_config)
             RucioFileDownloader.delete_lockfile(dest_folder)
 
     @staticmethod

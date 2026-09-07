@@ -103,7 +103,7 @@ class DIDBrowserHandler(RucioAPIHandler):
         logger.debug("Query arguments - Namespace: %s, Poll: %s, DID: %s", namespace, poll, did)
 
         rucio = self.rucio.for_instance(namespace)
-        (scope, name) = did.split(':')
+        (scope, name) = did.split(':', 1)
         logger.debug("Split DID into scope: %s, name: %s", scope, name)
 
         handler = DIDBrowserHandlerImpl(namespace, rucio)

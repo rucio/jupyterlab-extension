@@ -162,29 +162,40 @@ class RucioAPI:
         self.auth_url = instance_config.get('rucio_auth_url', self.base_url)
         self.rucio_ca_cert = instance_config.get('rucio_ca_cert', True)    # Default should be True to use system CA certs
 
-    def _build_url(self, endpoint, scope=None, name=None):
+    def _build_url(self, endpoint, scope=None, name=None, suffix=None):
         """
         Constructs the URL path, without query parameters.
+
+        Scope and name are percent-encoded with `safe=''` so that a DID name
+        containing slashes (POSIX-like naming, e.g. 'tumour/purity_0.3') stays a
+        single path segment. Rucio unquotes the segment server-side to split
+        scope from name; leaving the slashes bare makes it fail with
+        "Could not parse ... with encoded '/' into scope and name".
+
+        `suffix` holds sub-resource paths ('/files', '/meta', ...) that must
+        remain real path separators, so it is appended unencoded.
         """
         # Use strip('/') to avoid issues like 'host//endpoint'
         url_parts = []
         if endpoint:
             url_parts.append(endpoint)
         if scope:
-            url_parts.append(quote(scope))
+            url_parts.append(quote(scope, safe=''))
         if name:
-            url_parts.append(quote(name))
+            url_parts.append(quote(name, safe=''))
 
         # Join url parts and replace multiple slashes with a single slash
         url_path = re.sub("/{2,}", "/", "/".join(url_parts))
+        if suffix:
+            url_path = url_path + '/' + suffix.strip('/')
         return  urljoin(self.base_url, url_path)
 
     def _make_rucio_request(self, method, endpoint, scope=None, name=None, params=None, data=None,
-                            parse_json=False, parse_lines=False):
+                            parse_json=False, parse_lines=False, suffix=None):
         """
         Centralizes logic for making Rucio API requests and handling errors.
         """
-        url = self._build_url(endpoint, scope, name)
+        url = self._build_url(endpoint, scope, name, suffix)
 
         try:
             token = self._get_auth_token()
@@ -262,7 +273,7 @@ class RucioAPI:
 
         results = self._make_rucio_request(
             'GET',
-            f'dids/{scope}/dids/search',
+            f'dids/{quote(scope, safe="")}/dids/search',
             params=params,
             parse_json=True,
             parse_lines=True
@@ -274,19 +285,19 @@ class RucioAPI:
 
     def get_metadata(self, scope, name):
         # DEBUG: response = requests.get(url=f'{self.base_url}/dids/{scope}/{name}/meta', headers=headers, verify=self.rucio_ca_cert)
-        return self._make_rucio_request('GET', 'dids', scope, name + '/meta', parse_lines=True)
+        return self._make_rucio_request('GET', 'dids', scope, name, suffix='meta', parse_lines=True)
 
     def get_files(self, scope, name):
         # DEBUG: response = requests.get(url=f'{self.base_url}/dids/{scope}/{name}/files', headers=headers, verify=self.rucio_ca_cert)
-        return self._make_rucio_request('GET', 'dids', scope, name + '/files', parse_json=True, parse_lines=True)
+        return self._make_rucio_request('GET', 'dids', scope, name, suffix='files', parse_json=True, parse_lines=True)
 
     def get_parents(self, scope, name):
         # DEBUG: response = requests.get(url=f'{self.base_url}/dids/{scope}/{name}/parents', headers=headers, verify=self.rucio_ca_cert)
-        return self._make_rucio_request('GET', 'dids', scope, name + '/parents', parse_json=True, parse_lines=True)
+        return self._make_rucio_request('GET', 'dids', scope, name, suffix='parents', parse_json=True, parse_lines=True)
 
     def get_rules(self, scope, name):
         # DEBUG: response = requests.get(url=f'{self.base_url}/dids/{scope}/{name}/rules', headers=headers, verify=self.rucio_ca_cert)
-        return self._make_rucio_request('GET', 'dids', scope, name + '/rules', parse_json=True, parse_lines=True)
+        return self._make_rucio_request('GET', 'dids', scope, name, suffix='rules', parse_json=True, parse_lines=True)
 
     def get_rule_details(self, rule_id):
         # DEBUG: response = requests.get(url=f'{self.base_url}/rules/{rule_id}', headers=headers, verify=self.rucio_ca_cert)
@@ -348,6 +359,18 @@ class RucioAPI:
 
         app_id = self.instance_config.get('app_id')
         vo = self.instance_config.get('vo')
+
+        # The token endpoints below are deliberately called without a VO (see the TODOs).
+        # The download client, however, does receive `vo` via the generated rucio.cfg, so a
+        # wrong `vo` is invisible while browsing and only surfaces as an opaque
+        # "Cannot authenticate" once a download starts. Say so up front.
+        if vo and auth_type in ('userpass', 'x509', 'x509_proxy'):
+            logger.warning(
+                "Instance '%s' sets vo='%s', but %s authentication is performed without a VO. "
+                "Only the download client uses it, so an incorrect vo fails at download time only.",
+                self.instance_config.get('name'), vo, auth_type
+            )
+
         try:
             if auth_type == 'userpass':
                 username = auth_config.get('username')

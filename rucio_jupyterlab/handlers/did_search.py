@@ -114,7 +114,7 @@ class DIDSearchHandler(RucioAPIHandler):
         rucio = self.rucio.for_instance(namespace)
 
         try:
-            (scope, name) = did.split(':')
+            (scope, name) = did.split(':', 1)
             if not scope or not name:
                 raise ValueError()
         except ValueError as e:

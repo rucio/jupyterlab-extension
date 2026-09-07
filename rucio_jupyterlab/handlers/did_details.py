@@ -40,7 +40,7 @@ class DIDDetailsHandler(RucioAPIHandler):
         namespace = self.get_query_argument('namespace')
         force_refresh = self.get_query_argument('force', '0') == '1'
         did = self.get_query_argument('did')
-        scope, name = did.split(':')
+        scope, name = did.split(':', 1)
 
         rucio_instance = self.rucio.for_instance(namespace)
         mode = rucio_instance.instance_config.get('mode', 'replica')

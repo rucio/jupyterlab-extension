@@ -60,6 +60,12 @@ class RucioClientEnvironment:
                 elif self.auth_type == 'x509_proxy':
                     self.prepare_x509_proxy_authentication(rucio_home)
 
+            if self.auth_type == 'oidc':
+                # oidc has no auth_config (there is nothing for the user to register: the
+                # token comes from oidc_auth/oidc_env_name/oidc_file_name), so this branch
+                # is deliberately outside the `if self.auth_config:` guard above.
+                self.prepare_oidc_authentication(rucio_home)
+
             return self.tempdir.name
         except Exception:
             logger.error("Failed to set up Rucio client environment. Cleaning up.")
@@ -105,6 +111,39 @@ class RucioClientEnvironment:
         if tmp_proxy_path:
             os.environ['X509_USER_PROXY'] = tmp_proxy_path
             logger.info("Set X509_USER_PROXY to: %s", tmp_proxy_path)
+
+    def prepare_oidc_authentication(self, rucio_home):
+        """
+        The Rucio client's own OIDC login is a device-code flow that prints a URL and
+        blocks on input() for the browser-copied code - there is no terminal attached to
+        the download subprocess, so that raises EOFError instead of authenticating.
+
+        The extension already holds a valid token for this instance (the same one used
+        to authenticate API calls for browsing, see RucioAPI._get_auth_token). Handing it
+        to the subprocess via WLCG Bearer Token Discovery (BEARER_TOKEN_FILE) makes the
+        Rucio client pick it up directly and skip its interactive login entirely.
+
+        Raises if a token can't be obtained or written: falling through here would leave
+        the Rucio client to fall back to its own interactive login instead, which is
+        exactly the failure this method exists to avoid, so it must fail loudly instead.
+        """
+        try:
+            token = self.rucio._get_auth_token()
+        except Exception as e:
+            raise RuntimeError(f"Could not obtain an OIDC token for the download client: {e}") from e
+
+        if not token:
+            raise RuntimeError("No OIDC token available for the download client.")
+
+        token_file_path = os.path.join(rucio_home, 'bearer_token')
+        try:
+            with open(token_file_path, 'w') as f:
+                f.write(token)
+            os.chmod(token_file_path, 0o600)
+            os.environ['BEARER_TOKEN_FILE'] = token_file_path
+            logger.info("Set BEARER_TOKEN_FILE for OIDC download authentication.")
+        except OSError as e:
+            raise RuntimeError(f"Failed to write bearer token file at {token_file_path}: {e}") from e
 
     def prepare_x509_proxy_authentication(self, rucio_home):
         logger.info("Preparing x509 proxy authentication.")

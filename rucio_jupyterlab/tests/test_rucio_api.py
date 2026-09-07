@@ -218,3 +218,46 @@ def test_add_replication_rule(rucio, mocker, requests_mock):
                         'asynchronous': mock_asynchronous, 'priority': mock_priority, 'meta': mock_meta}
 
     assert adapter.last_request.json() == expected_request, "Invalid request payload"
+
+
+# --- DID names containing slashes (POSIX-like naming) ---------------------
+#
+# Rucio packs scope and name into a single path segment and unquotes it
+# server-side, so a '/' inside the name must be sent as '%2F'. Sending it raw
+# makes Rucio answer 400 "Could not parse ... with encoded '/' into scope and
+# name".
+
+SLASHED_NAME = 'tumour/purity_0.3/TIME'
+ENCODED_NAME = 'tumour%2Fpurity_0.3%2FTIME'
+
+
+def test_build_url_encodes_slashes_in_name(rucio):
+    url = rucio._build_url('dids', 'SPN01', SLASHED_NAME, suffix='files')  # pylint: disable=protected-access
+    assert url == f'{MOCK_BASE_URL}/dids/SPN01/{ENCODED_NAME}/files', "Slash in DID name must be percent-encoded"
+
+
+def test_get_files_with_slashed_name(rucio, mocker, requests_mock):
+    mocker.patch('rucio_jupyterlab.rucio.rucio.authenticate_userpass', return_value=(MOCK_AUTH_TOKEN, 1368440583))
+
+    mock_response_json = [{'scope': 'SPN01', 'name': f'{SLASHED_NAME}/out_0.root', 'bytes': 1196}]
+    mock_response = '\n'.join([json.dumps(x) for x in mock_response_json])
+
+    adapter = requests_mock.get(f"{MOCK_BASE_URL}/dids/SPN01/{ENCODED_NAME}/files",
+                                request_headers={'X-Rucio-Auth-Token': MOCK_AUTH_TOKEN}, text=mock_response)
+    response = rucio.get_files('SPN01', SLASHED_NAME)
+
+    assert response == mock_response_json, "Invalid response"
+    assert adapter.last_request.path_url == f'/dids/SPN01/{ENCODED_NAME}/files', "Invalid request path"
+
+
+def test_get_replicas_with_slashed_name(rucio, mocker, requests_mock):
+    mocker.patch('rucio_jupyterlab.rucio.rucio.authenticate_userpass', return_value=(MOCK_AUTH_TOKEN, 1368440583))
+
+    mock_response_json = [{'scope': 'SPN01', 'name': SLASHED_NAME, 'states': {'XRD1': 'AVAILABLE'}}]
+    mock_response = '\n'.join([json.dumps(x) for x in mock_response_json])
+
+    requests_mock.get(f"{MOCK_BASE_URL}/replicas/SPN01/{ENCODED_NAME}",
+                      request_headers={'X-Rucio-Auth-Token': MOCK_AUTH_TOKEN}, text=mock_response)
+    response = rucio.get_replicas('SPN01', SLASHED_NAME)
+
+    assert response == mock_response_json, "Invalid response"

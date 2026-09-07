@@ -9,6 +9,7 @@
 # - Giovanni Guerrieri, <giovanni.guerrieri@cern.ch>, 2025
 
 import os
+import json
 from unittest.mock import patch, mock_open
 import psutil
 from rucio_jupyterlab.rucio.download import RucioFileDownloader
@@ -123,3 +124,66 @@ def test_rucio_file_downloader_write_lockfile__should_write_pid(mocker):
 
     # Verify return value
     assert result is True
+
+
+# --- Failure diagnostics -------------------------------------------------
+#
+# These failures are opaque in practice: a wrong `vo` is only ever exercised by the
+# download client (the API path authenticates without a VO), and a missing gfal2 shows
+# up as a generic "no files downloaded". Both cost real debugging time, so the cause is
+# attached to the error file the UI reads.
+
+class CannotAuthenticate(Exception):
+    pass
+
+
+class MissingDependency(Exception):
+    pass
+
+
+class NoFilesDownloaded(Exception):
+    pass
+
+
+def test_diagnose_cannot_authenticate_mentions_configured_vo():
+    hint = RucioFileDownloader.diagnose(CannotAuthenticate('Cannot authenticate.'), {'vo': 'escape'})
+    assert hint is not None, "CannotAuthenticate with a configured vo must produce a hint"
+    assert "vo='escape'" in hint, "Hint must name the configured vo"
+
+
+def test_diagnose_cannot_authenticate_without_vo_gives_no_vo_hint():
+    hint = RucioFileDownloader.diagnose(CannotAuthenticate('Cannot authenticate.'), {})
+    assert hint is None, "Without a configured vo there is no vo-related hint to give"
+
+
+def test_diagnose_missing_dependency_mentions_gfal2():
+    hint = RucioFileDownloader.diagnose(MissingDependency('One dependency is missing.'), {})
+    assert hint is not None and 'gfal2' in hint, "MissingDependency must point at the transfer library"
+
+
+def test_diagnose_no_files_downloaded_is_actionable():
+    hint = RucioFileDownloader.diagnose(NoFilesDownloaded('None of the requested files have been downloaded.'), {})
+    assert hint is not None and 'gfal2' in hint, "NoFilesDownloaded must suggest the usual causes"
+
+
+def test_diagnose_missing_oidc_token_is_actionable():
+    hint = RucioFileDownloader.diagnose(RuntimeError('No OIDC token available for the download client.'), {})
+    assert hint is not None and 'OIDC' in hint, "A missing OIDC token must point at re-authenticating"
+
+
+def test_diagnose_oidc_token_error_is_actionable():
+    hint = RucioFileDownloader.diagnose(RuntimeError('Could not obtain an OIDC token for the download client: boom'), {})
+    assert hint is not None and 'OIDC' in hint, "An OIDC token retrieval failure must point at re-authenticating"
+
+
+def test_diagnose_unknown_exception_returns_none():
+    assert RucioFileDownloader.diagnose(ValueError('something else'), {'vo': 'escape'}) is None
+
+
+def test_write_errorfile_embeds_hint(tmp_path):
+    dest = str(tmp_path / 'dl')
+    RucioFileDownloader.write_errorfile(dest, CannotAuthenticate('Cannot authenticate.'), {'vo': 'escape'})
+    with open(os.path.join(dest, 'error.json')) as f:
+        payload = json.load(f)
+    assert 'hint' in payload, "error.json must carry the hint for the UI"
+    assert "vo='escape'" in payload['exception_message'], "Message shown to the user must include the hint"

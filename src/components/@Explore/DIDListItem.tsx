@@ -9,7 +9,7 @@
  * - Muhammad Aditya Hilmy, <mhilmy@hey.com>, 2020
  */
 
-import React from 'react';
+import React, { useLayoutEffect, useRef } from 'react';
 import { createUseStyles } from 'react-jss';
 import { FileDIDItemDetails } from './FileDIDItemDetails';
 import { CollectionDIDItemDetails } from './CollectionDIDItemDetails';
@@ -83,6 +83,7 @@ export interface IDIDItem {
   onClick?: { (): any };
   expand?: boolean;
   style?: any;
+  onHeightChange?: (height: number) => void;
 }
 
 export const DIDListItem: React.FC<IDIDItem> = ({
@@ -91,9 +92,32 @@ export const DIDListItem: React.FC<IDIDItem> = ({
   type,
   onClick,
   expand,
-  style
+  style,
+  onHeightChange
 }) => {
   const classes = useStyles();
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  // The outer listItemContainer gets a fixed height from react-window (via `style`) and
+  // clips to it, so expanded content that needs more room than the parent list guessed
+  // (e.g. a wrapped multi-line diagnostic message) gets silently cut off instead of
+  // growing the row. Measuring this unclipped inner wrapper's natural height and
+  // reporting it up lets the parent size the row to fit real content instead of
+  // guessing from message length or status.
+  useLayoutEffect(() => {
+    const node = contentRef.current;
+    if (!node || !onHeightChange) {
+      return undefined;
+    }
+
+    const reportHeight = () =>
+      onHeightChange(node.getBoundingClientRect().height);
+    reportHeight();
+
+    const observer = new ResizeObserver(reportHeight);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [onHeightChange, expand, type, did]);
 
   const handleViewFilesClick = (
     e: React.MouseEvent<HTMLDivElement, MouseEvent>
@@ -103,45 +127,49 @@ export const DIDListItem: React.FC<IDIDItem> = ({
 
   return (
     <div className={classes.listItemContainer} style={style}>
-      <div
-        className={
-          expand ? classes.listItemExpanded : classes.listItemCollapsed
-        }
-        onClick={onClick}
-      >
-        <div className={classes.iconContainer}>
-          {type === 'file' && (
-            <i className={`${classes.fileIcon} material-icons`}>attachment</i>
+      <div ref={contentRef}>
+        <div
+          className={
+            expand ? classes.listItemExpanded : classes.listItemCollapsed
+          }
+          onClick={onClick}
+        >
+          <div className={classes.iconContainer}>
+            {type === 'file' && (
+              <i className={`${classes.fileIcon} material-icons`}>attachment</i>
+            )}
+            {type === 'container' && (
+              <i className={`${classes.containerIcon} material-icons`}>
+                folder
+              </i>
+            )}
+            {type === 'dataset' && (
+              <i className={`${classes.datasetIcon} material-icons`}>
+                folder_open
+              </i>
+            )}
+          </div>
+          <div className={classes.textContainer}>{did}</div>
+          {type === 'file' && !!size && (
+            <div className={classes.sizeContainer}>
+              {toHumanReadableSize(size)}
+            </div>
           )}
-          {type === 'container' && (
-            <i className={`${classes.containerIcon} material-icons`}>folder</i>
-          )}
-          {type === 'dataset' && (
-            <i className={`${classes.datasetIcon} material-icons`}>
-              folder_open
-            </i>
+          {(type === 'container' || type === 'dataset') && (
+            <div onClick={handleViewFilesClick}>
+              <ListAttachedFilesPopover did={did}>
+                <i className={`${classes.listFilesIcon} material-icons`}>
+                  visibility
+                </i>
+              </ListAttachedFilesPopover>
+            </div>
           )}
         </div>
-        <div className={classes.textContainer}>{did}</div>
-        {type === 'file' && !!size && (
-          <div className={classes.sizeContainer}>
-            {toHumanReadableSize(size)}
-          </div>
-        )}
-        {(type === 'container' || type === 'dataset') && (
-          <div onClick={handleViewFilesClick}>
-            <ListAttachedFilesPopover did={did}>
-              <i className={`${classes.listFilesIcon} material-icons`}>
-                visibility
-              </i>
-            </ListAttachedFilesPopover>
-          </div>
+        {!!expand && type === 'file' && <FileDIDItemDetails did={did} />}
+        {!!expand && (type === 'container' || type === 'dataset') && (
+          <CollectionDIDItemDetails did={did} />
         )}
       </div>
-      {!!expand && type === 'file' && <FileDIDItemDetails did={did} />}
-      {!!expand && (type === 'container' || type === 'dataset') && (
-        <CollectionDIDItemDetails did={did} />
-      )}
     </div>
   );
 };

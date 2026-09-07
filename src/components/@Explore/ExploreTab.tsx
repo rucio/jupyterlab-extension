@@ -220,14 +220,30 @@ const _Explore: React.FunctionComponent = props => {
   };
 
   const listRef = useRef<VariableSizeList>(null);
+  // Measured heights, keyed by row index - see DIDListItem's onHeightChange. react-window
+  // needs a height up front (itemSize/getItemHeight below) but can't know the real one
+  // until the row actually renders, since content is variable (a collapsed row, a plain
+  // "Available"/"Not Available" line, or a diagnostic message wrapped over several
+  // lines): 32/64 below are just the pre-measurement guess for a collapsed/expanded row.
+  const measuredHeights = useRef<Map<number, number>>(new Map());
 
   const toggleExpand = (index: number) => {
+    measuredHeights.current.delete(index);
     listRef.current?.resetAfterIndex(index);
     didExpanded[index] = !didExpanded[index];
     setDidExpanded(didExpanded);
   };
 
-  const getItemHeight = (i: number) => (didExpanded[i] === true ? 64 : 32);
+  const getItemHeight = (i: number) =>
+    measuredHeights.current.get(i) ?? (didExpanded[i] === true ? 64 : 32);
+
+  const reportRowHeight = (index: number, height: number) => {
+    const rounded = Math.ceil(height);
+    if (measuredHeights.current.get(index) !== rounded) {
+      measuredHeights.current.set(index, rounded);
+      listRef.current?.resetAfterIndex(index);
+    }
+  };
 
   const Row = ({ index, style }: any) => {
     if (!searchResult) {
@@ -245,6 +261,7 @@ const _Explore: React.FunctionComponent = props => {
         key={item.did}
         expand={expanded}
         onClick={() => toggleExpand(index)}
+        onHeightChange={height => reportRowHeight(index, height)}
       />
     );
   };

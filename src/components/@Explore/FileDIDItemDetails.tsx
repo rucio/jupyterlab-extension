@@ -30,7 +30,7 @@ const useStyles = createUseStyles({
     padding: '4px 16px 4px 16px',
     backgroundColor: 'var(--jp-layout-color2)',
     boxSizing: 'border-box',
-    height: '32px',
+    minHeight: '32px',
     alignItems: 'center'
   },
   icon: {
@@ -49,6 +49,16 @@ const useStyles = createUseStyles({
     overflow: 'hidden',
     whiteSpace: 'nowrap'
   },
+  errorText: {
+    // Diagnostic hints (see RucioFileDownloader.diagnose) run to a full sentence or
+    // two, so unlike the other short, fixed statusText strings, this one needs to wrap
+    // rather than get ellipsized down to something unreadable.
+    extend: 'statusText',
+    textOverflow: 'unset',
+    overflow: 'visible',
+    whiteSpace: 'normal',
+    wordBreak: 'break-word'
+  },
   clickableStatusText: {
     extend: 'statusText',
     '& a:hover': {
@@ -61,6 +71,14 @@ const useStyles = createUseStyles({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1
+  },
+  messageRow: {
+    // Groups the icon with the (possibly multi-line) message so wrapping only grows
+    // this part of the row - the action button below stays a sibling, not a child, so
+    // its position on the right is independent of how tall the message gets.
+    extend: 'statusContainer',
+    alignItems: 'flex-start',
+    minWidth: 0
   },
   statusAvailable: {
     extend: 'statusContainer',
@@ -81,7 +99,9 @@ const useStyles = createUseStyles({
   action: {
     fontSize: '9pt',
     color: 'var(--jp-rucio-primary-blue-color)',
-    cursor: 'pointer'
+    cursor: 'pointer',
+    flexShrink: 0,
+    paddingLeft: '8px'
   }
 });
 
@@ -253,25 +273,27 @@ const FileNotAvailable: React.FC<{
 
   return (
     <div className={classes.statusNotAvailable}>
-      {/* Conditionally render the icon and message based on the error state */}
-      {error ? (
-        <i className={`${classes.icon} material-icons`}>error</i>
-      ) : (
-        <i className={`${classes.icon} material-icons`}>lens</i>
-      )}
+      <div className={classes.messageRow}>
+        {/* Conditionally render the icon and message based on the error state */}
+        {error ? (
+          <i className={`${classes.icon} material-icons`}>error</i>
+        ) : (
+          <i className={`${classes.icon} material-icons`}>lens</i>
+        )}
 
-      {/* Display the error message if it exists */}
-      {error && (
-        <div
-          className={classes.statusText}
-          style={{ color: 'var(--jp-error-color1)' }}
-        >
-          {error}
-        </div>
-      )}
+        {/* Display the error message if it exists */}
+        {error && (
+          <div
+            className={classes.errorText}
+            style={{ color: 'var(--jp-error-color1)' }}
+          >
+            {error}
+          </div>
+        )}
 
-      {/* Show the default text only when there is no error */}
-      {!error && <div className={classes.statusText}>Not Available</div>}
+        {/* Show the default text only when there is no error */}
+        {!error && <div className={classes.statusText}>Not Available</div>}
+      </div>
 
       <div className={classes.action} onClick={onMakeAvailableClicked}>
         {/* Change button text based on context */}
@@ -342,30 +364,32 @@ const FileStuck: React.FC<{
 
   return (
     <div className={classes.statusNotAvailable}>
-      <i className={`${classes.icon} material-icons`}>error</i>
-      {error && (
-        <div
-          className={classes.statusText}
-          style={{ color: 'var(--jp-error-color1)' }}
-        >
-          {error}
-        </div>
-      )}
-      {!error && showReplicationRuleUrl && (
-        <div className={classes.clickableStatusText}>
-          <a
-            href={showReplicationRuleUrl}
-            target="_blank"
-            rel="noreferrer"
-            title="Show replication rule"
+      <div className={classes.messageRow}>
+        <i className={`${classes.icon} material-icons`}>error</i>
+        {error && (
+          <div
+            className={classes.errorText}
+            style={{ color: 'var(--jp-error-color1)' }}
           >
-            Something went wrong
-          </a>
-        </div>
-      )}
-      {!error && !showReplicationRuleUrl && (
-        <div className={classes.statusText}>Something went wrong</div>
-      )}
+            {error}
+          </div>
+        )}
+        {!error && showReplicationRuleUrl && (
+          <div className={classes.clickableStatusText}>
+            <a
+              href={showReplicationRuleUrl}
+              target="_blank"
+              rel="noreferrer"
+              title="Show replication rule"
+            >
+              Something went wrong
+            </a>
+          </div>
+        )}
+        {!error && !showReplicationRuleUrl && (
+          <div className={classes.statusText}>Something went wrong</div>
+        )}
+      </div>
       {onMakeAvailableClicked && (
         <div className={classes.action} onClick={onMakeAvailableClicked}>
           Make Available

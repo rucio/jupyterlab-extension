@@ -47,7 +47,7 @@ class DIDMakeAvailableHandler(RucioAPIHandler):
         did = json_body['did']
         logger.debug("DID: %s", did)
 
-        scope, name = did.split(':')
+        scope, name = did.split(':', 1)
         logger.debug("Scope: %s, Name: %s", scope, name)
 
         rucio_instance = self.rucio.for_instance(namespace)

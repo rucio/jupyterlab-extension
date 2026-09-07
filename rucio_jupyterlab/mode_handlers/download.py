@@ -109,7 +109,7 @@ class DownloadModeHandler:
         except Exception as e:
             # Handle any other unexpected errors
             logger.exception("An unexpected error occurred in make_available for DID '%s'", did)
-            RucioFileDownloader.write_errorfile(dest_folder, e)
+            RucioFileDownloader.write_errorfile(dest_folder, e, getattr(self.rucio, 'instance_config', None))
             RucioFileDownloader.delete_lockfile(dest_folder)
             raise
 
