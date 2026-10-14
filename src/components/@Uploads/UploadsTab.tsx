@@ -95,7 +95,8 @@ export const UploadsTab: React.FC<MyProps> = ({ visible }) => {
       )}
       {jobs.length === 0 && (
         <div className={classes.messageContainer}>
-          You do not have upload jobs.
+          No upload jobs yet. Select file(s) in the file browser, right-click,
+          and choose Upload to Rucio.
         </div>
       )}
     </div>

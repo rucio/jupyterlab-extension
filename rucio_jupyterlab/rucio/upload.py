@@ -10,7 +10,7 @@
 import os
 import psutil
 import logging
-from rucio_jupyterlab.db import get_db
+from rucio_jupyterlab.db import FAILED_UPLOAD_JOB_PID, get_db
 from rucio_jupyterlab.rucio.client_environment import RucioClientEnvironment
 
 LOGFILE_DIR = os.path.expanduser('~/.rucio_jupyterlab/logs/upload')
@@ -27,10 +27,14 @@ class RucioFileUploader:
         self.db = get_db()  # pylint: disable=invalid-name
 
     @staticmethod
-    def start_upload_target(namespace, rucio, file_path, rse, scope, dataset_scope=None, dataset_name=None, lifetime=None):
-        with RucioClientEnvironment(rucio) as rucio_home:
+    def start_upload_batch_target(namespace, rucio, file_paths, rse, scope, dataset_scope=None, dataset_name=None, lifetime=None):
+        with RucioClientEnvironment(rucio):
             uploader = RucioFileUploader(namespace, rucio)
-            uploader.upload(file_path=file_path, rse=rse, scope=scope, dataset_scope=dataset_scope, dataset_name=dataset_name, lifetime=lifetime)
+            for file_path in file_paths:
+                try:
+                    uploader.upload(file_path=file_path, rse=rse, scope=scope, dataset_scope=dataset_scope, dataset_name=dataset_name, lifetime=lifetime)
+                except Exception:
+                    logging.getLogger(__name__).exception("Upload failed for '%s'", file_path)
 
     def get_upload_jobs(self):
         upload_jobs = self.db.get_upload_jobs(self.namespace)
@@ -66,6 +70,9 @@ class RucioFileUploader:
         if uploaded:
             return RucioFileUploader.STATUS_OK
 
+        if pid == FAILED_UPLOAD_JOB_PID:
+            return RucioFileUploader.STATUS_FAILED
+
         pid_exists = psutil.pid_exists(pid)
         if pid_exists:
             process = psutil.Process(pid=pid)
@@ -86,42 +93,61 @@ class RucioFileUploader:
             dataset_name=dataset_name
         )
 
-        os.makedirs(LOGFILE_DIR, exist_ok=True)
         logfile_path = os.path.join(LOGFILE_DIR, f"{upload_job_id}.log")
 
+        # One logger is reused for every job; each job attaches and removes its own handlers.
         upload_logger = logging.getLogger('UploadLogger')
         upload_logger.setLevel(logging.DEBUG)
-
-        if not upload_logger.hasHandlers():
-            upload_logger.addHandler(logging.FileHandler(logfile_path))
-            upload_logger.addHandler(logging.StreamHandler())
-
         upload_logger.propagate = False  # prevent bubbling up to root
 
-        item = {
-            'path': os.path.abspath(file_path),
-            'rse': rse,
-            'did_scope': scope,
-            'dataset_scope': dataset_scope,
-            'dataset_name': dataset_name,
-            'lifetime': lifetime
-        }
-
+        # Attach the stream handler first so setup failures below are still logged.
+        stream_handler = logging.StreamHandler()
+        upload_logger.addHandler(stream_handler)
+        handlers = [stream_handler]
+        successful = False
         try:
+            os.makedirs(LOGFILE_DIR, exist_ok=True)
+            file_handler = logging.FileHandler(logfile_path)
+            upload_logger.addHandler(file_handler)
+            handlers.append(file_handler)
+
+            item = {
+                'path': os.path.abspath(file_path),
+                'rse': rse,
+                'did_scope': scope,
+                'dataset_scope': dataset_scope,
+                'dataset_name': dataset_name,
+                'lifetime': lifetime
+            }
+
             upload_client = UploadClient(logger=upload_logger)
-            status = upload_client.upload(items=[item])
-            if status == 0:
+            upload_status = upload_client.upload(items=[item])
+            if upload_status == 0:
                 self.db.mark_upload_job_finished(upload_job_id)
-                os.remove(logfile_path)
+                successful = True
+            else:
+                upload_logger.error("Upload failed with status %s", upload_status)
         except Exception:
             upload_logger.exception("Upload failed")
+        finally:
+            if not successful:
+                try:
+                    self.db.mark_upload_job_failed(upload_job_id)
+                except Exception:
+                    upload_logger.exception("Could not mark upload job %s as failed", upload_job_id)
+            for handler in handlers:
+                upload_logger.removeHandler(handler)
+                handler.close()
+            if successful:
+                try:
+                    os.remove(logfile_path)
+                except OSError:
+                    pass
 
     def add_upload_job(self, path, rse, scope, lifetime=None, dataset_scope=None, dataset_name=None):
         file_name = path.strip('/').split('/')[-1]
         did = scope + ':' + file_name
-        dataset_did = None
-        if dataset_scope and dataset_scope:
-            dataset_did = dataset_scope + ':' + dataset_name
+        dataset_did = dataset_scope + ':' + dataset_name if dataset_scope and dataset_name else None
 
         upload_job_id = self.db.add_upload_job(
             namespace=self.namespace,

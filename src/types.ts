@@ -132,10 +132,9 @@ export type FileUploadParam = {
   paths: string[];
   rse: string;
   fileScope: string;
-  addToDataset?: boolean;
+  lifetime?: number;
   datasetScope?: string;
   datasetName?: string;
-  lifetime?: number;
 };
 
 export type FileUploadStatus = 'OK' | 'FAILED' | 'UPLOADING';
