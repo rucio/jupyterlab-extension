@@ -173,6 +173,27 @@ def test_upload_logger_cleanup_preserves_failed_log_and_removes_success_log(mock
     assert uploader.db.finished == [2]
 
 
+@pytest.mark.parametrize('failing_call', ['os.makedirs', 'logging.FileHandler'])
+def test_upload_logs_setup_failure_to_stream(mocker, tmp_path, capsys, failing_call):
+    uploader = RucioFileUploader.__new__(RucioFileUploader)
+    uploader.namespace = 'namespace'
+    uploader.db = FakeDB()
+    mocker.patch.object(upload_module, 'LOGFILE_DIR', str(tmp_path / 'logs'))
+    mocker.patch(f'rucio_jupyterlab.rucio.upload.{failing_call}', side_effect=OSError('log setup failed'))
+    client = mocker.patch('rucio.client.uploadclient.UploadClient')
+    upload_logger = upload_module.logging.getLogger('UploadLogger.1')
+    handlers_before = list(upload_logger.handlers)
+
+    uploader.upload('/tmp/file', 'RSE', 'scope')
+
+    stderr = capsys.readouterr().err
+    assert 'Upload failed' in stderr
+    assert 'log setup failed' in stderr
+    client.assert_not_called()
+    assert uploader.db.finished == []
+    assert upload_logger.handlers == handlers_before
+
+
 def test_add_upload_job_requires_both_dataset_parts_for_dataset_did():
     uploader = RucioFileUploader.__new__(RucioFileUploader)
     uploader.namespace = 'namespace'

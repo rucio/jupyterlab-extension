@@ -90,20 +90,22 @@ class RucioFileUploader:
             dataset_name=dataset_name
         )
 
-        os.makedirs(LOGFILE_DIR, exist_ok=True)
         logfile_path = os.path.join(LOGFILE_DIR, f"{upload_job_id}.log")
 
         upload_logger = logging.getLogger(f'UploadLogger.{upload_job_id}')
         upload_logger.setLevel(logging.DEBUG)
         upload_logger.propagate = False  # prevent bubbling up to root
 
-        handlers = []
+        # Attach the stream handler first so setup failures below are still logged.
+        stream_handler = logging.StreamHandler()
+        upload_logger.addHandler(stream_handler)
+        handlers = [stream_handler]
         successful = False
         try:
-            handlers.append(logging.FileHandler(logfile_path))
-            handlers.append(logging.StreamHandler())
-            for handler in handlers:
-                upload_logger.addHandler(handler)
+            os.makedirs(LOGFILE_DIR, exist_ok=True)
+            file_handler = logging.FileHandler(logfile_path)
+            upload_logger.addHandler(file_handler)
+            handlers.append(file_handler)
 
             item = {
                 'path': os.path.abspath(file_path),
