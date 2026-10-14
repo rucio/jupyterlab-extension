@@ -95,7 +95,7 @@ function activateRucioUploadWidget(
 
       if (widget) {
         const selection = Array.from(widget.selectedItems()).filter(
-          s => s.type === 'file'
+          s => s.type === 'file' || s.type === 'notebook'
         );
         if (selection.length === 0) {
           return;
