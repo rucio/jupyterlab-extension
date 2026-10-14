@@ -166,6 +166,7 @@ def test_upload_logger_cleanup_preserves_failed_log_and_removes_success_log(mock
     mocker.patch.object(upload_module, 'LOGFILE_DIR', str(tmp_path))
     client = mocker.patch('rucio.client.uploadclient.UploadClient')
     client.return_value.upload.side_effect = [RuntimeError('failed'), 0]
+    handlers_before = list(upload_module.logging.getLogger('UploadLogger').handlers)
 
     uploader.upload('/tmp/failed', 'RSE', 'scope')
     uploader.upload('/tmp/success', 'RSE', 'scope')
@@ -175,11 +176,31 @@ def test_upload_logger_cleanup_preserves_failed_log_and_removes_success_log(mock
     assert 'Upload failed' in failed_log.read_text()
     assert not (tmp_path / '2.log').exists()
     loggers = [call.kwargs['logger'] for call in client.call_args_list]
-    assert loggers[0] is not loggers[1]
-    assert not loggers[0].handlers
-    assert not loggers[1].handlers
+    assert loggers[0] is loggers[1]
+    assert loggers[0].handlers == handlers_before
     assert uploader.db.finished == [2]
     assert uploader.db.failed == [1]
+
+
+def test_upload_reuses_one_logger_and_keeps_job_logs_separate(mocker, tmp_path):
+    uploader = RucioFileUploader.__new__(RucioFileUploader)
+    uploader.namespace = 'namespace'
+    uploader.db = FakeDB()
+    mocker.patch.object(upload_module, 'LOGFILE_DIR', str(tmp_path))
+    client = mocker.patch('rucio.client.uploadclient.UploadClient')
+    client.return_value.upload.side_effect = [RuntimeError(f'failure of job {job_id}') for job_id in (1, 2, 3)]
+    registry = upload_module.logging.Logger.manager.loggerDict
+    upload_loggers_before = {name for name in registry if name.startswith('UploadLogger')}
+
+    for job_id in (1, 2, 3):
+        uploader.upload(f'/tmp/file{job_id}', 'RSE', 'scope')
+
+    upload_loggers_after = {name for name in registry if name.startswith('UploadLogger')}
+    assert upload_loggers_after - upload_loggers_before <= {'UploadLogger'}
+    for job_id in (1, 2, 3):
+        log_text = (tmp_path / f'{job_id}.log').read_text()
+        assert f'failure of job {job_id}' in log_text
+        assert all(f'failure of job {other}' not in log_text for other in (1, 2, 3) if other != job_id)
 
 
 def test_upload_marks_job_failed_when_upload_client_returns_nonzero(mocker, tmp_path):
@@ -250,7 +271,7 @@ def test_upload_logs_setup_failure_to_stream(mocker, tmp_path, capsys, failing_c
     mocker.patch.object(upload_module, 'LOGFILE_DIR', str(tmp_path / 'logs'))
     mocker.patch(f'rucio_jupyterlab.rucio.upload.{failing_call}', side_effect=OSError('log setup failed'))
     client = mocker.patch('rucio.client.uploadclient.UploadClient')
-    upload_logger = upload_module.logging.getLogger('UploadLogger.1')
+    upload_logger = upload_module.logging.getLogger('UploadLogger')
     handlers_before = list(upload_logger.handlers)
 
     uploader.upload('/tmp/file', 'RSE', 'scope')

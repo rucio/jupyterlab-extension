@@ -95,7 +95,8 @@ class RucioFileUploader:
 
         logfile_path = os.path.join(LOGFILE_DIR, f"{upload_job_id}.log")
 
-        upload_logger = logging.getLogger(f'UploadLogger.{upload_job_id}')
+        # One logger is reused for every job; each job attaches and removes its own handlers.
+        upload_logger = logging.getLogger('UploadLogger')
         upload_logger.setLevel(logging.DEBUG)
         upload_logger.propagate = False  # prevent bubbling up to root
 
