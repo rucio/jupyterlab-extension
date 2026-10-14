@@ -12,7 +12,7 @@ import json
 import time
 import pytest
 from peewee import SqliteDatabase
-from rucio_jupyterlab.db import DatabaseInstance, FileUploadJob
+from rucio_jupyterlab.db import FAILED_UPLOAD_JOB_PID, DatabaseInstance, FileUploadJob
 from rucio_jupyterlab.entity import AttachedFile
 from .mocks.mock_db import Struct
 
@@ -206,6 +206,18 @@ def test_mark_upload_job_finished_targets_requested_job(database_instance, uploa
     assert finished_job.id == 2
     assert not FileUploadJob.get_by_id(1).uploaded
     assert FileUploadJob.get_by_id(2).uploaded
+
+
+def test_mark_upload_job_failed_targets_requested_job(database_instance, upload_job_database):
+    create_upload_job(1)
+    create_upload_job(2)
+
+    failed_job = database_instance.mark_upload_job_failed(2)
+
+    assert failed_job.id == 2
+    assert FileUploadJob.get_by_id(1).pid == 1
+    assert FileUploadJob.get_by_id(2).pid == FAILED_UPLOAD_JOB_PID
+    assert not FileUploadJob.get_by_id(2).uploaded
 
 
 def test_delete_upload_job_targets_requested_job(database_instance, upload_job_database):

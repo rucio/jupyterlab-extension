@@ -10,7 +10,7 @@
 import os
 import psutil
 import logging
-from rucio_jupyterlab.db import get_db
+from rucio_jupyterlab.db import FAILED_UPLOAD_JOB_PID, get_db
 from rucio_jupyterlab.rucio.client_environment import RucioClientEnvironment
 
 LOGFILE_DIR = os.path.expanduser('~/.rucio_jupyterlab/logs/upload')
@@ -70,6 +70,9 @@ class RucioFileUploader:
         if uploaded:
             return RucioFileUploader.STATUS_OK
 
+        if pid == FAILED_UPLOAD_JOB_PID:
+            return RucioFileUploader.STATUS_FAILED
+
         pid_exists = psutil.pid_exists(pid)
         if pid_exists:
             process = psutil.Process(pid=pid)
@@ -117,12 +120,20 @@ class RucioFileUploader:
             }
 
             upload_client = UploadClient(logger=upload_logger)
-            if upload_client.upload(items=[item]) == 0:
+            upload_status = upload_client.upload(items=[item])
+            if upload_status == 0:
                 self.db.mark_upload_job_finished(upload_job_id)
                 successful = True
+            else:
+                upload_logger.error("Upload failed with status %s", upload_status)
         except Exception:
             upload_logger.exception("Upload failed")
         finally:
+            if not successful:
+                try:
+                    self.db.mark_upload_job_failed(upload_job_id)
+                except Exception:
+                    upload_logger.exception("Could not mark upload job %s as failed", upload_job_id)
             for handler in handlers:
                 upload_logger.removeHandler(handler)
                 handler.close()

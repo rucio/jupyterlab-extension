@@ -37,6 +37,10 @@ else:
 prepare_directory(dir_path)
 db = prepare_db(dir_path)
 
+# Batch uploads share one worker PID, so a failed job is marked with a PID
+# that can never be alive instead of waiting for the worker to exit.
+FAILED_UPLOAD_JOB_PID = -1
+
 
 def get_db():
     db.create_tables([UserConfig, RucioAuthCredentials, AttachedFilesListCache, FileReplicasCache, FileUploadJob])
@@ -208,6 +212,14 @@ class DatabaseInstance:
         job = FileUploadJob.get_or_none(FileUploadJob.id == job_id)
         if job is not None:
             job.uploaded = True
+            job.save()
+
+        return job
+
+    def mark_upload_job_failed(self, job_id):
+        job = FileUploadJob.get_or_none(FileUploadJob.id == job_id)
+        if job is not None:
+            job.pid = FAILED_UPLOAD_JOB_PID
             job.save()
 
         return job
